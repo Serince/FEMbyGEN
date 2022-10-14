@@ -186,7 +186,7 @@ class ResultsPanel:
         return int(mult*200), 255, int(mult*200)
 
     def calcAndSaveFEAMetrics(self):
-        master=self.doc
+        master = self.doc
         numGenerations = Common.checkGenerations(self.workingDir)
         if numGenerations > 0:
             header = [["Volume[mm^3]", "Max Stress[MPa]", "Max Disp[mm]", "Mean Stress[MPa]", "Internal Energy[Joule]", "Standard Dev. of En. Den"
@@ -200,7 +200,7 @@ class ResultsPanel:
         FreeCAD.open(master.FileName)
 
     def calculateFEAMetric(self):
-        master=self.doc
+        master = self.doc
         statuses, numgAnly, lc = Common.searchAnalysed(master)
         result = []
         deviation = []
@@ -211,11 +211,11 @@ class ResultsPanel:
             filename = f"Gen{i+1}"
             filePath = self.workingDir + f"/Gen{i+1}/{filename}.FCStd"
             doc = FreeCAD.open(filePath, hidden=True)
-            
+
             # for each loadcases it's read the results
             for j, value in enumerate(row):
-                if value=="Analysed":
-                    resultPath = self.workingDir + f"/Gen{i+1}/loadCase{j+1}/" 
+                if value == "Analysed":
+                    resultPath = self.workingDir + f"/Gen{i+1}/loadCase{j+1}/"
                     mean = np.mean(doc.CCX_Results.vonMises)
                     max = np.max(doc.CCX_Results.vonMises)
                     maxDisp = np.max(doc.CCX_Results.DisplacementLengths)
@@ -225,7 +225,7 @@ class ResultsPanel:
                     energyDenStd = np.std(denData)
                     deviation.append(denData)
                     result.append([f"{totalVol:.2e}", f"{max:.2e}", f"{maxDisp:.2e}",
-                                f"{mean:.2e}", f"{totalInt:.2e}", f"{energyDenStd:.2e}"])
+                                   f"{mean:.2e}", f"{totalInt:.2e}", f"{energyDenStd:.2e}"])
 
             self.getResultsToMaster(doc, i+1)
             FreeCAD.closeDocument(filename)
@@ -236,13 +236,13 @@ class ResultsPanel:
         lc = j+1
         for k in range(0, gen*lc, lc):
             volume = res[k, 0]
-            internal = np.sum(res[k:k+j, 1])
-            std = np.std(deviation[k:k+j])
-            meanStr = np.mean(res[k:k+j, 3])
-            maxStr = np.max(res[k:k+j, 4])
-            maxdisp = np.max(res[k:k+j, 5])
+            internal = np.sum(res[k:k+lc, 1])
+            std = np.std(deviation[k:k+lc])
+            meanStr = np.mean(res[k:k+lc, 3])
+            maxStr = np.max(res[k:k+lc, 4])
+            maxdisp = np.max(res[k:k+lc, 5])
             result_sum.append([f"{volume:.2e}", f"{internal:.2e}", f"{std:.2e}",
-                              f"{meanStr:.2e}", f"{maxStr:.2e}", f"{maxdisp:.2e}"])
+                               f"{meanStr:.2e}", f"{maxStr:.2e}", f"{maxdisp:.2e}"])
 
         return result, result_sum
 
@@ -296,7 +296,7 @@ class ResultsPanel:
                 vonMises += np.array(obj.vonMises)
 
         # Assigning summed results to the an object
-        total.DisplacementLengths = DisplacementLengths.tolist() #it includes Vector object, therefore it converted to the list
+        total.DisplacementLengths = DisplacementLengths.tolist()  # it includes Vector object, therefore it converted to the list
         vectorized = []
         for i in DisplacementVectors.tolist():
             vectorized.append(FreeCAD.Vector(i))
@@ -321,7 +321,7 @@ class ResultsPanel:
         fill_femresult_stats(total)
 
     def getResultsToMaster(self, doc, GenNo):
-        master=self.doc
+        master = self.doc
         doc.CCX_Results.Label = f"Gen{GenNo}_Results"
         doc.ResultMesh.Label = f"Gen{GenNo}_Mesh"
         master.copyObject(doc.CCX_Results, False)

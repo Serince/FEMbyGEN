@@ -2,7 +2,7 @@
 <package format="1">
     <name>FEMbyGEM</name>
     <description>Parametric Finite Element Analysis(FEM)</description>
-    <version>1.0</version>
+    <version>1.1</version>
     <maintainer email="serince@outlook.com">Serdar T. Ince</maintainer>
     <license file="LICENSE">LGPL-2</license>
     <url type="repository" branch="master">https://github.com/Serince/FEMbyGEN</url>

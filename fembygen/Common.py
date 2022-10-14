@@ -69,7 +69,7 @@ def checkGenParameters(master):
 def showGen(table, master, item):
     global old
     old = FreeCAD.ActiveDocument.Name
-    if old[:3] == "Gen":
+    if old[:3] == "Gen" and old[3:4].isnumeric():
         FreeCAD.closeDocument(old)
     if table == "close":
         FreeCAD.setActiveDocument(master.Name)
