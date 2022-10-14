@@ -97,7 +97,7 @@ class FEAPanel:
         self.form.deleteAnalyses.clicked.connect(self.deleteGenerations)
 
     def deleteGenerations(self):
-        FreeCAD.Console.PrintMessage("Deleting...")
+        FreeCAD.Console.PrintMessage("Deleting...\n")
         numGens = Common.checkGenerations(self.workingDir)
         for i in range(1, numGens+1):
             lcases = glob.glob(self.workingDir + f"/Gen{i}/loadCase*")
@@ -108,16 +108,20 @@ class FEAPanel:
 
                 except FileNotFoundError:
                     FreeCAD.Console.PrintError(
-                        f"INFO: Generation {j} analysis data not found")
+                        f"INFO: Generation {j} analysis data not found\n")
+                # Delete if earlier generative objects exist
 
-        doc = self.doc
-        doc.FEA.Status = []
-        doc.FEA.NumberofAnalysis = 0
-        doc.FEA.NumberOfLoadCase = 0
+        try:  # If already results imported, try to delete those
+            Common.purge_results(self.doc)
+        except:
+            pass
+        self.doc.FEA.Status = []
+        self.doc.FEA.NumberofAnalysis = 0
+        self.doc.FEA.NumberOfLoadCase = 0
         self.updateAnalysisTable()
 
     def FEAGenerations(self):
-        FreeCAD.Console.PrintMessage("Analysis starting")
+        FreeCAD.Console.PrintMessage("Analysis starting\n")
         for i in range(self.numGenerations):
             # Open generated part
             partName = f"Gen{i+1}"

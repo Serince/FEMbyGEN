@@ -79,7 +79,7 @@ class ResultsPanel:
 
         self.doc = object.Object.Document
         if self.doc.Results.FEAMetricsAll == []:
-            FreeCAD.Console.PrintMessage("Calculating metrics...")
+            FreeCAD.Console.PrintMessage("Calculating metrics...\n")
             self.calcAndSaveFEAMetrics()
         self.form.arrange.clicked.connect(self.ranking)
 
@@ -153,7 +153,7 @@ class ResultsPanel:
             try:
                 vals = items[:, i]
             except ValueError:
-                print("Results couldn't converted to the number.")
+                FreeCAD.Console.PrintError("Results couldn't converted to the number.\n")
 
             # Calculate value range to calibrate colour scale
             minVal = min(vals)
@@ -215,17 +215,25 @@ class ResultsPanel:
             # for each loadcases it's read the results
             for j, value in enumerate(row):
                 if value == "Analysed":
-                    resultPath = self.workingDir + f"/Gen{i+1}/loadCase{j+1}/"
-                    mean = np.mean(doc.CCX_Results.vonMises)
-                    max = np.max(doc.CCX_Results.vonMises)
-                    maxDisp = np.max(doc.CCX_Results.DisplacementLengths)
+                    try:
+                        resultPath = self.workingDir + f"/Gen{i+1}/loadCase{j+1}/"
+                        mean = np.mean(doc.CCX_Results.vonMises)
+                        max = np.max(doc.CCX_Results.vonMises)
+                        maxDisp = np.max(doc.CCX_Results.DisplacementLengths)
 
-                    intData, totalInt, volData, totalVol, denData = self.IntEnergyandVolume(
-                        resultPath)
-                    energyDenStd = np.std(denData)
-                    deviation.append(denData)
-                    result.append([f"{totalVol:.2e}", f"{max:.2e}", f"{maxDisp:.2e}",
-                                   f"{mean:.2e}", f"{totalInt:.2e}", f"{energyDenStd:.2e}"])
+                        intData, totalInt, volData, totalVol, denData = self.IntEnergyandVolume(
+                            resultPath)
+                        energyDenStd = np.std(denData)
+                        deviation.append(denData)
+                        result.append([f"{totalVol:.2e}", f"{max:.2e}", f"{maxDisp:.2e}",
+                                    f"{mean:.2e}", f"{totalInt:.2e}", f"{energyDenStd:.2e}"])
+                        FreeCAD.Console.PrintMessage(f"Generation {i+1} Analysis {j+1} results imported\n")
+                    except:
+                        FreeCAD.Console.PrintError(f"During getting results of Generation {i+1} Analysis {j+1} problem occured. Please check the generation results by opening Gen{i+1} folder in master file directory.\n")
+                        result.append([None]*6)
+                else:
+                    FreeCAD.Console.PrintError(f"Generation {i+1} Loadcase {j+1} couldn't imported\n")
+                    result.append([None]*6)
 
             self.getResultsToMaster(doc, i+1)
             FreeCAD.closeDocument(filename)
@@ -235,14 +243,17 @@ class ResultsPanel:
         gen = i+1
         lc = j+1
         for k in range(0, gen*lc, lc):
-            volume = res[k, 0]
-            internal = np.sum(res[k:k+lc, 1])
-            std = np.std(deviation[k:k+lc])
-            meanStr = np.mean(res[k:k+lc, 3])
-            maxStr = np.max(res[k:k+lc, 4])
-            maxdisp = np.max(res[k:k+lc, 5])
-            result_sum.append([f"{volume:.2e}", f"{internal:.2e}", f"{std:.2e}",
+            try:
+                volume = res[k, 0]
+                internal = np.sum(res[k:k+lc, 1])
+                std = np.std(deviation[k:k+lc])
+                meanStr = np.mean(res[k:k+lc, 3])
+                maxStr = np.max(res[k:k+lc, 4])
+                maxdisp = np.max(res[k:k+lc, 5])
+                result_sum.append([f"{volume:.2e}", f"{internal:.2e}", f"{std:.2e}",
                                f"{meanStr:.2e}", f"{maxStr:.2e}", f"{maxdisp:.2e}"])
+            except:
+                result_sum.append([None]*6)
 
         return result, result_sum
 
@@ -322,11 +333,14 @@ class ResultsPanel:
 
     def getResultsToMaster(self, doc, GenNo):
         master = self.doc
-        doc.CCX_Results.Label = f"Gen{GenNo}_Results"
-        doc.ResultMesh.Label = f"Gen{GenNo}_Mesh"
-        master.copyObject(doc.CCX_Results, False)
-        master.copyObject(doc.ResultMesh, False)
-
+        try:
+            doc.CCX_Results.Label = f"Gen{GenNo}_Results"
+            doc.ResultMesh.Label = f"Gen{GenNo}_Mesh"
+            master.copyObject(doc.CCX_Results, False)
+            master.copyObject(doc.ResultMesh, False)
+        except:
+            FreeCAD.Console.PrintError(f"Results of Gen{GenNo} is not found in the file. Please check the results by opening the file directly.\n")
+            return
         totalResult = master.getObjectsByLabel(f"Gen{GenNo}_Results")[0]
         resultMesh = master.getObjectsByLabel(f"Gen{GenNo}_Mesh")[0]
 

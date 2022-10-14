@@ -14,6 +14,28 @@ def checkGenerations(workingDir):
     return numGens-1
 
 
+def purge_results(doc):
+    from femtools.femutils import is_of_type
+    analysis = doc.Results
+    for m in analysis.Group:
+        if m.isDerivedFrom("Fem::FemResultObject"):
+            if m.Mesh and is_of_type(m.Mesh, "Fem::MeshResult"):
+                analysis.Document.removeObject(m.Mesh.Name)
+            analysis.Document.removeObject(m.Name)
+    analysis.Document.recompute()
+    # result mesh
+    for m in analysis.Group:
+        if is_of_type(m, "Fem::MeshResult"):
+            analysis.Document.removeObject(m.Name)
+    analysis.Document.recompute()
+    # dat text object
+    for m in analysis.Group:
+        if is_of_type(m, "App::TextDocument") and m.Name.startswith("ccx_dat_file"):
+            analysis.Document.removeObject(m.Name)
+    analysis.Document.recompute()
+    doc.removeObject("Results")
+
+
 def searchAnalysed(master):
     numAnalysed = 0
     statuses = []
@@ -32,7 +54,7 @@ def searchAnalysed(master):
                     # This returns an exception if analysis failed for this .frd file, because there is no results data
                     FRDPath = glob.glob(analysisfolder + "*.frd")[0]
                     try:
-                        with open(FRDPath,"r") as file:
+                        with open(FRDPath, "r") as file:
                             file.readline().decode().strip()
                     except:
                         status = "Failed"
@@ -44,7 +66,7 @@ def searchAnalysed(master):
                 try:
                     lcStatus.append(status)
                 except:
-                    FreeCAD.Console.PrintError("Analysis not found.")
+                    FreeCAD.Console.PrintError("Analysis not found.\n")
         statuses.append(lcStatus)
     return (statuses, numAnalysed, lc)
 

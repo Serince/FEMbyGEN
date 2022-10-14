@@ -114,26 +114,6 @@ class GeneratePanel():
             gmsh_mesh = gt(mesh)
             gmsh_mesh.create_mesh()
 
-    def purge_results(self):
-        from femtools.femutils import is_of_type
-        analysis = self.doc.Results
-        for m in analysis.Group:
-            if m.isDerivedFrom("Fem::FemResultObject"):
-                if m.Mesh and is_of_type(m.Mesh, "Fem::MeshResult"):
-                    analysis.Document.removeObject(m.Mesh.Name)
-                analysis.Document.removeObject(m.Name)
-        analysis.Document.recompute()
-        # result mesh
-        for m in analysis.Group:
-            if is_of_type(m, "Fem::MeshResult"):
-                analysis.Document.removeObject(m.Name)
-        analysis.Document.recompute()
-        # dat text object
-        for m in analysis.Group:
-            if is_of_type(m, "App::TextDocument") and m.Name.startswith("ccx_dat_file"):
-                analysis.Document.removeObject(m.Name)
-        analysis.Document.recompute()
-
     def generateParts(self):
         master = self.doc
         master.save()  # saving the prepared masterfile
@@ -144,18 +124,6 @@ class GeneratePanel():
         numberofgen = []
         self.detection = []
         self.inumber = []
-
-        # Delete if earlier generative objects exist
-        for l in master.Generative_Design.Group:
-            if l.Name == "Parameters" or l.Name == "Generate":
-                pass
-            elif l.Name == "Results":
-                # for m in master.Results.Group:
-                #     master.removeObject(m.Name)
-                self.purge_results()
-                master.removeObject("Results")
-            else:
-                master.removeObject(l.Name)
 
         # Getting number of parameters
         try:
@@ -267,7 +235,7 @@ class GeneratePanel():
         self.resetViewControls(numGens)
         self.updateParametersTable()
         master.save()  # too store generated values in generate object
-        FreeCAD.Console.PrintMessage("Generation done successfully!")
+        FreeCAD.Console.PrintMessage("Generation done successfully!\n")
 
     def deleteGenerations(self):
         FreeCAD.Console.PrintMessage("Deleting...\n")
@@ -284,24 +252,21 @@ class GeneratePanel():
             except:
                 FreeCAD.Console.PrintError(
                     "Error while trying to delete analysis folder for generation " + str(i))
-        
+
         # Delete if earlier generative objects exist
         try:
             for l in self.doc.Generative_Design.Group:
                 if l.Name == "Parameters" or l.Name == "Generate":
                     pass
                 elif l.Name == "Results":
-                    # for m in master.Results.Group:
-                    #     master.removeObject(m.Name)
-                    self.purge_results()
-                    self.doc.removeObject("Results")
+                    Common.purge_results(self.doc)
                 else:
                     self.doc.removeObject(l.Name)
         except:
             pass
 
         self.doc.Generate.Generated_Parameters = None
-        #refreshing the table
+        # refreshing the table
         self.resetViewControls(numGens)
         self.updateParametersTable()
         FreeCAD.setActiveDocument(self.doc.Name)
