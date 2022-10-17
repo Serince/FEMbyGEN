@@ -14,9 +14,12 @@ def makeResult():
         obj = FreeCAD.ActiveDocument.Results
         obj.isValid()
     except:
-        obj = FreeCAD.ActiveDocument.addObject(
-            "App::DocumentObjectGroupPython", "Results")
-        FreeCAD.ActiveDocument.Generative_Design.addObject(obj)
+        try:
+            obj = FreeCAD.ActiveDocument.addObject(
+                "App::DocumentObjectGroupPython", "Results")
+            FreeCAD.ActiveDocument.Generative_Design.addObject(obj)
+        except:
+            return None
     Result(obj)
     if FreeCAD.GuiUp:
         ViewProviderResult(obj.ViewObject)
@@ -54,12 +57,15 @@ class ResultsCommand():
 
     def Activated(self):
         obj = makeResult()
-        doc = FreeCADGui.getDocument(obj.ViewObject.Object.Document)
-        if not doc.getInEdit():
-            doc.setEdit(obj.ViewObject.Object.Name)
-        else:
-            FreeCAD.Console.PrintError('Existing task dialog already open\n')
-        return
+        try:
+            doc = FreeCADGui.getDocument(obj.ViewObject.Object.Document)
+            if not doc.getInEdit():
+                doc.setEdit(obj.ViewObject.Object.Name)
+            else:
+                FreeCAD.Console.PrintError('Existing task dialog already open\n')
+            return
+        except:
+            FreeCAD.Console.PrintError('Make sure that you are working on the master file. Close the generated file\n')
 
     def IsActive(self):
         """Here you can define if the command must be active or not (greyed) if certain conditions
@@ -111,8 +117,8 @@ class ResultsPanel:
 
         self.form.resultsTable_all.clicked.connect(functools.partial(
             Common.showGen, self.form.resultsTable_all, self.doc))
-        self.form.resultsTable_all.setMinimumHeight(len(index))
-        self.form.resultsTable_all.setMaximumHeight(len(index)*40)
+        self.form.resultsTable_all.setMinimumHeight(30+len(index)*31)
+        self.form.resultsTable_all.setMaximumHeight(30+len(index)*31)
         self.form.resultsTable_all.setSortingEnabled(True)
 
     def updateResultsTableSum(self, score=None):
@@ -138,8 +144,8 @@ class ResultsPanel:
 
         self.form.resultsTable_sum.clicked.connect(functools.partial(
             Common.showGen, self.form.resultsTable_sum, self.doc))
-        self.form.resultsTable_sum.setMinimumHeight(gen*40)
-        self.form.resultsTable_sum.setMaximumHeight(gen*40)
+        self.form.resultsTable_sum.setMinimumHeight(30+gen*31)
+        self.form.resultsTable_sum.setMaximumHeight(30+gen*31)
         self.form.resultsTable_sum.setSortingEnabled(True)
 
     def generateColourScalesFromMetrics(self, table):
@@ -226,10 +232,11 @@ class ResultsPanel:
                         energyDenStd = np.std(denData)
                         deviation.append(denData)
                         result.append([f"{totalVol:.2e}", f"{max:.2e}", f"{maxDisp:.2e}",
-                                    f"{mean:.2e}", f"{totalInt:.2e}", f"{energyDenStd:.2e}"])
+                                       f"{mean:.2e}", f"{totalInt:.2e}", f"{energyDenStd:.2e}"])
                         FreeCAD.Console.PrintMessage(f"Generation {i+1} Analysis {j+1} results imported\n")
                     except:
-                        FreeCAD.Console.PrintError(f"During getting results of Generation {i+1} Analysis {j+1} problem occured. Please check the generation results by opening Gen{i+1} folder in master file directory.\n")
+                        FreeCAD.Console.PrintError(
+                            f"During getting results of Generation {i+1} Analysis {j+1} problem occured. Please check the generation results by opening Gen{i+1} folder in master file directory.\n")
                         result.append([None]*6)
                 else:
                     FreeCAD.Console.PrintError(f"Generation {i+1} Loadcase {j+1} couldn't imported\n")
@@ -251,7 +258,7 @@ class ResultsPanel:
                 maxStr = np.max(res[k:k+lc, 4])
                 maxdisp = np.max(res[k:k+lc, 5])
                 result_sum.append([f"{volume:.2e}", f"{internal:.2e}", f"{std:.2e}",
-                               f"{meanStr:.2e}", f"{maxStr:.2e}", f"{maxdisp:.2e}"])
+                                   f"{meanStr:.2e}", f"{maxStr:.2e}", f"{maxdisp:.2e}"])
             except:
                 result_sum.append([None]*6)
 
@@ -339,7 +346,8 @@ class ResultsPanel:
             master.copyObject(doc.CCX_Results, False)
             master.copyObject(doc.ResultMesh, False)
         except:
-            FreeCAD.Console.PrintError(f"Results of Gen{GenNo} is not found in the file. Please check the results by opening the file directly.\n")
+            FreeCAD.Console.PrintError(
+                f"Results of Gen{GenNo} is not found in the file. Please check the results by opening the file directly.\n")
             return
         totalResult = master.getObjectsByLabel(f"Gen{GenNo}_Results")[0]
         resultMesh = master.getObjectsByLabel(f"Gen{GenNo}_Mesh")[0]

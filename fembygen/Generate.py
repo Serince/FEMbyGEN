@@ -7,7 +7,9 @@ from fembygen import Common
 import numpy as np
 import itertools
 import PySide
-import functools
+import multiprocessing.dummy as mp
+from multiprocessing import cpu_count
+from functools import partial
 
 
 def makeGenerate():
@@ -53,8 +55,6 @@ class GenerateCommand():
 
     def Activated(self):
         obj = makeGenerate()
-        # panel = GeneratePanel(obj)
-        # FreeCADGui.Control.showDialog(panel)
         doc = FreeCADGui.ActiveDocument
         if not doc.getInEdit():
             doc.setEdit(obj.ViewObject.Object.Name)
@@ -114,6 +114,80 @@ class GeneratePanel():
             gmsh_mesh = gt(mesh)
             gmsh_mesh.create_mesh()
 
+    def copy_mesh(self, numgenerations, i):
+        docPath = self.doc.FileName
+        # Regenerate the part and save generation as FreeCAD doc
+        try:
+            os.mkdir(self.workingDir + f"/Gen{i+1}")
+        except:
+            FreeCAD.Console.PrintError(
+                f"Please delete earlier generations: Gen{i+1} already exist in the folder")
+            self.form.progressBar.setValue(100)
+            self.form.progressBar.setStyleSheet(
+                "QProgressBar {text-align: center; } QProgressBar::chunk {background-color: #F44336;}")
+            self.form.readyLabel.setText("Delete earlier generations")
+            return
+
+        filename = f"Gen{i+1}.FCStd"
+        directory = self.workingDir + f"/Gen{i+1}/"
+        filePath = directory + filename
+        shutil.copy(docPath, filePath)
+        shutil.copy(filePath, filePath+".backup")
+
+        doc = FreeCAD.open(filePath, hidden=True)
+
+        # Produce parameters sheet for new geometry
+        doc.Parameters.set('C1', 'Value')
+        for k in range(self.inumber[0]):
+            doc.Parameters.set(
+                f'C{k+2}', f'{numgenerations[i][k]}')
+            doc.Parameters.clear(f'D1:D{k+2}')
+            doc.Parameters.clear(f'E1:E{k+2}')
+
+        # Removing generative design container in the file
+        for l in doc.Generative_Design.Group:
+            if l.Name == "Parameters":
+                pass
+            else:
+                doc.removeObject(l.Name)
+        doc.removeObject(doc.Generative_Design.Name)
+        doc.recompute()
+
+        # getting first analysis meshing object and copy it other loadcases
+        for mesh in doc.Objects:
+            if mesh.TypeId == 'Fem::FemMeshObjectPython':
+                self.meshing(mesh, "Gmsh")
+                break
+            elif mesh.TypeId == 'Fem::FemMeshShapeNetgenObject':
+                self.meshing(mesh, "Netgen")
+                break
+
+        # define analysis working directory
+        lc = 0
+        for obj in doc.Objects:
+            try:
+                if obj.TypeId == "Fem::FemAnalysis":  # to choose analysis objects
+                    lc += 1
+                    # copying first loadcase mesh to other loadcases
+                    if lc > 1:
+                        for femobj in obj.Group:
+                            # delete old mesh of loadcase
+                            if femobj.TypeId == 'Fem::FemMeshObjectPython' or femobj.TypeId == 'Fem::FemMeshShapeNetgenObject':
+                                doc.removeObject(femobj.Name)
+
+                            # setting working directory of loadcase to subfolder of generation folder
+                            elif femobj.TypeId == 'Fem::FemSolverObjectPython':
+                                femobj.WorkingDir = os.path.join(directory+f"loadCase{lc}")
+                        # copying same mesh to other loadcases
+                        obj.addObject(doc.copyObject(mesh, False))
+            except:
+                # after deleting mesh elements, for loop counts it again and it is not exist as object anymore
+                pass
+
+        doc.recompute()
+        doc.save()
+        FreeCAD.closeDocument(filename[:-6])
+
     def generateParts(self):
         master = self.doc
         master.save()  # saving the prepared masterfile
@@ -146,81 +220,16 @@ class GeneratePanel():
             'QProgressBar {text-align: center; } QProgressBar::chunk {background-color: #009688;}')
         # Combination of all parameters
         numgenerations = list(itertools.product(*param))
-        for i in range(len(numgenerations)):
-            # Regenerate the part and save generation as FreeCAD doc
-            try:
-                os.mkdir(self.workingDir + f"/Gen{i+1}")
-            except:
-                FreeCAD.Console.PrintError(
-                    f"Please delete earlier generations: Gen{i+1} already exist in the folder")
-                self.form.progressBar.setValue(100)
-                self.form.progressBar.setStyleSheet(
-                    "QProgressBar {text-align: center; } QProgressBar::chunk {background-color: #F44336;}")
-                self.form.readyLabel.setText("Delete earlier generations")
-                return
 
-            filename = f"Gen{i+1}.FCStd"
-            directory = self.workingDir + f"/Gen{i+1}/"
-            filePath = directory + filename
-            shutil.copy(docPath, filePath)
-            shutil.copy(filePath, filePath+".backup")
-
-            doc = FreeCAD.open(filePath, hidden=True)
-
-            # Produce parameters sheet for new geometry
-            doc.Parameters.set('C1', 'Value')
-            for k in range(self.inumber[0]):
-                doc.Parameters.set(
-                    f'C{k+2}', f'{numgenerations[i][k]}')
-                doc.Parameters.clear(f'D1:D{k+2}')
-                doc.Parameters.clear(f'E1:E{k+2}')
-
-            # Removing generative design container in the file
-            for l in doc.Generative_Design.Group:
-                if l.Name == "Parameters":
-                    pass
-                else:
-                    doc.removeObject(l.Name)
-            doc.removeObject(doc.Generative_Design.Name)
-            doc.recompute()
-
-            # getting first analysis meshing object and copy it other loadcases
-            for mesh in doc.Objects:
-                if mesh.TypeId == 'Fem::FemMeshObjectPython':
-                    self.meshing(mesh, "Gmsh")
-                    break
-                elif mesh.TypeId == 'Fem::FemMeshShapeNetgenObject':
-                    self.meshing(mesh, "Netgen")
-                    break
-
-            # define analysis working directory
-            lc = 0
-            for obj in doc.Objects:
-                try:
-                    if obj.TypeId == "Fem::FemAnalysis":  # to choose analysis objects
-                        lc += 1
-                        # copying first loadcase mesh to other loadcases
-                        if lc > 1:
-                            # delete old mesh of loadcase
-                            for old in obj.Group:
-                                if old.TypeId == 'Fem::FemMeshObjectPython' or old.TypeId == 'Fem::FemMeshShapeNetgenObject':
-                                    doc.removeObject(old.Name)
-
-                                # setting working directory of loadcase to subfolder of generation folder
-                                elif old.TypeId == 'Fem::F emSolverObjectPython':
-                                    old.WorkingDir = os.path.join(directory+f"loadCase{lc}")
-                            # copying same mesh to other loadcases
-                            obj.addObject(doc.copyObject(mesh, False))
-                except:
-                    # after deleting mesh elements, for loop counts it again and it is not exist as object anymore
-                    pass
-
-            doc.recompute()
-            doc.save()
-            FreeCAD.closeDocument(filename[:-6])
+        func = partial(self.copy_mesh, numgenerations)
+        iterationnumber = len(numgenerations)
+        p = mp.Pool(cpu_count()-1)
+        for i, _ in enumerate(p.imap_unordered(func, range(iterationnumber))):
             # Update progress bar
-            progress = ((i+1)/len(numgenerations)) * 100
+            progress = ((i+1)/iterationnumber) * 100
             self.form.progressBar.setValue(progress)
+        p.close()
+        p.join()
 
         # ReActivate document again once finished
         FreeCAD.setActiveDocument(master.Name)
@@ -337,10 +346,10 @@ class GeneratePanel():
         tableModel.layoutChanged.emit()
         self.form.parametersTable.setModel(tableModel)
         self.form.parametersTable.horizontalHeader().setResizeMode(PySide.QtGui.QHeaderView.ResizeToContents)
-        self.form.parametersTable.clicked.connect(functools.partial(
+        self.form.parametersTable.clicked.connect(partial(
             Common.showGen, self.form.parametersTable, self.doc))
-        self.form.parametersTable.setMinimumHeight(len(parameterValues)*40)
-        self.form.parametersTable.setMaximumHeight(len(parameterValues)*40)
+        self.form.parametersTable.setMinimumHeight(22+len(parameterValues)*30)
+        self.form.parametersTable.setMaximumHeight(22+len(parameterValues)*30)
 
     def accept(self):
         doc = FreeCADGui.getDocument(self.obj.Document)

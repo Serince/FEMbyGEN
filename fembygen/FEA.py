@@ -17,8 +17,11 @@ def makeFEA():
         obj = FreeCAD.ActiveDocument.FEA
         obj.isValid()
     except:
-        obj = FreeCAD.ActiveDocument.addObject("Part::FeaturePython", "FEA")
-        FreeCAD.ActiveDocument.Generative_Design.addObject(obj)
+        try:
+            obj = FreeCAD.ActiveDocument.addObject("Part::FeaturePython", "FEA")
+            FreeCAD.ActiveDocument.Generative_Design.addObject(obj)
+        except:
+            return None
     FEA(obj)
     if FreeCAD.GuiUp:
         ViewProviderFEA(obj.ViewObject)
@@ -57,14 +60,15 @@ class FEACommand():
 
     def Activated(self):
         obj = makeFEA()
-        # panel = ResultsPanel(obj)
-        # FreeCADGui.Control.showDialog(panel)
-        doc = FreeCADGui.getDocument(obj.ViewObject.Object.Document)
-        if not doc.getInEdit():
-            doc.setEdit(obj.ViewObject.Object.Name)
-        else:
-            FreeCAD.Console.PrintError('Existing task dialog already open\n')
-        return
+        try:
+            doc = FreeCADGui.getDocument(obj.ViewObject.Object.Document)
+            if not doc.getInEdit():
+                doc.setEdit(obj.ViewObject.Object.Name)
+            else:
+                FreeCAD.Console.PrintError('Existing task dialog already open\n')
+            return
+        except:
+            FreeCAD.Console.PrintError('Make sure that you are working on the master file. Close the generated file\n')
 
     def IsActive(self):
         """Here you can define if the command must be active or not (greyed) if certain conditions
@@ -205,8 +209,8 @@ class FEAPanel:
             Common.showGen, self.form.tableView, self.doc))
         self.form.tableView.horizontalHeader().setResizeMode(
             PySide.QtGui.QHeaderView.ResizeToContents)
-        self.form.tableView.setMinimumHeight(gen*40)
-        self.form.tableView.setMaximumHeight(gen*40)
+        self.form.tableView.setMinimumHeight(22+gen*30)
+        self.form.tableView.setMaximumHeight(22+gen*30)
 
     def outputs(self, directory):
         """ It modifies the inp file to get extra outputs
