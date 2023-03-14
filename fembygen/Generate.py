@@ -77,7 +77,7 @@ class GeneratePanel():
         self.form = FreeCADGui.PySideUic.loadUi(guiPath)
         self.workingDir = '/'.join(
             object.Object.Document.FileName.split('/')[0:-1])
-        readyText = "Ready"
+        
         # Data variables for parameter table
 
         self.doc = object.Object.Document
@@ -90,7 +90,7 @@ class GeneratePanel():
         self.resetViewControls(numGens)
 
         self.form.numGensLabel.setText(f"{numGens} generations produced")
-        self.form.readyLabel.setText(readyText)
+        
 
         self.selectedGen = -1
 
@@ -189,6 +189,7 @@ class GeneratePanel():
         FreeCAD.closeDocument(filename[:-6])
 
     def generateParts(self):
+
         master = self.doc
         master.save()  # saving the prepared masterfile
         docPath = master.FileName
@@ -218,33 +219,42 @@ class GeneratePanel():
 
         self.form.progressBar.setStyleSheet(
             'QProgressBar {text-align: center; } QProgressBar::chunk {background-color: #009688;}')
-        # Combination of all parameters
-        numgenerations = list(itertools.product(*param))
+        # Combination of all parameters list(itertools.product(*param))
+        selectedModule = self.form.selectModuleBox.currentText()
+        try:
+             numgenerations = self.design(selectedModule,param)
+             func = partial(self.copy_mesh, numgenerations)
+             iterationnumber = len(numgenerations)
+             p = mp.Pool(cpu_count()-1)
+             for i, _ in enumerate(p.imap_unordered(func, range(iterationnumber))):
+                 # Update progress bar
+                 progress = ((i+1)/iterationnumber) * 100
+                 self.form.progressBar.setValue(progress)
+             p.close()
+             p.join()
 
-        func = partial(self.copy_mesh, numgenerations)
-        iterationnumber = len(numgenerations)
-        p = mp.Pool(cpu_count()-1)
-        for i, _ in enumerate(p.imap_unordered(func, range(iterationnumber))):
-            # Update progress bar
-            progress = ((i+1)/iterationnumber) * 100
-            self.form.progressBar.setValue(progress)
-        p.close()
-        p.join()
+             # ReActivate document again once finished
+             FreeCAD.setActiveDocument(master.Name)
+             master.Generate.Generated_Parameters = numgenerations
+             master.Generate.Parameters_Name = paramNames
+             self.updateParametersTable()
 
-        # ReActivate document again once finished
-        FreeCAD.setActiveDocument(master.Name)
-        master.Generate.Generated_Parameters = numgenerations
-        master.Generate.Parameters_Name = paramNames
-        self.updateParametersTable()
+             # Update number of generations produced in window
+             numGens = Common.checkGenerations(self.workingDir)
+             self.form.numGensLabel.setText(str(numGens) + " generations produced")
+             #self.form.readyLabel.setText("Finished")
+             self.resetViewControls(numGens)
+             self.updateParametersTable()
+             master.save()  # too store generated values in generate object
+             FreeCAD.Console.PrintMessage("Generation done successfully!\n")
+        
+        
+        except TypeError:
+            print("Please install pyDOE2 module")
+        
 
-        # Update number of generations produced in window
-        numGens = Common.checkGenerations(self.workingDir)
-        self.form.numGensLabel.setText(str(numGens) + " generations produced")
-        self.form.readyLabel.setText("Finished")
-        self.resetViewControls(numGens)
-        self.updateParametersTable()
-        master.save()  # too store generated values in generate object
-        FreeCAD.Console.PrintMessage("Generation done successfully!\n")
+        
+        
 
     def deleteGenerations(self):
         FreeCAD.Console.PrintMessage("Deleting...\n")
@@ -361,6 +371,25 @@ class GeneratePanel():
         doc = FreeCADGui.getDocument(self.obj.Document)
         doc.resetEdit()
         # Common.showGen("close", self.doc, None)   # closes the gen file If a generated file opened to check before
+
+    def design(self,method,parameters):
+        try:
+            from fembygen import Design
+            if method == "Plackett Burman Design":
+                return Design.designpb(parameters)
+            elif method == "Box Behnken Design":
+                return Design.designboxBen(parameters)
+            elif method == "Full Factorial Design":
+                return Design.fullfact2(parameters)
+            elif method == "Central Composite Design":
+                return Design.designcentalcom(parameters) 
+        except ModuleNotFoundError:
+            pass
+            
+            
+       
+
+            
 
 
 class ViewProviderGen:
