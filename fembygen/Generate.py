@@ -121,7 +121,7 @@ class GeneratePanel():
             os.mkdir(self.workingDir + f"/Gen{i+1}")
         except:
             FreeCAD.Console.PrintError(
-                f"Please delete earlier generations: Gen{i+1} already exist in the folder")
+                f"Please delete earlier generations: Gen{i+1} already exist in the folder\n")
             self.form.progressBar.setValue(100)
             self.form.progressBar.setStyleSheet(
                 "QProgressBar {text-align: center; } QProgressBar::chunk {background-color: #F44336;}")
