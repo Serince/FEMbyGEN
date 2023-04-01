@@ -28,13 +28,22 @@
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout_2">
      <item>
-      <widget class="QLabel" name="readyLabel">
-       <property name="text">
-        <string>Ready</string>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignCenter</set>
-       </property>
+      <widget class="QComboBox" name="selectModuleBox">
+       <item>
+        <property name="text">
+         <string>Plackett Burman Design</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Box Behnken Design</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Central Composite Design</string>
+        </property>
+       </item>
       </widget>
      </item>
      <item>
