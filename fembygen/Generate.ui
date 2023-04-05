@@ -28,7 +28,12 @@
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout_2">
      <item>
-      <widget class="QComboBox" name="selectModuleBox">
+      <widget class="QComboBox" name="selectDesign">
+       <item>
+        <property name="text">
+         <string>Full Factorial  Design</string>
+        </property>
+       </item>
        <item>
         <property name="text">
          <string>Plackett Burman Design</string>
