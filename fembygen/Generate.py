@@ -5,7 +5,6 @@ import os.path
 import shutil
 from fembygen import Common
 import numpy as np
-import itertools
 import PySide
 import multiprocessing.dummy as mp
 from multiprocessing import cpu_count
@@ -77,7 +76,7 @@ class GeneratePanel():
         self.form = FreeCADGui.PySideUic.loadUi(guiPath)
         self.workingDir = '/'.join(
             object.Object.Document.FileName.split('/')[0:-1])
-        
+
         # Data variables for parameter table
 
         self.doc = object.Object.Document
@@ -90,7 +89,7 @@ class GeneratePanel():
         self.resetViewControls(numGens)
 
         self.form.numGensLabel.setText(f"{numGens} generations produced")
-        
+
 
         self.selectedGen = -1
 
@@ -120,13 +119,12 @@ class GeneratePanel():
         try:
             os.mkdir(self.workingDir + f"/Gen{i+1}")
         except:
+            self.deleteGenerations()
             FreeCAD.Console.PrintError(
-                f"Please delete earlier generations: Gen{i+1} already exist in the folder\n")
-            self.form.progressBar.setValue(100)
-            self.form.progressBar.setStyleSheet(
-                "QProgressBar {text-align: center; } QProgressBar::chunk {background-color: #F44336;}")
-            self.form.readyLabel.setText("Delete earlier generations")
-            return
+
+                f"Earlier generations are deleted...\n")
+            os.mkdir(self.workingDir + f"/Gen{i+1}")
+
 
         filename = f"Gen{i+1}.FCStd"
         directory = self.workingDir + f"/Gen{i+1}/"
@@ -177,7 +175,8 @@ class GeneratePanel():
 
                             # setting working directory of loadcase to subfolder of generation folder
                             elif femobj.TypeId == 'Fem::FemSolverObjectPython':
-                                femobj.WorkingDir = os.path.join(directory+f"loadCase{lc}")
+                                femobj.WorkingDir = os.path.join(
+                                    directory+f"loadCase{lc}")
                         # copying same mesh to other loadcases
                         obj.addObject(doc.copyObject(mesh, False))
             except:
@@ -219,37 +218,38 @@ class GeneratePanel():
         self.form.progressBar.setStyleSheet(
             'QProgressBar {text-align: center; } QProgressBar::chunk {background-color: #009688;}')
         # Combination of all parameters
-        selectedModule = self.form.selectModuleBox.currentText()
+
+        selectedModule = self.form.selectDesign.currentText()
         try:
-             numgenerations = self.design(selectedModule,param)
-             func = partial(self.copy_mesh, numgenerations)
-             iterationnumber = len(numgenerations)
-             p = mp.Pool(cpu_count()-1)
-             for i, _ in enumerate(p.imap_unordered(func, range(iterationnumber))):
-                 # Update progress bar
-                 progress = ((i+1)/iterationnumber) * 100
-                 self.form.progressBar.setValue(progress)
-             p.close()
-             p.join()
+            numgenerations = self.design(selectedModule, param)
+            func = partial(self.copy_mesh, numgenerations)
+            iterationnumber = len(numgenerations)
+            p = mp.Pool(cpu_count()-1)
+            for i, _ in enumerate(p.imap_unordered(func, range(iterationnumber))):
+                # Update progress bar
+                progress = ((i+1)/iterationnumber) * 100
+                self.form.progressBar.setValue(progress)
+            p.close()
+            p.join()
 
-             # ReActivate document again once finished
-             FreeCAD.setActiveDocument(master.Name)
-             master.Generate.Generated_Parameters = numgenerations
-             master.Generate.Parameters_Name = paramNames
-             self.updateParametersTable()
+            # ReActivate document again once finished
+            FreeCAD.setActiveDocument(master.Name)
+            master.Generate.Generated_Parameters = numgenerations
+            master.Generate.Parameters_Name = paramNames
+            self.updateParametersTable()
 
-             # Update number of generations produced in window
-             numGens = Common.checkGenerations(self.workingDir)
-             self.form.numGensLabel.setText(str(numGens) + " generations produced")
-             #self.form.readyLabel.setText("Finished")
-             self.resetViewControls(numGens)
-             self.updateParametersTable()
-             master.save()  # too store generated values in generate object
-             FreeCAD.Console.PrintMessage("Generation done successfully!\n")
-        
-        
+            # Update number of generations produced in window
+            numGens = Common.checkGenerations(self.workingDir)
+            self.form.numGensLabel.setText(
+                str(numGens) + " generations produced")
+            self.resetViewControls(numGens)
+            self.updateParametersTable()
+            master.save()  # too store generated values in generate object
+            FreeCAD.Console.PrintMessage("Generation done successfully!\n")
+
         except TypeError:
-            print("Please install pyDOE2 module")
+            print("Please install pyDOE2 module\n")
+
 
     def deleteGenerations(self):
         FreeCAD.Console.PrintMessage("Deleting...\n")
@@ -258,14 +258,15 @@ class GeneratePanel():
             # Delete analysis directories
             try:
                 shutil.rmtree(self.workingDir + f"/Gen{i}/")
-                FreeCAD.Console.PrintMessage(self.workingDir + f"/Gen{i}/ deleted\n")
+                FreeCAD.Console.PrintMessage(
+                    self.workingDir + f"/Gen{i}/ deleted\n")
             except FileNotFoundError:
                 FreeCAD.Console.PrintError("INFO: Generation " + str(i) +
-                                           " analysis data not found")
+                                           " analysis data not found\n")
                 pass
             except:
                 FreeCAD.Console.PrintError(
-                    "Error while trying to delete analysis folder for generation " + str(i))
+                    "Error while trying to delete analysis folder for generation\n " + str(i))
 
         # Delete if earlier generative objects exist
         try:
@@ -350,7 +351,8 @@ class GeneratePanel():
             self.form, table, paramNames)
         tableModel.layoutChanged.emit()
         self.form.parametersTable.setModel(tableModel)
-        self.form.parametersTable.horizontalHeader().setResizeMode(PySide.QtGui.QHeaderView.ResizeToContents)
+        self.form.parametersTable.horizontalHeader().setResizeMode(
+            PySide.QtGui.QHeaderView.ResizeToContents)
         self.form.parametersTable.clicked.connect(partial(
             Common.showGen, self.form.parametersTable, self.doc))
         self.form.parametersTable.setMinimumHeight(22+len(parameterValues)*30)
@@ -360,7 +362,8 @@ class GeneratePanel():
         doc = FreeCADGui.getDocument(self.obj.Document)
         doc.resetEdit()
         doc.Document.recompute()
-        Common.showGen("close", self.doc, None)   # closes the gen file If a generated file opened to check before
+        # closes the gen file If a generated file opened to check before
+        Common.showGen("close", self.doc, None)
 
     def reject(self):
         doc = FreeCADGui.getDocument(self.obj.Document)
@@ -381,13 +384,30 @@ class GeneratePanel():
         except ModuleNotFoundError:
             pass
 
+    def design(self, method, parameters):
+        try:
+            from fembygen import Design
+            if method == "Plackett Burman Design":
+                return Design.designpb(parameters)
+            elif method == "Box Behnken Design":
+                return Design.designboxBen(parameters)
+            elif method == "Full Factorial Design":
+                return Design.fullfact2(parameters)
+            elif method == "Central Composite Design":
+                return Design.designcentalcom(parameters)
+            elif method == "Full Factorial  Design":
+                return Design.fullfact(parameters)
+        except ModuleNotFoundError:
+            pass
+
 
 class ViewProviderGen:
     def __init__(self, vobj):
         vobj.Proxy = self
 
     def getIcon(self):
-        icon_path = os.path.join(FreeCAD.getUserAppDataDir() + 'Mod/FEMbyGEN/fembygen/Generate.svg')
+        icon_path = os.path.join(
+            FreeCAD.getUserAppDataDir() + 'Mod/FEMbyGEN/fembygen/Generate.svg')
         return icon_path
 
     def attach(self, vobj):
