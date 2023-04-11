@@ -51,12 +51,17 @@ def designboxBen(A):
     for c in range(column):
 
         for r in range(row):
+
             if bb[r, c] == -1:
                 bb[r, c] = A[c][0]
             elif bb[r, c] == 0:
                 bb[r, c] = (A[c][0]+A[c][-1])/2
             elif bb[r, c] == 1:
                 bb[r, c] = A[c][-1]
+
+            
+    
+        
 
     bb = bb.tolist()
     return bb

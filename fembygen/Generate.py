@@ -90,6 +90,7 @@ class GeneratePanel():
 
         self.form.numGensLabel.setText(f"{numGens} generations produced")
 
+
         self.selectedGen = -1
 
         # Connect the button procedures
@@ -120,8 +121,10 @@ class GeneratePanel():
         except:
             self.deleteGenerations()
             FreeCAD.Console.PrintError(
+
                 f"Earlier generations are deleted...\n")
             os.mkdir(self.workingDir + f"/Gen{i+1}")
+
 
         filename = f"Gen{i+1}.FCStd"
         directory = self.workingDir + f"/Gen{i+1}/"
@@ -215,6 +218,7 @@ class GeneratePanel():
         self.form.progressBar.setStyleSheet(
             'QProgressBar {text-align: center; } QProgressBar::chunk {background-color: #009688;}')
         # Combination of all parameters
+
         selectedModule = self.form.selectDesign.currentText()
         try:
             numgenerations = self.design(selectedModule, param)
@@ -245,6 +249,7 @@ class GeneratePanel():
 
         except TypeError:
             print("Please install pyDOE2 module\n")
+
 
     def deleteGenerations(self):
         FreeCAD.Console.PrintMessage("Deleting...\n")
@@ -364,6 +369,20 @@ class GeneratePanel():
         doc = FreeCADGui.getDocument(self.obj.Document)
         doc.resetEdit()
         # Common.showGen("close", self.doc, None)   # closes the gen file If a generated file opened to check before
+    
+    def design(self,method,parameters):
+        try:
+            from fembygen import Design
+            if method == "Plackett Burman Design":
+                return Design.designpb(parameters)
+            elif method == "Box Behnken Design":
+                return Design.designboxBen(parameters)
+            elif method == "Full Factorial Design":
+                return Design.fullfact2(parameters)
+            elif method == "Central Composite Design":
+                return Design.designcentalcom(parameters) 
+        except ModuleNotFoundError:
+            pass
 
     def design(self, method, parameters):
         try:
