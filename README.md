@@ -33,4 +33,6 @@ After then everything is easy, just click generate button, to create your new ge
 Then you can use Fea button to fem simulations of all created generations. 
 
 At the end, you can check all results by clicking results button. You can open the generated files by clicking table rows of results Gui. And all results also will come to master file, you can check tree view for that.
-  
+
+## Requirements
+- pyDOE2 (Optional)
