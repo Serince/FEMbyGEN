@@ -4,12 +4,12 @@
 [general]
 name=FEMbyGEN
 email=serince@outlook.com
-author= Rahul Jhuree, Ögeday Yavuz, Serdar Turgut İnce
-FreeCADMinimumVersion=0.19
+author= Serdar Turgut Ince,  Ögeday Yavuz, Ahmet Özkan Canlı, Ömer Can Demir, Rahul Jhuree 
+FreeCADMinimumVersion=0.20
 description=Parametric Finite Element Analysis(FEM)
 about=It is simplify to create parametric structural analysis. 
 It supports multi analyses (Loadcases) and shows all results in a table to choose structural best case
-version=1.2
+version=1.3
 tracker=https://forum.freecadweb.org/viewtopic.php?f=18&t=71905
 repository=https://github.com/Serince/FEMbyGEN
 license=LGPL
