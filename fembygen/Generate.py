@@ -221,7 +221,9 @@ class GeneratePanel():
 
         selectedModule = self.form.selectDesign.currentText()
         try:
-            numgenerations = self.design(selectedModule, param)
+
+            numgenerations = self.design(selectedModule, param,numberofgen)
+
             func = partial(self.copy_mesh, numgenerations)
             iterationnumber = len(numgenerations)
             p = mp.Pool(cpu_count()-1)
@@ -369,24 +371,11 @@ class GeneratePanel():
         doc = FreeCADGui.getDocument(self.obj.Document)
         doc.resetEdit()
         # Common.showGen("close", self.doc, None)   # closes the gen file If a generated file opened to check before
-    
-    def design(self,method,parameters):
-        try:
-            from fembygen import Design
-            if method == "Plackett Burman Design":
-                return Design.designpb(parameters)
-            elif method == "Box Behnken Design":
-                return Design.designboxBen(parameters)
-            elif method == "Full Factorial Design":
-                return Design.fullfact2(parameters)
-            elif method == "Central Composite Design":
-                return Design.designcentalcom(parameters) 
-        except ModuleNotFoundError:
-            pass
 
-    def design(self, method, parameters):
+    def design(self,method,parameters,numberofgen):
         try:
-            from fembygen import Design
+            from fembygen import Design,Taguchi
+
             if method == "Plackett Burman Design":
                 return Design.designpb(parameters)
             elif method == "Box Behnken Design":
@@ -397,8 +386,15 @@ class GeneratePanel():
                 return Design.designcentalcom(parameters)
             elif method == "Full Factorial  Design":
                 return Design.fullfact(parameters)
+
+            elif method == "Taguchi Optimization Design":
+                result=Taguchi.Taguchipy(parameters,numberofgen)
+                res=result.selection()
+                return list(res)
         except ModuleNotFoundError:
             pass
+
+
 
 
 class ViewProviderGen:

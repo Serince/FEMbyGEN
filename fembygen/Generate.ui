@@ -34,7 +34,11 @@
          <string>Full Factorial  Design</string>
         </property>
        </item>
-
+       <item>
+        <property name="text">
+         <string>Taguchi Optimization Design</string>
+        </property>
+       </item>
        <item>
         <property name="text">
          <string>Plackett Burman Design</string>
