@@ -1,15 +1,23 @@
 import FreeCAD
 import FreeCADGui
+import os
 
+LOCATION = 'Mod/FEMbyGEN/fembygen'
+MAX_NUM_PARAMETER = 10    # maximum number of parameters
 
 def makeInitiate():
+    """Initiate group"""
+    doc = FreeCAD.ActiveDocument
     try:
-        group = FreeCAD.ActiveDocument.GenerativeDesign
+        group = doc.GenerativeDesign
         group.isValid()
     except:
-        doc = FreeCAD.ActiveDocument
-        group = FreeCAD.ActiveDocument.addObject(
-            "App::DocumentObjectGroupPython", "GenerativeDesign")
+        group = doc.addObject(
+            'App::DocumentObjectGroupPython', 'GenerativeDesign')
+    try:
+        parameter = doc.Parameters
+        parameter.isValid()
+    except:
         parameter = doc.addObject('Spreadsheet::Sheet', 'Parameters')
         group.addObject(parameter)
     Initiate(group)
@@ -34,10 +42,10 @@ class InitiateCommand():
     """Analyse the generated parts"""
 
     def GetResources(self):
-        return {'Pixmap': FreeCAD.getUserAppDataDir() +'Mod/FEMbyGEN/fembygen/icons/Initiate.svg',  # the name of a svg file available in the resources
+        return {'Pixmap': os.path.join(FreeCAD.getUserAppDataDir(), LOCATION, 'icons/Initiate.svg'),
                 'Accel': "Shift+N",  # a default shortcut (optional)
                 'MenuText': "Initiate",
-                'ToolTip': "Initialise the generation process"}
+                'ToolTip': "Initialise and create parameter spreadsheet"}
 
     def Activated(self):
         makeInitiate()
@@ -51,27 +59,26 @@ class InitiateCommand():
 
 class InitiatePanel:
     def __init__(self):
-        # create a group
-        # group = FreeCAD.ActiveDocument.addObject("App::DocumentObjectGroupPython", "Generative Design")
-        # Add spreatsheet
+        """Create a group with parameter spreadsheet"""
         doc = FreeCAD.ActiveDocument
-        self.paramsheet = doc.Parameters
-        # Spreadsheet editing
-        for i in range(10):
-            self.paramsheet.set(f'A{i+2}', f'{i+1}.Parameter')
-            self.paramsheet.setStyle(f'A{i+2}:A{i+2}', 'bold', 'add')
-
-        self.paramsheet.set('B1', 'Parameter Name')
-        self.paramsheet.set('C1', 'Min Value')
-        self.paramsheet.set('D1', 'Max Value')
-        self.paramsheet.set('E1', 'Number of Generations')
-        self.paramsheet.setStyle('B1:E1', 'bold', 'add')
-        self.paramsheet.setForeground(
-            'A2:A100', (1.000000, 0.000000, 0.000000, 1.000000))
-        self.paramsheet.setForeground(
-            'B1:E1', (0.000000, 0.501961, 0.000000, 1.000000))
-        self.paramsheet.setAlignment('C2:E100', 'left|vcenter|vimplied')
+        self.paramsheet = self.spreadsheetTemplate(doc.Parameters)
         doc.recompute()
+
+    def spreadsheetTemplate(self, sheet):
+        """Spreadsheet editing"""
+        COLOR_GREY = (240/255, 240/255, 240/255, 1.0)
+        for i in range(MAX_NUM_PARAMETER):
+            sheet.set(f'A{i+2}', f'{i+1}')    # parameter number
+
+        sheet.set('A1', 'Parameter Number')
+        sheet.set('B1', 'Alias Label')
+        sheet.set('C1', 'Min Value')
+        sheet.set('D1', 'Max Value')
+        sheet.set('E1', 'Number of Generations')
+        sheet.setStyle('A1:E1', 'bold')    # head
+        sheet.setBackground('A1:E1', COLOR_GREY)    # label columns
+        sheet.setBackground(f'A2:A{MAX_NUM_PARAMETER+1}', COLOR_GREY)
+        return sheet
 
 
 class ViewProviderIni:
