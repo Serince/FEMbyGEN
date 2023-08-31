@@ -61,8 +61,10 @@ class InitiatePanel:
     def __init__(self):
         """Create a group with parameter spreadsheet"""
         doc = FreeCAD.ActiveDocument
+        guidoc = FreeCADGui.ActiveDocument
         self.paramsheet = self.spreadsheetTemplate(doc.Parameters)
-        doc.recompute()
+        doc.Parameters.recompute()
+        guidoc.setEdit(guidoc.Parameters)    # open spreadsheet
 
     def spreadsheetTemplate(self, sheet):
         """Spreadsheet editing"""
@@ -71,7 +73,7 @@ class InitiatePanel:
             sheet.set(f'A{i+2}', f'{i+1}')    # parameter number
 
         sheet.set('A1', 'Parameter Number')
-        sheet.set('B1', 'Alias Label')
+        sheet.set('B1', 'Name')
         sheet.set('C1', 'Min Value')
         sheet.set('D1', 'Max Value')
         sheet.set('E1', 'Number of Generations')

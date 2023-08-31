@@ -12,7 +12,7 @@ class AliasCommand():
         return {'Pixmap': os.path.join(FreeCAD.getUserAppDataDir(), LOCATION, 'icons/Alias.svg'),
                 'Accel': "Shift+A",  # a default shortcut (optional)
                 'MenuText': "Set alias",
-                'ToolTip': "Set the alias from Alias Label cells"}
+                'ToolTip': "Set the alias from Parameters Name cells"}
 
     def Activated(self):
         return AliasPanel()
