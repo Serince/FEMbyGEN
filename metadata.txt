@@ -1,0 +1,21 @@
+; Metadata template for FreeCAD addons obtained from:
+; https://gist.github.com/luzpaz/5e12362f0771eec9e6e82ef0e4d1ba56
+
+[general]
+name=FEMbyGEN
+email=serince@outlook.com
+author= Rahul Jhuree, Ögeday Yavuz, Serdar Turgut İnce
+FreeCADMinimumVersion=0.19
+description=Parametric Finite Element Analysis(FEM)
+about=It is simplify to create parametric structural analysis. 
+It supports multi analyses (Loadcases) and shows all results in a table to choose structural best case
+version=1.2
+tracker=https://forum.freecadweb.org/viewtopic.php?f=18&t=71905
+repository=https://github.com/Serince/FEMbyGEN
+license=LGPL
+icon="icon.svg"
+
+[dependencies]
+workbenches=FemWorkbench
+pylibs=matplotlib
+optionalpylibs=
