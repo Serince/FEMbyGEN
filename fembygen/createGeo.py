@@ -1,7 +1,7 @@
 import FreeCAD,Part
 import FreeCADGui
 import os
-from fembygen import Common, ObjectsFem
+from fembygen import Common, ObjectsFem,Topology
 from PySide import QtCore
 
 def makecreateGeo():
@@ -75,6 +75,7 @@ class CreateGeoPanel:
         self.form.AssignLoad.clicked.connect(self.assign_load)
         self.form.AssignBC.clicked.connect(self.assign_bc)       
         self.form.ok.clicked.connect(self.close)
+        self.form.topology_create.clicked.connect(self.Topology)
     #add load in combobox 
     def assign_load(self):
         if self.form.SelectLoadtype.currentText() == "Force":
@@ -104,7 +105,8 @@ class CreateGeoPanel:
             if label in self.selected_objects:
                 self.selected_objects.remove(label)
             self.form.addingTree.takeItem(self.form.addingTree.row(item))
-
+    def Topology(self):
+        Topology.TopologyCommand.Activated(self.doc)
     def displacement(self):
         displacement_obj = self.doc.addObject("Fem::ConstraintDisplacement", "ConstraintDisplacement")
         displacement_obj.Scale = 1
@@ -258,7 +260,7 @@ class ViewProvidercreateGeo:
         return
 
     def onChanged(self, vobj, prop):
-        return
+        return 
 
     def doubleClicked(self, vobj):
        panel = CreateGeoPanel()
