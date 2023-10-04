@@ -75,9 +75,10 @@ class createGeoPanel:
         # this will create a Qt widget from our ui file
         guiPath = FreeCAD.getUserAppDataDir() + "Mod/FEMbyGEN/fembygen/ui/createGeo.ui"
         self.form = FreeCADGui.PySideUic.loadUi(guiPath)
-        doc = FreeCAD.ActiveDocument
-        if doc:
-            part_bodies = [obj for obj in doc.Objects if obj.isDerivedFrom("Part::Feature")]
+        self.doc = FreeCAD.ActiveDocument
+        self.guiDoc= FreeCADGui.getDocument(self.doc)
+        if self.doc:
+            part_bodies = [obj for obj in self.doc.Objects if obj.isDerivedFrom("Part::Feature")]
             for body in part_bodies:
                 item = QListWidgetItem(body.Label)
                 self.form.adding_tree.addItem(item)  
@@ -85,11 +86,12 @@ class createGeoPanel:
         self.form.run.clicked.connect(self.createGeoGenerations)
         self.form.selectMaterial.clicked.connect(self.material)
         self.form.selectDisplacment.clicked.connect(self.displacment)
+        self.form.force.clicked.connect(self.force)
     def displacment(self):
-        App.activeDocument().addObject("Fem::ConstraintDisplacement","ConstraintDisplacement")
-        App.activeDocument().ConstraintDisplacement.Scale = 1
-        App.activeDocument().createGeo.addObject(App.activeDocument().ConstraintDisplacement)
-        for amesh in App.activeDocument().Objects:
+        self.doc.addObject("Fem::ConstraintDisplacement","ConstraintDisplacement")
+        self.doc.ConstraintDisplacement.Scale = 1
+        self.doc.createGeo.addObject(App.activeDocument().ConstraintDisplacement)
+        for amesh in self.doc.Objects:
             if "ConstraintDisplacement" == amesh.Name:
                 amesh.ViewObject.Visibility = True
             elif "Mesh" in amesh.TypeId:
@@ -99,14 +101,30 @@ class createGeoPanel:
                         apart.ViewObject.Visibility = True
                 amesh.ViewObject.Visibility = False
             
-        FreeCADGui.ActiveDocument.setEdit(FreeCAD.ActiveDocument.ActiveObject.Name)
-        App.ActiveDocument.recompute()
+        self.guiDoc.setEdit(self.doc.ActiveObject.Name)
+       
     
     def material(self):
-        obj=ObjectsFem.makeMaterialSolid(FreeCAD.ActiveDocument)
-        FreeCAD.ActiveDocument.createGeo.addObject(obj)
-        FreeCADGui.ActiveDocument.setEdit(FreeCAD.ActiveDocument.ActiveObject.Name)
-    
+        obj=ObjectsFem.makeMaterialSolid(self.doc)
+        self.doc.createGeo.addObject(obj)
+        self.guiDoc.setEdit(self.doc.ActiveObject.Name)
+    def force(self):
+        self.doc.addObject("Fem::ConstraintForce","ConstraintForce")
+        self.doc.ConstraintForce.Force = 1.0
+        self.doc.ConstraintForce.Reversed = False
+        self.doc.ConstraintForce.Scale = 1
+        self.doc.createGeo.addObject(App.activeDocument().ConstraintForce)
+        for amesh in self.doc.Objects:
+            if "ConstraintForce" == amesh.Name:
+                amesh.ViewObject.Visibility = True
+            elif "Mesh" in amesh.TypeId:
+                aparttoshow = amesh.Name.replace("_Mesh","")
+                for apart in App.activeDocument().Objects:
+                    if aparttoshow == apart.Name:
+                        apart.ViewObject.Visibility = True
+                amesh.ViewObject.Visibility = False
+        self.guiDoc.setEdit(self.doc.ActiveObject.Name)
+  
     def createGeoGenerations(self):
             percentage_text = self.form.offsetRatio.toPlainText()
             doc = App.ActiveDocument
@@ -137,16 +155,16 @@ class createGeoPanel:
                     if i == 0:
                         continue
             
-                    copy = FreeCAD.ActiveDocument.copyObject(o)
+                    copy = self.doc.copyObject(o)
                     copy.Label = "copy, " + o.Label
             
                     cutName = baseName + str(i-1)
-                    cut = FreeCAD.ActiveDocument.addObject("Part::Cut", cutName)
+                    cut = self.doc.addObject("Part::Cut", cutName)
                     cut.Base = base
                     cut.Tool = copy
                     cut.Label = "Cut " + str(i-1) + ", " + baseLabel
             
-                    FreeCAD.activeDocument().recompute()
+                    self.doc.recompute()
             
                     base = cut
                     cuts.append(cut)
@@ -168,8 +186,8 @@ class createGeoPanel:
             box.Placement.Base = App.Vector(boundBoxXMin - scale * boundBoxLX, boundBoxYMin - scale * boundBoxLY, boundBoxZMin)
             obj_list = multiCuts(box, part_bodies)
             for obj in obj_list:
-                FreeCAD.ActiveDocument.createGeo.addObject(obj)
-            App.ActiveDocument.recompute()
+                self.doc.createGeo.addObject(obj)
+            self.doc.recompute()
 
 
 
@@ -178,7 +196,7 @@ class createGeoPanel:
         doc.resetEdit()
         doc.Document.recompute()
         # closes the gen file If a generated file opened to check before
-        Common.showGen("close", self.doc, None)
+        Common.showGen("close", self.doc.createGeo, None)
 
     def reject(self):
         doc = FreeCADGui.getDocument(self.obj.Document)
