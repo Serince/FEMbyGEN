@@ -201,14 +201,7 @@
            </size>
           </property>
           <property name="text">
-           <string>Run</string>
-          </property>
-         </widget>
-        </item>
-        <item row="6" column="3">
-         <widget class="QPushButton" name="ok">
-          <property name="text">
-           <string>Ok</string>
+           <string>Run Create Geometry</string>
           </property>
          </widget>
         </item>
@@ -238,10 +231,10 @@
           </property>
          </widget>
         </item>
-        <item row="6" column="0">
-         <widget class="QLabel" name="label">
+        <item row="6" column="1">
+         <widget class="QPushButton" name="run_analysis">
           <property name="text">
-           <string>Edit Topology </string>
+           <string>Run Analysis</string>
           </property>
          </widget>
         </item>
