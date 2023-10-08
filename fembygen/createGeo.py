@@ -4,6 +4,7 @@ import os
 from fembygen import Common, ObjectsFem,Topology
 from PySide import QtCore
 
+
 def makecreateGeo():
     try:
         obj = FreeCAD.ActiveDocument.createGeo
@@ -74,8 +75,8 @@ class CreateGeoPanel:
         self.form.Run.clicked.connect(self.createGeoGenerations) #run creategeo
         self.form.AssignLoad.clicked.connect(self.assign_load)
         self.form.AssignBC.clicked.connect(self.assign_bc)       
-        self.form.ok.clicked.connect(self.close)
         self.form.topology_create.clicked.connect(self.Topology)
+
     #add load in combobox 
     def assign_load(self):
         if self.form.SelectLoadtype.currentText() == "Force":
@@ -106,11 +107,12 @@ class CreateGeoPanel:
                 self.selected_objects.remove(label)
             self.form.addingTree.takeItem(self.form.addingTree.row(item))
     def Topology(self):
-        Topology.TopologyCommand.Activated(self.doc)
+        topo_obj=Topology.TopologyCommand.Activated(self.doc)
+        self.doc.createGeo.addObject(topo_obj)
     def displacement(self):
         displacement_obj = self.doc.addObject("Fem::ConstraintDisplacement", "ConstraintDisplacement")
         displacement_obj.Scale = 1
-        self.doc.createGeo.addObject(displacement_obj)
+        self.doc.Analysis.addObject(displacement_obj)
         for amesh in self.doc.Objects:
             if "ConstraintDisplacement" == amesh.Name:
                 amesh.ViewObject.Visibility = True
@@ -125,7 +127,7 @@ class CreateGeoPanel:
     def fixed_support(self):
         fixed_support_obj=self.doc.addObject("Fem::ConstraintFixed","ConstraintFixed")
         fixed_support_obj.Scale = 1
-        self.doc.createGeo.addObject(fixed_support_obj)
+        self.doc.Analysis.addObject(fixed_support_obj)
         for amesh in self.doc.Objects:
             if "ConstraintFixed" == amesh.Name:
                 amesh.ViewObject.Visibility = True
@@ -138,7 +140,7 @@ class CreateGeoPanel:
         self.guiDoc.setEdit(fixed_support_obj.Name)
     def material(self):
         obj = ObjectsFem.makeMaterialSolid(self.doc)
-        self.doc.createGeo.addObject(obj)
+        self.doc.Analysis.addObject(obj)
         self.guiDoc.setEdit(obj.Name)
 
     def force(self):
@@ -146,7 +148,7 @@ class CreateGeoPanel:
         force_obj.Force = 1.0
         force_obj.Reversed = False
         force_obj.Scale = 1
-        self.doc.createGeo.addObject(force_obj)
+        self.doc.Analysis.addObject(force_obj)
         for amesh in self.doc.Objects:
             if "ConstraintForce" == amesh.Name:
                 amesh.ViewObject.Visibility = True
@@ -162,7 +164,7 @@ class CreateGeoPanel:
         preassure_obj.Pressure = 0.1
         preassure_obj.Reversed = False
         preassure_obj.Scale = 1
-        self.doc.createGeo.addObject(preassure_obj)
+        self.doc.Analysis.addObject(preassure_obj)
         for amesh in self.doc.Objects:
             if "ConstraintPressure" == amesh.Name:
                 amesh.ViewObject.Visibility = True
@@ -235,9 +237,21 @@ class CreateGeoPanel:
             box.Height = boundBoxLZ
             box.Placement.Base = FreeCAD.Vector(boundBoxXMin - scale * boundBoxLX, boundBoxYMin - scale * boundBoxLY, boundBoxZMin)
             obj_list = multiCuts(box, part_bodies)
+            
             for obj in obj_list:
                 FreeCAD.ActiveDocument.createGeo.addObject(obj)
-            FreeCAD.ActiveDocument.recompute()
+                
+            active_analysis=ObjectsFem.makeAnalysis(self.doc, 'Analysis')
+            solver_obj=ObjectsFem.makeSolverCalculixCcxTools(self.doc)
+            self.doc.createGeo.addObject(active_analysis)
+            self.doc.Analysis.addObject(solver_obj)
+            import femmesh.gmshtools as gt
+            mesh_obj = ObjectsFem.makeMeshGmsh(self.doc, 'FEMMeshGmsh')
+            self.doc.Analysis.addObject(mesh_obj)
+            mesh_obj.Part = obj_list[len(selected_items)-1] #number of cutted obj
+            mesher = gt.GmshTools(mesh_obj)
+            mesher.create_mesh()
+            self.doc.recompute()
 
     def show(self):
         self.form.show()
