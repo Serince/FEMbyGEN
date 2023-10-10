@@ -4,7 +4,6 @@ import os
 from fembygen import Common, ObjectsFem,Topology
 from PySide import QtCore
 
-
 def makecreateGeo():
     try:
         obj = FreeCAD.ActiveDocument.createGeo
@@ -128,6 +127,7 @@ class CreateGeoPanel:
         fixed_support_obj=self.doc.addObject("Fem::ConstraintFixed","ConstraintFixed")
         fixed_support_obj.Scale = 1
         self.doc.Analysis.addObject(fixed_support_obj)
+
         for amesh in self.doc.Objects:
             if "ConstraintFixed" == amesh.Name:
                 amesh.ViewObject.Visibility = True
@@ -149,6 +149,7 @@ class CreateGeoPanel:
         force_obj.Reversed = False
         force_obj.Scale = 1
         self.doc.Analysis.addObject(force_obj)
+
         for amesh in self.doc.Objects:
             if "ConstraintForce" == amesh.Name:
                 amesh.ViewObject.Visibility = True
@@ -165,6 +166,7 @@ class CreateGeoPanel:
         preassure_obj.Reversed = False
         preassure_obj.Scale = 1
         self.doc.Analysis.addObject(preassure_obj)
+
         for amesh in self.doc.Objects:
             if "ConstraintPressure" == amesh.Name:
                 amesh.ViewObject.Visibility = True
@@ -252,6 +254,7 @@ class CreateGeoPanel:
             mesher = gt.GmshTools(mesh_obj)
             mesher.create_mesh()
             self.doc.recompute()
+
 
     def show(self):
         self.form.show()

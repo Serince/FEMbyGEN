@@ -202,6 +202,7 @@
           </property>
           <property name="text">
            <string>Run Create Geometry</string>
+
           </property>
          </widget>
         </item>
@@ -235,6 +236,7 @@
          <widget class="QPushButton" name="run_analysis">
           <property name="text">
            <string>Run Analysis</string>
+
           </property>
          </widget>
         </item>
