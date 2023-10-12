@@ -1,11 +1,9 @@
 import FreeCAD,Part
 import FreeCADGui
 import os
-from fembygen import Common,ObjectsFem
-from PySide2.QtWidgets import QListWidgetItem
-App=FreeCAD
-
-
+from fembygen import  ObjectsFem,Topology
+from femtools import ccxtools
+from PySide import QtGui ,QtCore
 
 def makecreateGeo():
     try:
@@ -22,7 +20,6 @@ def makecreateGeo():
     if FreeCAD.GuiUp:
         ViewProvidercreateGeo(obj.ViewObject)
     return obj
-
 class createGeo:
     """createGeo geometry"""
 
@@ -34,115 +31,187 @@ class createGeo:
 
     def initProperties(self, obj):
         try:
-            obj.addProperty("App::PropertyPythonObject", "Status", "Base",
-                            "Analysis Status")
-            obj.addProperty("App::PropertyInteger", "NumberOfAnalysis", "Base",
-                            "Number of Analysis")
-            obj.addProperty("App::PropertyInteger", "NumberOfLoadCase", "Base",
-                            "Number of Load Cases")
+            obj.addProperty("App::PropertyPythonObject", "Status", "Analysis", "Analysis Status")
+            obj.addProperty("App::PropertyString", "Load_Type", "Analysis", "Load Type")
+            obj.addProperty("App::PropertyString", "Bc_Type", "Analysis", "Boundary Condition Type")
+            obj.addProperty("App::PropertyFloat", "Offset_Ratio", "Geometry", "Offset Ratio Value(%)")
+
         except:
             pass
-
-
-class createGeoCommand():
-    """Perform createGeo on generated parts"""
-
+class CreateGeoCommand:
     def GetResources(self):
-        return {'Pixmap': os.path.join(FreeCAD.getUserAppDataDir() + 'Mod/FEMbyGEN/fembygen/icons/createGeo.svg'),  # the name of a svg file available in the resources
-                'Accel': "Shift+G",  # a default shortcut (optional)
-                'MenuText': "createGeo Generations",
-                'ToolTip': "Perform createGeo on generated parts"}
+        return {
+            'Pixmap': os.path.join(FreeCAD.getUserAppDataDir(), 'Mod/FEMbyGEN/fembygen/icons/createGeo.svg'),
+            'Accel': "Shift+G",
+            'MenuText': "Create Geo Generations",
+            'ToolTip': "Perform createGeo operations on selected objects"
+        }
     def Activated(self):
-        obj = makecreateGeo()
-        try:
-            doc = FreeCADGui.getDocument(obj.ViewObject.Object.Document)
-            if not doc.getInEdit():
-                doc.setEdit(obj.ViewObject.Object.Name)
-            else:
-                FreeCAD.Console.PrintError('Existing task dialog already open\n')
-            return
-        except:
-            FreeCAD.Console.PrintError('Make sure that you are working on the master file. Close the generated file\n')
+        makecreateGeo()
+        self.createGeoPanel = CreateGeoPanel()
+        self.createGeoPanel.show()
 
     def IsActive(self):
-        """Here you can define if the command must be active or not (greyed) if certain conditions
-        are met or not. This function is optional."""
         return FreeCAD.ActiveDocument is not None
 
-class createGeoPanel:
-    def __init__(self, vobj):
-        self.vobj = vobj  # Store vobj as an instance variable
-        # this will create a Qt widget from our ui file
-        guiPath = FreeCAD.getUserAppDataDir() + "Mod/FEMbyGEN/fembygen/ui/createGeo.ui"
-        self.form = FreeCADGui.PySideUic.loadUi(guiPath)
+class CreateGeoPanel:
+    def __init__(self):
+        
+        self.myNewFreeCADWidget = QtGui.QDockWidget() # create a new dckwidget
+        
+        self.mw=FreeCADGui.getMainWindow()
+        self.mw.addDockWidget(QtCore.Qt.RightDockWidgetArea,self.myNewFreeCADWidget)
+        self.form = FreeCADGui.PySideUic.loadUi(guiPath,self.myNewFreeCADWidget)
+        self.selected_objects = []
+        self.form.setWindowFlags(self.form.windowFlags() | QtCore.Qt.WindowStaysOnTopHint)
         self.doc = FreeCAD.ActiveDocument
-        self.guiDoc= FreeCADGui.getDocument(self.doc)
-        if self.doc:
-            part_bodies = [obj for obj in self.doc.Objects if obj.isDerivedFrom("Part::Feature")]
-            for body in part_bodies:
-                item = QListWidgetItem(body.Label)
-                self.form.adding_tree.addItem(item)  
-                
-        self.form.run.clicked.connect(self.createGeoGenerations)
-        self.form.selectMaterial.clicked.connect(self.material)
-        self.form.selectDisplacment.clicked.connect(self.displacment)
-        self.form.force.clicked.connect(self.force)
-    def displacment(self):
-        self.doc.addObject("Fem::ConstraintDisplacement","ConstraintDisplacement")
-        self.doc.ConstraintDisplacement.Scale = 1
-        self.doc.createGeo.addObject(App.activeDocument().ConstraintDisplacement)
+        self.guiDoc = FreeCADGui.getDocument(self.doc)
+        
+        self.form.SelectMaterial.clicked.connect(self.material) #select material
+        self.form.addItem.clicked.connect(self.add_selected_objects) #add item in listwidget
+        self.form.RemoveObj.clicked.connect(self.remove_selected_object) #remove item in listwidget
+        self.form.Run.clicked.connect(self.createGeoGenerations) #run creategeo
+        self.form.AssignLoad.clicked.connect(self.assign_load)
+        self.form.AssignBC.clicked.connect(self.assign_bc)       
+        self.form.topology_create.clicked.connect(self.Topology)
+        self.form.run_analysis.clicked.connect(self.solve_cxxtools)
+        self.form.OffsetRatio.textChanged.connect(self.updateOffsetRatioProperty)
+        self.form.OffsetRatio.setPlainText(str(self.doc.createGeo.Offset_Ratio))
+
+
+
+    def updateOffsetRatioProperty(self):
+        text = self.form.OffsetRatio.toPlainText()
+        try:
+            value = float(text)
+            self.doc.createGeo.Offset_Ratio = value
+        except ValueError:
+            pass
+    #add load in combobox 
+    def assign_load(self):
+        if self.form.SelectLoadtype.currentText() == "Force":
+            self.doc.createGeo.Load_Type="Force"
+            self.force()
+        elif self.form.SelectLoadtype.currentText() == "Pressure":
+            self.doc.createGeo.Load_Type="Pressure"
+            self.pressure()
+    #add BC in combobox 
+    def assign_bc(self):
+        if self.form.SelectBCtype.currentText() == "Fixed Support":
+            self.doc.createGeo.Bc_Type="Fixed Support"
+            self.fixed_support()
+        elif self.form.SelectBCtype.currentText() == "Displacement":
+            self.doc.createGeo.Bc_Type="Displacement"
+            self.displacement()
+          
+    # add selections in Qlistwidget
+    def add_selected_objects(self):
+        selection = FreeCADGui.Selection.getSelection()
+        for obj in selection:
+            self.selected_objects.append(obj.Label)
+            self.form.addingTree.addItem(obj.Label)
+    # remove selection in Qlistwidget
+    def remove_selected_object(self):
+        selected_items = self.form.addingTree.selectedItems()
+        for item in selected_items:
+            label = item.text()
+            if label in self.selected_objects:
+                self.selected_objects.remove(label)
+            self.form.addingTree.takeItem(self.form.addingTree.row(item))
+    def Topology(self):
+        Topology.TopologyCommand.Activated(self.doc)
+    def displacement(self):
+        displacement_obj = self.doc.addObject("Fem::ConstraintDisplacement", "ConstraintDisplacement")
+        displacement_obj.Scale = 1
+        self.doc.Analysis.addObject(displacement_obj)
         for amesh in self.doc.Objects:
             if "ConstraintDisplacement" == amesh.Name:
                 amesh.ViewObject.Visibility = True
             elif "Mesh" in amesh.TypeId:
-                aparttoshow = amesh.Name.replace("_Mesh","")
-                for apart in App.activeDocument().Objects:
+                aparttoshow = amesh.Name.replace("_Mesh", "")
+                for apart in self.doc.Objects:
                     if aparttoshow == apart.Name:
                         apart.ViewObject.Visibility = True
                 amesh.ViewObject.Visibility = False
-            
-        self.guiDoc.setEdit(self.doc.ActiveObject.Name)
-       
-    
+
+        self.guiDoc.setEdit(displacement_obj.Name)
+    def fixed_support(self):
+        fixed_support_obj=self.doc.addObject("Fem::ConstraintFixed","ConstraintFixed")
+        fixed_support_obj.Scale = 1
+        self.doc.Analysis.addObject(fixed_support_obj)
+        for amesh in self.doc.Objects:
+            if "ConstraintFixed" == amesh.Name:
+                amesh.ViewObject.Visibility = True
+            elif "Mesh" in amesh.TypeId:
+                aparttoshow = amesh.Name.replace("_Mesh", "")
+                for apart in self.doc.Objects:
+                    if aparttoshow == apart.Name:
+                        apart.ViewObject.Visibility = True
+                amesh.ViewObject.Visibility = False
+        self.guiDoc.setEdit(fixed_support_obj.Name)
     def material(self):
-        obj=ObjectsFem.makeMaterialSolid(self.doc)
-        self.doc.createGeo.addObject(obj)
-        self.guiDoc.setEdit(self.doc.ActiveObject.Name)
+        obj = ObjectsFem.makeMaterialSolid(self.doc)
+        self.doc.Analysis.addObject(obj)
+        self.guiDoc.setEdit(obj.Name)
+
     def force(self):
-        self.doc.addObject("Fem::ConstraintForce","ConstraintForce")
-        self.doc.ConstraintForce.Force = 1.0
-        self.doc.ConstraintForce.Reversed = False
-        self.doc.ConstraintForce.Scale = 1
-        self.doc.createGeo.addObject(App.activeDocument().ConstraintForce)
+        force_obj = self.doc.addObject("Fem::ConstraintForce", "ConstraintForce")
+        force_obj.Force = 1
+        force_obj.Reversed = False
+        force_obj.Scale = 1
+
+        self.doc.Analysis.addObject(force_obj)
         for amesh in self.doc.Objects:
             if "ConstraintForce" == amesh.Name:
                 amesh.ViewObject.Visibility = True
             elif "Mesh" in amesh.TypeId:
-                aparttoshow = amesh.Name.replace("_Mesh","")
-                for apart in App.activeDocument().Objects:
+                aparttoshow = amesh.Name.replace("_Mesh", "")
+                for apart in self.doc.Objects:
                     if aparttoshow == apart.Name:
                         apart.ViewObject.Visibility = True
                 amesh.ViewObject.Visibility = False
-        self.guiDoc.setEdit(self.doc.ActiveObject.Name)
-  
+
+        self.guiDoc.setEdit(force_obj.Name)
+    def pressure(self):
+        preassure_obj=self.doc.addObject("Fem::ConstraintPressure","ConstraintPressure")
+        preassure_obj.Pressure = 0.1
+        preassure_obj.Reversed = False
+        preassure_obj.Scale = 1
+        self.doc.Analysis.addObject(preassure_obj)
+        for amesh in self.doc.Objects:
+            if "ConstraintPressure" == amesh.Name:
+                amesh.ViewObject.Visibility = True
+            elif "Mesh" in amesh.TypeId:
+                aparttoshow = amesh.Name.replace("_Mesh", "")
+                for apart in self.doc.Objects:
+                    if aparttoshow == apart.Name:
+                        apart.ViewObject.Visibility = True
+                amesh.ViewObject.Visibility = False   
+
+        self.guiDoc.setEdit(preassure_obj.Name)   
+    def get_added_items(self):
+        added_items = []
+        for index in range(self.form.addingTree.count()):
+            item = self.form.addingTree.item(index)
+            added_items.append(item.text())
+        return added_items 
+
     def createGeoGenerations(self):
-            percentage_text = self.form.offsetRatio.toPlainText()
-            doc = App.ActiveDocument
+            percentage_text = self.form.OffsetRatio.toPlainText()
             try:
                 percentage = float(percentage_text)
             except ValueError:
-                App.Console.PrintError("Invalid percentage value! Please enter a valid number.\n")
+                FreeCAD.Console.PrintError("Invalid percentage value! Please enter a valid number.\n")
                 return
     
             scale = percentage / 100
     
-            selected_items = self.form.adding_tree.selectedItems()  # Get selected items from QListWidget
-            selected_labels = [item.text() for item in selected_items]  # Get labels of selected items
-    
-            part_bodies = [obj for obj in doc.Objects if obj.isDerivedFrom("Part::Feature") and obj.Label in selected_labels]
-    
+            selected_labels = self.get_added_items()
+            
+            part_bodies = [obj for obj in self.doc.Objects if obj.isDerivedFrom("Part::Feature") and obj.Label in selected_labels]
+  
             if not part_bodies:
-                App.Console.PrintError("No valid objects selected!\n")
+                FreeCAD.Console.PrintError("No valid objects selected!\n")
                 return
             def multiCuts(base_o, Objects):
                 cuts = []
@@ -155,11 +224,11 @@ class createGeoPanel:
                     if i == 0:
                         continue
             
-                    copy = self.doc.copyObject(o)
+                    copy = FreeCAD.ActiveDocument.copyObject(o)
                     copy.Label = "copy, " + o.Label
             
                     cutName = baseName + str(i-1)
-                    cut = self.doc.addObject("Part::Cut", cutName)
+                    cut = FreeCAD.ActiveDocument.addObject("Part::Cut", cutName)
                     cut.Base = base
                     cut.Tool = copy
                     cut.Label = "Cut " + str(i-1) + ", " + baseLabel
@@ -179,32 +248,36 @@ class createGeoPanel:
             boundBoxXMin = boundBox_.XMin
             boundBoxYMin = boundBox_.YMin
             boundBoxZMin = boundBox_.ZMin
-            box = doc.addObject("Part::Box", "MyBox")
+
+            box = self.doc.addObject("Part::Box", "MyBox")
             box.Length = boundBoxLX + 2 * scale * boundBoxLX
             box.Width = boundBoxLY + 2 * scale * boundBoxLY
             box.Height = boundBoxLZ
-            box.Placement.Base = App.Vector(boundBoxXMin - scale * boundBoxLX, boundBoxYMin - scale * boundBoxLY, boundBoxZMin)
+            box.Placement.Base = FreeCAD.Vector(boundBoxXMin - scale * boundBoxLX, boundBoxYMin - scale * boundBoxLY, boundBoxZMin)
             obj_list = multiCuts(box, part_bodies)
+            
             for obj in obj_list:
-                self.doc.createGeo.addObject(obj)
+                FreeCAD.ActiveDocument.createGeo.addObject(obj)
+                
+            active_analysis=ObjectsFem.makeAnalysis(self.doc, 'Analysis')
+            solver_obj=ObjectsFem.makeSolverCalculixCcxTools(self.doc)
+            self.doc.createGeo.addObject(active_analysis)
+            self.doc.Analysis.addObject(solver_obj)
+            import femmesh.gmshtools as gt
+            mesh_obj = ObjectsFem.makeMeshGmsh(self.doc, 'FEMMeshGmsh')
+            self.doc.Analysis.addObject(mesh_obj)
+            mesh_obj.Part = obj_list[self.form.addingTree.count()-1] #number of cutted obj
+            mesher = gt.GmshTools(mesh_obj)
+            mesher.create_mesh()
             self.doc.recompute()
-
-
-
-    def accept(self):
-        doc = FreeCADGui.getDocument(self.obj.Document)
-        doc.resetEdit()
-        doc.Document.recompute()
-        # closes the gen file If a generated file opened to check before
-        Common.showGen("close", self.doc.createGeo, None)
-
-    def reject(self):
-        doc = FreeCADGui.getDocument(self.obj.Document)
-        doc.resetEdit()
-        # closes the gen file If a generated file opened to check before
-        # Common.showGen("close", self.doc, None)
-
-
+    def solve_cxxtools(self):
+        fea = ccxtools.FemToolsCcx()
+        fea.run()
+    def show(self):
+        self.myNewFreeCADWidget.setWidget(self.form)
+        self.myNewFreeCADWidget.show()
+    def close(self):
+        self.form.close()
 class ViewProvidercreateGeo:
     def __init__(self, vobj):
         vobj.Proxy = self
@@ -222,25 +295,21 @@ class ViewProvidercreateGeo:
         return
 
     def onChanged(self, vobj, prop):
-        return
+        return 
 
     def doubleClicked(self, vobj):
-        doc = FreeCADGui.getDocument(vobj.Object.Document)
-        if not doc.getInEdit():
-            doc.setEdit(vobj.Object.Name)
-        else:
-            FreeCAD.Console.PrintError('Existing task dialog already open\n')
-        return True
+       panel = CreateGeoPanel()
+       panel.show()
+       return True
 
     def setEdit(self, vobj, mode):
-        taskd = createGeoPanel(vobj)
-        taskd.obj = vobj.Object
-        FreeCADGui.Control.showDialog(taskd)
-        return True
+       self.myNewFreeCADWidget.setWidget(self.form)
+       self.myNewFreeCADWidget.show()
+       return True
 
     def unsetEdit(self, vobj, mode):
-        FreeCADGui.Control.closeDialog()
-        return
+        FreeCADGui.control.closedialog()
+        return None
 
     def __getstate__(self):
         return None
@@ -248,5 +317,6 @@ class ViewProvidercreateGeo:
     def __setstate__(self, state):
         return None
 
-
-FreeCADGui.addCommand('createGeo', createGeoCommand())
+# Path to your UI file
+guiPath = FreeCAD.getUserAppDataDir() + "/Mod/FEMbyGEN/fembygen/ui/createGeo.ui"
+FreeCADGui.addCommand('createGeo', CreateGeoCommand())
