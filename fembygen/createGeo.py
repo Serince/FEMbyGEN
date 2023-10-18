@@ -5,6 +5,8 @@ from fembygen import  ObjectsFem,Topology
 from femtools import ccxtools
 from PySide import QtGui,QtCore
 
+
+
 def makecreateGeo():
     try:
         obj = FreeCAD.ActiveDocument.createGeo
@@ -43,6 +45,7 @@ class CreateGeoCommand:
         return {
             'Pixmap': os.path.join(FreeCAD.getUserAppDataDir(), 'Mod/FEMbyGEN/fembygen/icons/createGeo.svg'),
             'Accel': "Shift+S",
+            'Accel': "Shift+O",
             'MenuText': "Create Geo Generations",
             'ToolTip': "Perform createGeo operations on selected objects"
         }
@@ -81,8 +84,6 @@ class CreateGeoPanel:
         self.form.OffsetRatio.setPlainText(str(self.doc.createGeo.Offset_Ratio))
         self.form.meshsmoothing.clicked.connect(self.meshSmoot)
 
-
-
     def updateOffsetRatioProperty(self):
         text = self.form.OffsetRatio.toPlainText()
         try:
@@ -106,6 +107,7 @@ class CreateGeoPanel:
         elif self.form.SelectBCtype.currentText() == "Displacement":
             self.doc.createGeo.Bc_Type="Displacement"
             self.displacement()
+
 
 #///////////////////add-remove selections in Qlistwidget/////////////////////////////////////////////
     def add_to_preserve(self):
@@ -137,6 +139,17 @@ class CreateGeoPanel:
             self.form.preserve_bodies.takeItem(self.form.preserve_bodies.row(item))
     def remove_to_obstacle(self):
         selected_items = self.form.obstacle_bodies.selectedItems()
+
+         
+    # add selections in Qlistwidget
+    def add_selected_objects(self):
+        selection = FreeCADGui.Selection.getSelection()
+        for obj in selection:
+            self.selected_objects.append(obj.Label)
+            self.form.addingTree.addItem(obj.Label)
+    # remove selection in Qlistwidget
+    def remove_selected_object(self):
+        selected_items = self.form.addingTree.selectedItems()
         for item in selected_items:
             label = item.text()
             if label in self.selected_objects:
@@ -215,6 +228,7 @@ class CreateGeoPanel:
                 amesh.ViewObject.Visibility = False   
 
         self.guiDoc.setEdit(preassure_obj.Name)   
+
     def get_preserve_items(self):
         added_items_in_preserve = []
         for index in range(self.form.preserve_bodies.count()):
@@ -228,6 +242,13 @@ class CreateGeoPanel:
             added_items_in_obstacle.append(item.text())
         return added_items_in_obstacle   
 
+    def get_added_items(self):
+        added_items = []
+        for index in range(self.form.addingTree.count()):
+            item = self.form.addingTree.item(index)
+            added_items.append(item.text())
+        return added_items
+
     def createGeoGenerations(self):
             percentage_text = self.form.OffsetRatio.toPlainText()
             try:
@@ -238,12 +259,22 @@ class CreateGeoPanel:
     
             scale = percentage / 100
     
+
             selected_labels_preserve = self.get_preserve_items()
             part_bodies_preserve = [obj for obj in self.doc.Objects if obj.isDerivedFrom("Part::Feature") and obj.Label in selected_labels_preserve]
             selected_labels_obstacle = self.get_obstacle_items()
             part_bodies_obstacle = [obj for obj in self.doc.Objects if obj.isDerivedFrom("Part::Feature") and obj.Label in selected_labels_obstacle]
             for hide_obj in part_bodies_preserve+part_bodies_obstacle:
                 hide_obj.ViewObject.Visibility=False
+
+            selected_labels = self.get_added_items()
+            
+            part_bodies = [obj for obj in self.doc.Objects if obj.isDerivedFrom("Part::Feature") and obj.Label in selected_labels]
+            for hide_obj in part_bodies:
+                hide_obj.ViewObject.Visibility = False
+            if not part_bodies:
+                FreeCAD.Console.PrintError("No valid objects selected!\n")
+                return
 
             def multiCuts(base_o, Objects):
                 cuts = []
@@ -307,6 +338,9 @@ class CreateGeoPanel:
             mesh_obj = ObjectsFem.makeMeshGmsh(self.doc, 'FEMMeshGmsh')
             self.doc.Analysis.addObject(mesh_obj)
             mesh_obj.Part = obj_list[-1] #number of cutted obj
+
+            mesh_obj.Part = obj_list[self.form.addingTree.count()-1] #number of cutted obj
+
             mesher = gt.GmshTools(mesh_obj)
             mesher.create_mesh()
             self.doc.recompute()
@@ -328,8 +362,6 @@ class CreateGeoPanel:
             obj.Mesh.smooth("Laplace", 10, 0.6307, 0.0424)
         else:
             print(f"FemMesh object 'file{file_number}_state1' not found.")
-
-
     def show(self):
         self.myNewFreeCADWidget.setWidget(self.form)
         self.myNewFreeCADWidget.show()
