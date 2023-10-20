@@ -5,7 +5,7 @@ import os.path
 import shutil
 from fembygen import Common
 import numpy as np
-import PySide
+import PySide2
 import multiprocessing.dummy as mp
 from multiprocessing import cpu_count
 from functools import partial
@@ -93,7 +93,7 @@ class GeneratePanel():
         # (paramNames, parameterValues) = Common.checkGenParameters(self.doc)
         # self.doc.Generate.ParametersName = paramNames
         # self.doc.Generate.GeneratedParameters = parameterValues
-        index = self.form.selectDesign.findText(self.doc.Generate.GenerationMethod, PySide.QtCore.Qt.MatchFixedString)
+        index = self.form.selectDesign.findText(self.doc.Generate.GenerationMethod, PySide2.QtCore.Qt.MatchFixedString)
         if index >= 0:
             self.form.selectDesign.setCurrentIndex(index)
         # Check if any generations have been made already, and up to what number
@@ -114,7 +114,7 @@ class GeneratePanel():
         self.form.previousGen.clicked.connect(
             lambda: self.previousG(numGens))
 
-        pix = PySide.QtWidgets.QStyle.SP_FileDialogDetailedView
+        pix = PySide2.QtWidgets.QStyle.SP_FileDialogDetailedView
         icon = self.form.more.style().standardIcon(pix)
         self.form.more.setIcon(icon)
         self.form.more.clicked.connect(self.more)
@@ -158,10 +158,10 @@ class GeneratePanel():
             settings.show()
             try:
                 settings.center.setText(str(self.doc.Generate.Center))
-                index_alpha = settings.alpha.findText(self.doc.Generate.Alpha, PySide.QtCore.Qt.MatchFixedString)
+                index_alpha = settings.alpha.findText(self.doc.Generate.Alpha, PySide2.QtCore.Qt.MatchFixedString)
                 if index_alpha >= 0:
                     settings.alpha.setCurrentIndex(index_alpha)
-                index_face = settings.face.findText(self.doc.Generate.Face, PySide.QtCore.Qt.MatchFixedString)
+                index_face = settings.face.findText(self.doc.Generate.Face, PySide2.QtCore.Qt.MatchFixedString)
                 if index_face >= 0:
                     settings.face.setCurrentIndex(index_face)
             except:
@@ -197,7 +197,7 @@ class GeneratePanel():
             settings.show()
             try:
                 settings.samples.setText(str(self.doc.Generate.Samples))
-                index = settings.criterion.findText(self.doc.Generate.Criterion, PySide.QtCore.Qt.MatchFixedString)
+                index = settings.criterion.findText(self.doc.Generate.Criterion, PySide2.QtCore.Qt.MatchFixedString)
                 if index >= 0:
                     settings.criterion.setCurrentIndex(index)
                 settings.iterations.setText(str(self.doc.Generate.Iterations))
@@ -367,7 +367,7 @@ class GeneratePanel():
         FreeCAD.Console.PrintMessage("Generation done successfully!\n")
 
     def deleteGenerations(self):
-        qm = PySide.QtWidgets.QMessageBox
+        qm = PySide2.QtWidgets.QMessageBox
         ret = qm.question(None, '', "Are you sure to delete all the earlier generation files?", qm.Yes | qm.No)
 
         if ret == qm.Yes:
@@ -480,7 +480,7 @@ class GeneratePanel():
         tableModel.layoutChanged.emit()
         self.form.parametersTable.setModel(tableModel)
         self.form.parametersTable.horizontalHeader().setResizeMode(
-            PySide.QtWidgets.QHeaderView.ResizeToContents)
+            PySide2.QtWidgets.QHeaderView.ResizeToContents)
         self.form.parametersTable.clicked.connect(partial(
             Common.showGen, self.form.parametersTable, self.doc))
         self.form.parametersTable.setMinimumHeight(22+len(parameterValues)*30)

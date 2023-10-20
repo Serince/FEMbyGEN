@@ -109,7 +109,7 @@
         <item row="8" column="3">
          <widget class="QLineEdit" name="directionVector_3">
           <property name="enabled">
-           <bool>true</bool>
+           <bool>false</bool>
           </property>
           <property name="sizePolicy">
            <sizepolicy hsizetype="MinimumExpanding" vsizetype="Expanding">
@@ -523,7 +523,7 @@
         <item row="8" column="1">
          <widget class="QLineEdit" name="directionVector_1">
           <property name="enabled">
-           <bool>true</bool>
+           <bool>false</bool>
           </property>
           <property name="sizePolicy">
            <sizepolicy hsizetype="MinimumExpanding" vsizetype="Expanding">
@@ -553,7 +553,7 @@
           <item>
            <widget class="QComboBox" name="filterRange_3">
             <property name="enabled">
-             <bool>true</bool>
+             <bool>false</bool>
             </property>
             <property name="sizePolicy">
              <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
@@ -588,7 +588,7 @@
           <item>
            <widget class="QLineEdit" name="range_3">
             <property name="enabled">
-             <bool>true</bool>
+             <bool>false</bool>
             </property>
             <property name="sizePolicy">
              <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
@@ -618,7 +618,7 @@
         <item row="4" column="2">
          <widget class="QLineEdit" name="stressLimit_2">
           <property name="enabled">
-           <bool>true</bool>
+           <bool>false</bool>
           </property>
           <property name="sizePolicy">
            <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
@@ -675,7 +675,7 @@
           <item>
            <widget class="QComboBox" name="filterRange_2">
             <property name="enabled">
-             <bool>true</bool>
+             <bool>false</bool>
             </property>
             <property name="sizePolicy">
              <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
@@ -710,7 +710,7 @@
           <item>
            <widget class="QLineEdit" name="range_2">
             <property name="enabled">
-             <bool>true</bool>
+             <bool>false</bool>
             </property>
             <property name="sizePolicy">
              <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
@@ -837,6 +837,12 @@
           <property name="selectionMode">
            <enum>QAbstractItemView::MultiSelection</enum>
           </property>
+          <property name="selectionRectVisible">
+           <bool>true</bool>
+          </property>
+          <property name="currentRow">
+           <number>1</number>
+          </property>
           <item>
            <property name="text">
             <string>All defined</string>
@@ -895,7 +901,7 @@
         <item row="9" column="3">
          <widget class="QListWidget" name="domainList_3">
           <property name="enabled">
-           <bool>true</bool>
+           <bool>false</bool>
           </property>
           <property name="sizePolicy">
            <sizepolicy hsizetype="MinimumExpanding" vsizetype="Expanding">
@@ -917,6 +923,9 @@
           </property>
           <property name="selectionMode">
            <enum>QAbstractItemView::MultiSelection</enum>
+          </property>
+          <property name="currentRow">
+           <number>3</number>
           </property>
           <item>
            <property name="text">
@@ -971,7 +980,7 @@
         <item row="4" column="3">
          <widget class="QLineEdit" name="stressLimit_3">
           <property name="enabled">
-           <bool>true</bool>
+           <bool>false</bool>
           </property>
           <property name="sizePolicy">
            <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
@@ -1172,7 +1181,7 @@
         <item row="8" column="2">
          <widget class="QLineEdit" name="directionVector_2">
           <property name="enabled">
-           <bool>true</bool>
+           <bool>false</bool>
           </property>
           <property name="sizePolicy">
            <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
@@ -1237,7 +1246,7 @@
           <item>
            <widget class="QLineEdit" name="range_1">
             <property name="enabled">
-             <bool>true</bool>
+             <bool>false</bool>
             </property>
             <property name="sizePolicy">
              <sizepolicy hsizetype="MinimumExpanding" vsizetype="Expanding">
@@ -1267,7 +1276,7 @@
         <item row="9" column="2">
          <widget class="QListWidget" name="domainList_2">
           <property name="enabled">
-           <bool>true</bool>
+           <bool>false</bool>
           </property>
           <property name="sizePolicy">
            <sizepolicy hsizetype="MinimumExpanding" vsizetype="Expanding">
@@ -1289,6 +1298,9 @@
           </property>
           <property name="selectionMode">
            <enum>QAbstractItemView::MultiSelection</enum>
+          </property>
+          <property name="currentRow">
+           <number>2</number>
           </property>
           <item>
            <property name="text">
