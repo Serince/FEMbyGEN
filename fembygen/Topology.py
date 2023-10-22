@@ -854,7 +854,9 @@ class TopologyPanel(QtGui.QWidget):
         topologyObject.main()
         FreeCADGui.runCommand('Std_ActivatePrevWindow')
         FreeCAD.setActiveDocument(self.doc.Name)
-        #self.get_case("last")
+         
+    # Uncomment the following line if needed
+    # self.get_case("last")
 
     def get_case(self, numberofcase):
         lastcase = self.doc.Topology.LastState
@@ -870,6 +872,7 @@ class TopologyPanel(QtGui.QWidget):
         except:
             pass
         from functools import partial
+
         get_result = partial(Common.get_results_fc, self.doc)
         slider = QtGui.QSlider(QtCore.Qt.Horizontal)
         slider.setGeometry(10, mw.height()-50, mw.width()-50, 50)
@@ -890,7 +893,11 @@ class TopologyPanel(QtGui.QWidget):
         evaluation_bar.addWidget(closebutton)
         evaluation_bar.setObjectName("Evaluation")
         mw.addToolBar(QtCore.Qt.ToolBarArea.BottomToolBarArea, evaluation_bar)
-        get_result(numberofcase)
+        for numberofcase in range(1,lastcase+1):
+            get_result(numberofcase)
+    
+
+
 
     def openExample(self):
         webbrowser.open_new_tab("https://github.com/fandaL/beso/wiki/Example-4:-GUI-in-FreeCAD")
