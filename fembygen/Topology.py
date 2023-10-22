@@ -857,6 +857,29 @@ class TopologyPanel(QtGui.QWidget):
          
     # Uncomment the following line if needed
     # self.get_case("last")
+        beso_main.main(analysis)    
+        FreeCADGui.runCommand('Std_ActivatePrevWindow')
+        FreeCAD.setActiveDocument(self.doc.Name)
+        self.get_case("last")
+        self.meshSmoot()
+
+     
+    def meshSmoot(self): # mesh smoothing (topology)
+        file_number = self.doc.Topology.LastState
+        import femmesh.femmesh2mesh
+        import Mesh
+        femmesh_object = self.doc.getObject(f"file0{file_number}_state1")
+        if femmesh_object:
+            out_mesh = femmesh.femmesh2mesh.femmesh_2_mesh(femmesh_object.FemMesh)
+            Mesh.show(Mesh.Mesh(out_mesh))  # Corrected line
+            femmesh_object.ViewObject.hide()
+            obj = self.doc.getObject("Mesh")
+            self.doc.getObject(f"file0{file_number}").addObject(obj)
+            obj.Mesh.smooth("Laplace", 10, 0.6307, 0.0424)
+        else:
+                print(f"FemMesh object 'file{file_number}_state1' not found.")
+           
+
 
     def get_case(self, numberofcase):
         lastcase = self.doc.Topology.LastState
