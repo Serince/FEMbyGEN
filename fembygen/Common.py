@@ -103,24 +103,27 @@ def showGen(table, master, item):
     FreeCAD.setActiveDocument(docName)
 
 
+
 def get_results_fc(doc, case):
+    import os
+    import femmesh.femmesh2mesh
+    import Mesh
     file_path = doc.Topology.path
     file = os.path.join(file_path, "topology_iterations", "file" + str(case).zfill(3))
     result_state0 = f"{file}_state0"
     result_state1 = f"{file}_state1"
-
-    # hide all previous mesh objects
-    meshes = doc.findObjects('Fem::FemMeshObjectPython')+doc.findObjects('Fem::FemMeshShapeNetgenObject')
+    # Hide all previous mesh objects
+    meshes = doc.findObjects('Mesh::Feature') 
     for mesh in meshes:
         mesh.Visibility = False
     for obj in doc.Topology.Group:
         obj.Visibility = False
-    # if the file already imported open it
+    # If the file is already imported, open it
     if doc.getObject(os.path.split(file)[1]):
         doc.getObject(os.path.split(file)[1]).Visibility = True
     else:
         state = FreeCAD.ActiveDocument.addObject(
-            "App::DocumentObjectGroupPython",  os.path.split(file)[1])
+            "App::DocumentObjectGroupPython", os.path.split(file)[1])
         Fem.insert(f"{result_state0}.inp", doc.Name)
         Fem.insert(f"{result_state1}.inp", doc.Name)
         Gui.getDocument(doc).getObject(os.path.split(result_state0)[1]).ShapeColor = (1., 0., 0.)
@@ -129,8 +132,22 @@ def get_results_fc(doc, case):
         Gui.getDocument(doc).getObject(os.path.split(result_state1)[1]).ShapeColor = (0., 1., 0.)
         state.addObject(doc.getObject(os.path.split(result_state0)[1]))
         state.addObject(doc.getObject(os.path.split(result_state1)[1]))
+        femmesh_object=doc.getObject(os.path.split(result_state1)[1])
+        out_mesh = femmesh.femmesh2mesh.femmesh_2_mesh(femmesh_object.FemMesh)
+        mesh_filename = f"Smooth{case:03}"
+        Mesh.show(Mesh.Mesh(out_mesh), mesh_filename)
+        obj=doc.getObject(mesh_filename)
+        state.addObject(obj)
+        obj.Mesh.smooth("Laplace", 10, 0.6307, 0.0424)
         doc.Topology.addObject(state)
+    state1 = doc.getObject(os.path.split(result_state0)[1])
+    state2 = doc.getObject(os.path.split(result_state1)[1])
 
+    if state1 is not None:
+        state1.Visibility = False
+
+    if state2 is not None:
+        state2.Visibility = False
 
 class GenTableModel(PySide.QtCore.QAbstractTableModel):
     def __init__(self, parent, itemList, header, colours=None, score=None, *args):
