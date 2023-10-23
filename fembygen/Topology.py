@@ -276,9 +276,8 @@ class TopologyPanel(QtGui.QWidget):
         self.form.filterRange_2.currentIndexChanged.connect(self.filterRange2)
         self.form.filterRange_3.currentIndexChanged.connect(self.filterRange2)
 
-        # self.form.selectMaterial_2.clear()
-        self.form.domainList_2.setCurrentItem(self.form.domainList_2.item(0))  # select generated analysis file
-        self.form.selectLC.currentIndexChanged.connect(self.selectFile)
+
+        self.form.selectLC.currentIndexChanged.connect(self.selectFile) # select generated analysis file
         self.form.selectMaterial_1.currentIndexChanged.connect(
             self.selectMaterial1)  # select domain by material object comboBox 1
         self.form.selectMaterial_2.currentIndexChanged.connect(
@@ -379,6 +378,7 @@ class TopologyPanel(QtGui.QWidget):
         self.form.addButton_1.setVisible(True)
         self.form.domainList_1.clear()
         self.form.domainList_1.addItems(["All Defined", "Domain 1"])
+        self.form.domainList_1.setCurrentRow(0)
 
     def domains2(self):
         if not self.doc.Topology.combobox[0][3]:
@@ -416,8 +416,10 @@ class TopologyPanel(QtGui.QWidget):
         self.form.addButton_1.setVisible(False)
         self.form.domainList_1.clear()
         self.form.domainList_1.addItems(["All Defined", "Domain 1", "Domain 2"])
+        self.form.domainList_1.setCurrentRow(0)
         self.form.domainList_2.clear()
         self.form.domainList_2.addItems(["All Defined", "Domain 1", "Domain 2"])
+        self.form.domainList_2.setCurrentRow(0)
 
     def domains3(self):
         if not self.doc.Topology.combobox[0][3]:
@@ -456,10 +458,13 @@ class TopologyPanel(QtGui.QWidget):
         self.form.addButton_1.setVisible(False)
         self.form.domainList_1.clear()
         self.form.domainList_1.addItems(["All Defined", "Domain 1", "Domain 2", "Domain 3"])
+        self.form.domainList_1.setCurrentRow(0)
         self.form.domainList_2.clear()
         self.form.domainList_2.addItems(["All Defined", "Domain 1", "Domain 2", "Domain 3"])
+        self.form.domainList_2.setCurrentRow(0)
         self.form.domainList_3.clear()
         self.form.domainList_3.addItems(["All Defined", "Domain 1", "Domain 2", "Domain 3"])
+        self.form.domainList_3.setCurrentRow(0)
 
     def selectFile(self):
 
@@ -482,7 +487,7 @@ class TopologyPanel(QtGui.QWidget):
 
     def getAnalysis(self):
         comboBoxItems = []
-
+        self.doc.Topology.combobox = []
         self.form.selectLC.clear()
 
         if self.doc.Topology.combobox:
@@ -556,11 +561,11 @@ class TopologyPanel(QtGui.QWidget):
             filter_domains = []
             if "All defined" not in selection:
                 if "Domain 1" in selection:
-                    filter_domains.append(self.elsetname[0])
+                    filter_domains.append(elset)
                 if "Domain 2" in selection:
-                    filter_domains.append(self.elsetname[1])
-                if "Domain 3" in selection: 
-                    filter_domains.append(self.elsetname[2])
+                    filter_domains.append(elset1)
+                if "Domain 3" in selection:
+                    filter_domains.append(elset2)
             if filter == "simple":
                 self.doc.Topology.filter_list.append(['simple', Range])
                 for dn in filter_domains:
@@ -574,12 +579,17 @@ class TopologyPanel(QtGui.QWidget):
         self.doc.Topology.file_name = os.path.split(self.form.fileName.text())[1]
         self.doc.Topology.path = os.path.split(self.form.fileName.text())[0]
 
+        global elset2
+        global elset
+        global elset1
+        elset2 = ""
+        elset = ""
+        elset1 = ""
         fea = ccxtools.FemToolsCcx()
         fea.setup_ccx()
         self.doc.Topology.path_calculix = fea.ccx_binary
 
         self.doc.Topology.optimization_base = self.form.optBase.currentText()  # stiffness,heat
-        self.elsetname=[]
         for case in range(len(self.doc.Topology.combobox)):
             for i in range(self.doc.Topology.Number_of_Domains):
                 analysis = self.doc.Topology.combobox[case][0]
@@ -596,7 +606,6 @@ class TopologyPanel(QtGui.QWidget):
                         self.doc.Topology.combobox[case][3][thickness_id].Name
                 else:  # 0 means None thickness selected
                     elset_name = self.doc.Topology.combobox[case][2][elset_id].Name + "Solid"
-                self.elsetname.append(elset_name)
                 modulus = float(self.doc.Topology.combobox[case][2]
                                 [elset_id].Material["YoungsModulus"].split()[0])  # MPa
                 if self.doc.Topology.combobox[case][2][elset_id].Material["YoungsModulus"].split()[1] != "MPa":
@@ -651,6 +660,168 @@ class TopologyPanel(QtGui.QWidget):
                 else:
                     von_mises = 0.
 
+        #         if self.doc.Topology.Number_of_Domains == 2:
+        #             elset_id1 = self.form.selectMaterial_2.currentIndex() - 1
+        #             thickness_id1 = self.form.thicknessObject_2.currentIndex() - 1
+
+        #             if elset_id1 != -1:
+        #                 if thickness_id1 > -1:
+        #                     elset1 = self.doc.Topology.combobox[case][elset_id1].Name + self.thicknesses[thickness_id1].Name
+        #                 else:  # 0 means None thickness selected
+        #                     elset1 = self.materials[elset_id1].Name + "Solid"
+        #                 modulus1 = float(self.materials[elset_id1].Material["YoungsModulus"].split()[0])  # MPa
+        #                 if self.materials[elset_id1].Material["YoungsModulus"].split()[1] != "MPa":
+        #                     raise Exception(" units not recognised in " + self.materials[elset_id1].Name)
+        #                 poisson1 = float(self.materials[elset_id1].Material["PoissonRatio"].split()[0])
+        #                 try:
+        #                     density1 = float(self.materials[elset_id1].Material["Density"].split()[0]) * 1e-12  # kg/m3 -> t/mm3
+        #                     if self.materials[elset_id1].Material["Density"].split()[1] not in ["kg/m^3", "kg/m3"]:
+        #                         raise Exception(" units not recognised in " + self.materials[elset_id1].Name)
+        #                 except KeyError:
+        #                     density1 = 0.
+        #                 try:
+        #                     conductivity1 = float(self.materials[elset_id1].Material["ThermalConductivity"].split()[0])  # W/m/K
+        #                     if self.materials[elset_id1].Material["ThermalConductivity"].split()[1] != "W/m/K":
+        #                         raise Exception(" units not recognised in " + self.materials[elset_id1].Name)
+        #                 except KeyError:
+        #                     conductivity1 = 0.
+        #                 try:
+        #                     if self.materials[elset_id1].Material["ThermalExpansionCoefficient"].split()[1] == "um/m/K":
+        #                         expansion1 = float(self.materials[elset_id1].Material["ThermalExpansionCoefficient"].split()[
+        #                             0]) * 1e-6  # um/m/K -> mm/mm/K
+        #                     elif self.materials[elset_id1].Material["ThermalExpansionCoefficient"].split()[1] == "m/m/K":
+        #                         expansion1 = float(self.materials[elset_id1].Material["ThermalExpansionCoefficient"].split()[
+        #                             0])  # m/m/K -> mm/mm/K
+        #                     else:
+        #                         raise Exception(" units not recognised in " + self.materials[elset_id1].Name)
+        #                 except KeyError:
+        #                     expansion1 = 0.
+        #                 try:
+        #                     specific_heat1 = float(self.materials[elset_id1].Material["SpecificHeat"].split()[
+        #                         0]) * 1e6  # J/kg/K -> mm^2/s^2/K
+        #                     if self.materials[elset_id1].Material["SpecificHeat"].split()[1] != "J/kg/K":
+        #                         raise Exception(" units not recognised in " + self.materials[elset_id1].Name)
+        #                 except KeyError:
+        #                     specific_heat1 = 0.
+        #                 if thickness_id1 > -1:
+        #                     thickness1 = str(self.thicknesses[thickness_id1].Thickness).split()[0]  # mm
+        #                     if str(self.thicknesses[thickness_id1].Thickness).split()[1] != "mm":
+        #                         raise Exception(" units not recognised in " + self.thicknesses[thickness_id1].Name)
+        #                 else:
+        #                     thickness1 = 0.
+        #                 optimized1 = self.form.asDesign_checkbox_2.isChecked()
+        #                 if self.form.stressLimit_2.text():
+        #                     von_mises1 = float(self.form.stressLimit_2.text())
+        #                 else:
+        #                     von_mises1 = 0.
+        # if self.doc.Topology.Number_of_Domains == 3:
+        #     elset_id1 = self.form.selectMaterial_2.currentIndex() - 1
+        #     thickness_id1 = self.form.thicknessObject_2.currentIndex() - 1
+
+        #     if elset_id1 != -1:
+        #         if thickness_id1 > -1:
+        #             elset1 = self.materials[elset_id1].Name + self.thicknesses[thickness_id1].Name
+        #         else:  # 0 means None thickness selected
+        #             elset1 = self.materials[elset_id1].Name + "Solid"
+        #         modulus1 = float(self.materials[elset_id1].Material["YoungsModulus"].split()[0])  # MPa
+        #         if self.materials[elset_id1].Material["YoungsModulus"].split()[1] != "MPa":
+        #             raise Exception(" units not recognised in " + self.materials[elset_id1].Name)
+        #         poisson1 = float(self.materials[elset_id1].Material["PoissonRatio"].split()[0])
+        #         try:
+        #             density1 = float(self.materials[elset_id1].Material["Density"].split()[0]) * 1e-12  # kg/m3 -> t/mm3
+        #             if self.materials[elset_id1].Material["Density"].split()[1] not in ["kg/m^3", "kg/m3"]:
+        #                 raise Exception(" units not recognised in " + self.materials[elset_id1].Name)
+        #         except KeyError:
+        #             density1 = 0.
+        #         try:
+        #             conductivity1 = float(self.materials[elset_id1].Material["ThermalConductivity"].split()[0])  # W/m/K
+        #             if self.materials[elset_id1].Material["ThermalConductivity"].split()[1] != "W/m/K":
+        #                 raise Exception(" units not recognised in " + self.materials[elset_id1].Name)
+        #         except KeyError:
+        #             conductivity1 = 0.
+        #         try:
+        #             if self.materials[elset_id1].Material["ThermalExpansionCoefficient"].split()[1] == "um/m/K":
+        #                 expansion1 = float(self.materials[elset_id1].Material["ThermalExpansionCoefficient"].split()[
+        #                     0]) * 1e-6  # um/m/K -> mm/mm/K
+        #             elif self.materials[elset_id1].Material["ThermalExpansionCoefficient"].split()[1] == "m/m/K":
+        #                 expansion1 = float(self.materials[elset_id1].Material["ThermalExpansionCoefficient"].split()[
+        #                     0])  # m/m/K -> mm/mm/K
+        #             else:
+        #                 raise Exception(" units not recognised in " + self.materials[elset_id1].Name)
+        #         except KeyError:
+        #             expansion1 = 0.
+        #         try:
+        #             specific_heat1 = float(self.materials[elset_id1].Material["SpecificHeat"].split()[
+        #                 0]) * 1e6  # J/kg/K -> mm^2/s^2/K
+        #             if self.materials[elset_id1].Material["SpecificHeat"].split()[1] != "J/kg/K":
+        #                 raise Exception(" units not recognised in " + self.materials[elset_id1].Name)
+        #         except KeyError:
+        #             specific_heat1 = 0.
+        #         if thickness_id1 > -1:
+        #             thickness1 = str(self.thicknesses[thickness_id1].Thickness).split()[0]  # mm
+        #             if str(self.thicknesses[thickness_id1].Thickness).split()[1] != "mm":
+        #                 raise Exception(" units not recognised in " + self.thicknesses[thickness_id1].Name)
+        #         else:
+        #             thickness1 = 0.
+        #         optimized1 = self.form.asDesign_checkbox_2.isChecked()
+        #         if self.form.stressLimit_2.text():
+        #             von_mises1 = float(self.form.stressLimit_2.text())
+        #         else:
+        #             von_mises1 = 0.
+
+        #     elset_id2 = self.form.selectMaterial_3.currentIndex() - 1
+        #     thickness_id2 = self.form.thicknessObject_3.currentIndex() - 1
+        #     if elset_id2 != -1:
+        #         if thickness_id2 > -1:
+        #             elset2 = self.materials[elset_id2].Name + self.thicknesses[thickness_id2].Name
+        #         else:  # 0 means None thickness selected
+        #             elset2 = self.materials[elset_id2].Name + "Solid"
+        #         modulus2 = float(self.materials[elset_id2].Material["YoungsModulus"].split()[0])  # MPa
+        #         if self.materials[elset_id2].Material["YoungsModulus"].split()[1] != "MPa":
+        #             raise Exception(" units not recognised in " + self.materials[elset_id2].Name)
+        #         poisson2 = float(self.materials[elset_id2].Material["PoissonRatio"].split()[0])
+        #         try:
+        #             density2 = float(self.materials[elset_id2].Material["Density"].split()[0]) * 1e-12  # kg/m3 -> t/mm3
+        #             if self.materials[elset_id2].Material["Density"].split()[1] not in ["kg/m^3", "kg/m3"]:
+        #                 raise Exception(" units not recognised in " + self.materials[elset_id2].Name)
+        #         except KeyError:
+        #             density2 = 0.
+        #         try:
+        #             conductivity2 = float(self.materials[elset_id2].Material["ThermalConductivity"].split()[0])  # W/m/K
+        #             if self.materials[elset_id2].Material["ThermalConductivity"].split()[1] != "W/m/K":
+        #                 raise Exception(" units not recognised in " + self.materials[elset_id2].Name)
+        #         except KeyError:
+        #             conductivity2 = 0.
+        #         try:
+        #             if self.materials[elset_id2].Material["ThermalExpansionCoefficient"].split()[1] == "um/m/K":
+        #                 expansion2 = float(self.materials[elset_id2].Material["ThermalExpansionCoefficient"].split()[
+        #                     0]) * 1e-6  # um/m/K -> mm/mm/K
+        #             elif self.materials[elset_id2].Material["ThermalExpansionCoefficient"].split()[1] == "m/m/K":
+        #                 expansion2 = float(self.materials[elset_id2].Material["ThermalExpansionCoefficient"].split()[
+        #                     0])  # m/m/K -> mm/mm/K
+        #             else:
+        #                 raise Exception(" units not recognised in " + self.materials[elset_id2].Name)
+        #         except KeyError:
+        #             expansion2 = 0.
+        #         try:
+        #             specific_heat2 = float(self.materials[elset_id2].Material["SpecificHeat"].split()[
+        #                 0]) * 1e6  # J/kg/K -> mm^2/s^2/K
+        #             if self.materials[elset_id2].Material["SpecificHeat"].split()[1] != "J/kg/K":
+        #                 raise Exception(" units not recognised in " + self.materials[elset_id2].Name)
+        #         except KeyError:
+        #             specific_heat2 = 0.
+        #         if thickness_id2 > -1:
+        #             thickness2 = str(self.thicknesses[thickness_id2].Thickness).split()[0]  # mm
+        #             if str(self.thicknesses[thickness_id2].Thickness).split()[1] != "mm":
+        #                 raise Exception(" units not recognised in " + self.thicknesses[thickness_id2].Name)
+        #         else:
+        #             thickness2 = 0.
+        #         optimized2 = self.form.asDesign_checkbox_3.isChecked()
+        #         if self.form.stressLimit_3.text():
+        #             von_mises2 = float(self.form.stressLimit_3.text())
+        #         else:
+                    # von_mises2 = 0.
+
             self.doc.Topology.domain_material[analysis] = {elset_name: [
                 modulus, poisson, density, conductivity, expansion, specific_heat]}
 
@@ -679,28 +850,13 @@ class TopologyPanel(QtGui.QWidget):
         self.setConfig()
         self.setFilter()
         analysis = self.form.selectLC.currentText()
-        beso_main.main(analysis)    
+        topologyObject = beso_main.BesoMain(analysis)
+        topologyObject.main()
         FreeCADGui.runCommand('Std_ActivatePrevWindow')
         FreeCAD.setActiveDocument(self.doc.Name)
-        self.get_case("last")
-        self.meshSmoot()
-
-     
-    def meshSmoot(self): # mesh smoothing (topology)
-        file_number = self.doc.Topology.LastState
-        import femmesh.femmesh2mesh
-        import Mesh
-        femmesh_object = self.doc.getObject(f"file0{file_number}_state1")
-        if femmesh_object:
-            out_mesh = femmesh.femmesh2mesh.femmesh_2_mesh(femmesh_object.FemMesh)
-            Mesh.show(Mesh.Mesh(out_mesh))  # Corrected line
-            femmesh_object.ViewObject.hide()
-            obj = self.doc.getObject("Mesh")
-            self.doc.getObject(f"file0{file_number}").addObject(obj)
-            obj.Mesh.smooth("Laplace", 10, 0.6307, 0.0424)
-        else:
-                print(f"FemMesh object 'file{file_number}_state1' not found.")
-           
+         
+    # Uncomment the following line if needed
+    # self.get_case("last")
 
     def get_case(self, numberofcase):
         lastcase = self.doc.Topology.LastState
@@ -716,6 +872,7 @@ class TopologyPanel(QtGui.QWidget):
         except:
             pass
         from functools import partial
+
         get_result = partial(Common.get_results_fc, self.doc)
         slider = QtGui.QSlider(QtCore.Qt.Horizontal)
         slider.setGeometry(10, mw.height()-50, mw.width()-50, 50)
@@ -736,7 +893,11 @@ class TopologyPanel(QtGui.QWidget):
         evaluation_bar.addWidget(closebutton)
         evaluation_bar.setObjectName("Evaluation")
         mw.addToolBar(QtCore.Qt.ToolBarArea.BottomToolBarArea, evaluation_bar)
-        get_result(numberofcase)
+        for numberofcase in range(1,lastcase+1):
+            get_result(numberofcase)
+    
+
+
 
     def openExample(self):
         webbrowser.open_new_tab("https://github.com/fandaL/beso/wiki/Example-4:-GUI-in-FreeCAD")

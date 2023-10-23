@@ -66,7 +66,6 @@ class CreateGeoPanel:
         self.form.setWindowFlags(self.form.windowFlags() | QtCore.Qt.WindowStaysOnTopHint)
         self.doc = FreeCAD.ActiveDocument
         self.guiDoc = FreeCADGui.getDocument(self.doc)
-        
         self.form.SelectMaterial.clicked.connect(self.material) #select material
         self.form.addItem_in_preserve.clicked.connect(self.add_to_preserve) #add item in preserve listwidget
         self.form.remove_in_preserve.clicked.connect(self.remove_to_preserve) #remove item in preserve listwidget
@@ -79,6 +78,10 @@ class CreateGeoPanel:
         self.form.run_analysis.clicked.connect(self.solve_cxxtools)
         self.form.OffsetRatio.textChanged.connect(self.updateOffsetRatioProperty)
         self.form.OffsetRatio.setPlainText(str(self.doc.createGeo.Offset_Ratio))
+        self.myNewFreeCADWidget.setObjectName("CreateGeo")
+        self.myNewFreeCADWidget.resize(QtCore.QSize(300,100)) # sets size of the widget
+  
+    
 
 
 
