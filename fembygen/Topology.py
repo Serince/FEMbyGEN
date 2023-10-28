@@ -155,8 +155,10 @@ class Topology:
         obj.Number_of_Domains = 1
 
         obj.addProperty("App::PropertyFloat", "mass_goal_ratio", "Mass", "Mass Goal Ratio")
+        obj.mass_goal_ratio=0.75
 
         obj.addProperty("App::PropertyString", "optimization_base", "Base", "Optimization Base")
+
 
         obj.addProperty("App::PropertyEnumeration", "ratio_type", "Base", "Ratio Type")
         obj.ratio_type = ['relative', 'absolute']
@@ -177,10 +179,11 @@ class TopologyCommand():
         obj = makeTopology()
         doc = FreeCADGui.ActiveDocument
         if not doc.getInEdit() and obj is not None:
-            doc.setEdit(obj.ViewObject.Object.Name)
+            doc.setEdit(obj.ViewObject.Object.Name)  
         else:
             FreeCAD.Console.PrintError('Existing task dialog already open\n')
         return
+    
 
     def IsActive(self):
         """Here you can define if the command must be active or not (greyed) if certain conditions
@@ -191,7 +194,6 @@ class TopologyCommand():
 class TopologyMasterPanel(QtGui.QWidget):
     def __init__(self, object):
         self.obj = object
-
         guiPath = FreeCAD.getUserAppDataDir() + "Mod/FEMbyGEN/fembygen/ui/Beso_GenSelect.ui"
         self.form = FreeCADGui.PySideUic.loadUi(guiPath)
         self.workingDir = '/'.join(
@@ -219,7 +221,6 @@ class TopologyMasterPanel(QtGui.QWidget):
         self.obj.Label = partName+"_Topology"
         self.obj.Path = filePath
         self.accept()
-
         Gen_Doc = FreeCAD.open(filePath)
         FreeCAD.setActiveDocument(partName)
         obj = makeTopology()
@@ -260,7 +261,7 @@ class TopologyPanel(QtGui.QWidget):
             self.domains2()
         elif self.doc.Topology.Number_of_Domains == 3:
             self.domains3()
-
+        
         self.form.addButton_1.clicked.connect(self.addDomain)
         self.form.remButton_1.clicked.connect(self.remDomain)
         self.form.addButton_2.clicked.connect(self.addDomain)
@@ -270,7 +271,7 @@ class TopologyPanel(QtGui.QWidget):
         self.form.validator = QtGui.QDoubleValidator(0, 1, 2)
         self.form.massGoalRatio.setValidator(self.form.validator)
         self.form.massGoalRatio.textEdited.connect(self.validator)
-
+        self.form.massGoalRatio.setText(str(self.doc.Topology.mass_goal_ratio))
         self.form.selectFilter_2.currentIndexChanged.connect(self.filterType2)
         self.form.selectFilter_3.currentIndexChanged.connect(self.filterType3)
         self.form.filterRange_2.currentIndexChanged.connect(self.filterRange2)
@@ -300,11 +301,11 @@ class TopologyPanel(QtGui.QWidget):
             self.filterRange3)  # select filter range comboBox 3 (auto,manual)
 
         self.form.results.clicked.connect(lambda: self.get_case("last"))  # show results
-
         self.form.runOpt.clicked.connect(self.runOptimization)  # run optimization button
         self.form.openExample.clicked.connect(self.openExample)  # example button, opens examples on beso github
         self.form.confComments.clicked.connect(self.openConfComments)  # opens config comments on beso github
-        self.form.openLog.clicked.connect(self.openLog)  # opens log file
+        self.form.openLog.clicked.connect(self.openLog) # opens log file
+
 
     def validator(self):
         text = self.form.massGoalRatio.text()
@@ -854,6 +855,7 @@ class TopologyPanel(QtGui.QWidget):
         topologyObject.main()
         FreeCADGui.runCommand('Std_ActivatePrevWindow')
         FreeCAD.setActiveDocument(self.doc.Name)
+        
          
     # Uncomment the following line if needed
     # self.get_case("last")
@@ -872,7 +874,6 @@ class TopologyPanel(QtGui.QWidget):
         except:
             pass
         from functools import partial
-
         get_result = partial(Common.get_results_fc, self.doc)
         slider = QtGui.QSlider(QtCore.Qt.Horizontal)
         slider.setGeometry(10, mw.height()-50, mw.width()-50, 50)
@@ -884,21 +885,34 @@ class TopologyPanel(QtGui.QWidget):
         slider.setWindowFlags(QtCore.Qt.FramelessWindowHint)
         slider.setAttribute(QtCore.Qt.WA_TranslucentBackground)
         slider.sliderMoved.connect(get_result)
+        button = QtGui.QPushButton("Animation")
+        button.setGeometry(50, 100, 100, 30)
+        timer = QtCore.QTimer()
+        def start_auto_slider(s):
+            button.setEnabled(False)  # Disable the button during automation
+            timer.start(500)  # Trigger the auto_slide method every 100 milliseconds
+        def auto_slide():
+            current_value = slider.value()
+            max_value = slider.maximum()
+
+            if current_value < max_value:
+                slider.setValue(current_value + 1)
+                get_result(slider.value())
+            else:
+                timer.stop()  
+                button.setEnabled(True)  
+        button.clicked.connect(start_auto_slider) 
+        timer.timeout.connect(auto_slide)
         closebutton = QtGui.QPushButton("")
         pix = QtGui.QStyle.SP_TitleBarCloseButton
         icon = closebutton.style().standardIcon(pix)
         closebutton.setIcon(icon)
         closebutton.clicked.connect(evaluation_bar.close)
+        evaluation_bar.addWidget(button)
         evaluation_bar.addWidget(slider)
         evaluation_bar.addWidget(closebutton)
         evaluation_bar.setObjectName("Evaluation")
         mw.addToolBar(QtCore.Qt.ToolBarArea.BottomToolBarArea, evaluation_bar)
-        for numberofcase in range(1,lastcase+1):
-            get_result(numberofcase)
-    
-
-
-
     def openExample(self):
         webbrowser.open_new_tab("https://github.com/fandaL/beso/wiki/Example-4:-GUI-in-FreeCAD")
 
@@ -979,7 +993,6 @@ class TopologyPanel(QtGui.QWidget):
                 self.form.range_1.setEnabled(True)
             self.form.directionVector_1.setEnabled(False)
             self.form.domainList_1.setEnabled(True)
-
     def filterType2(self):
         if self.form.selectFilter_2.currentText() == "None":
             self.form.filterRange_2.setEnabled(False)
@@ -1026,7 +1039,6 @@ class TopologyPanel(QtGui.QWidget):
     def reject(self):
         doc = FreeCADGui.getDocument(self.doc)
         doc.resetEdit()
-
 
 class ViewProviderGen:
     def __init__(self, vobj):
