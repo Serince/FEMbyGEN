@@ -90,8 +90,8 @@ class CreateGeoPanel:
         self.form.OffsetRatio.textChanged.connect(self.updateOffsetRatioProperty)
         self.form.OffsetRatio.setPlainText(str(self.doc.createGeo.Offset_Ratio))
         self.myNewFreeCADWidget.setObjectName("CreateGeo")
-        self.form.obstacle_bodies.setMaximumHeight(25)
-        self.form.preserve_bodies.setMaximumHeight(25)
+        self.form.obstacle_bodies.setMaximumHeight(30)
+        self.form.preserve_bodies.setMaximumHeight(30)
         self.workingDir = '/'.join(
             self.doc.FileName.split('/')[0:-1])
         
@@ -104,20 +104,24 @@ class CreateGeoPanel:
             pass
     #add load in combobox 
     def assign_load(self):
+        logger=self.setup_logging()
         if self.form.SelectLoadtype.currentText() == "Force":
             self.doc.createGeo.Load_Type="Force"
             self.force()
         elif self.form.SelectLoadtype.currentText() == "Pressure":
             self.doc.createGeo.Load_Type="Pressure"
             self.pressure()
+        logger.info("Load Type: {}".format(self.doc.createGeo.Load_Type))
     #add BC in combobox 
     def assign_bc(self):
+        logger=self.setup_logging()
         if self.form.SelectBCtype.currentText() == "Fixed Support":
             self.doc.createGeo.Bc_Type="Fixed Support"
             self.fixed_support()
         elif self.form.SelectBCtype.currentText() == "Displacement":
             self.doc.createGeo.Bc_Type="Displacement"
             self.displacement()
+        logger.info("Load Type: {}".format(self.doc.createGeo.Bc_Type))
 #///////////////////add-remove selections in Qlistwidget/////////////////////////////////////////////
 # Adding to the preserve list widget
     def add_to_preserve(self):
@@ -226,7 +230,7 @@ class CreateGeoPanel:
             FreeCAD.Console.PrintError("Please Select Load type.\n")
         else:
             Topology.TopologyCommand.Activated(self.doc)
-            
+            self.doc.recompute()
 
     def TopologyBasic(self):
         self.deleteTopology()
@@ -238,6 +242,7 @@ class CreateGeoPanel:
         panel.accept()
         panel.runOptimization()
         panel.get_case("last")
+        self.doc.recompute()
 
 
         
@@ -323,47 +328,61 @@ class CreateGeoPanel:
         return added_items_in_obstacle   
 
 
+    def setup_logging(self):
+        # Set up logging
+        import logging
+        log_directory = self.workingDir
+        log_filename = os.path.join(log_directory, 'createGeoGenerations.log')
+        logger = logging.getLogger('createGeoGenerations')
+        logger.setLevel(logging.DEBUG)
 
+        try:
+            file_handler = logging.FileHandler(log_filename)
+            formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+            file_handler.setFormatter(formatter)
+            logger.addHandler(file_handler)
+        except Exception as e:
+            FreeCAD.Console.PrintError(f"Error setting up logging: {str(e)}\n")
+            return logger
+        logging.shutdown()
+        return logger
     def createGeoGenerations(self):
-            import logging 
-            import os
-   
-   
-            # Create a log file in the specified directory
-            log_directory = self.workingDir
-            log_filename = os.path.join(log_directory, 'createGeoGenerations.log')
-            if os.path.exists(log_filename):
-                os.remove(log_filename) #remove previous objecta
-            logger = logging.getLogger('createGeoGenerations')
-            logger.setLevel(logging.DEBUG)
-            logger.info("Deleted previous objects\n")
-            # Use a try-except block to catch any potential errors in logging setup
-            try:
-                file_handler = logging.FileHandler(log_filename)
-                formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-                file_handler.setFormatter(formatter)
-                logger.addHandler(file_handler)
-            except Exception as e:
-                FreeCAD.Console.PrintError(f"Error setting up logging: {str(e)}\n")
-                return
-            logger.info("Starting createGeoGenerations function\n")
-            if self.form.obstacle_bodies.count()>0:
+        # Set up logging
+
+        logger=self.setup_logging()
+        if self.form.obstacle_bodies.count() > 0:
+                logger.info("Starting createGeoGenerations function")
+
+                # Remove previous log file
+
+
                 percentage_text = self.form.OffsetRatio.toPlainText()
+
                 try:
                     percentage = float(percentage_text)
                 except ValueError:
                     FreeCAD.Console.PrintError("Invalid percentage value! Please enter a valid number.\n")
                     return
+
                 scale = percentage / 100
-                logger.info("Offset Ratio value:" f"{percentage}")
+                logger.info("Offset Ratio value: {}".format(percentage))
+
+                # Get selected Preserve and Obstacle Bodies
                 selected_labels_preserve = self.get_preserve_items()
                 part_bodies_preserve = [obj for obj in self.doc.Objects if obj.isDerivedFrom("Part::Feature") and obj.Label in selected_labels_preserve]
                 selected_labels_obstacle = self.get_obstacle_items()
                 part_bodies_obstacle = [obj for obj in self.doc.Objects if obj.isDerivedFrom("Part::Feature") and obj.Label in selected_labels_obstacle]
+
                 logger.info("Selected Preserve Bodies: {}".format(selected_labels_preserve))
                 logger.info("Selected Obstacle Bodies: {}".format(selected_labels_obstacle))
-                for hide_obj in part_bodies_preserve+part_bodies_obstacle:
-                    hide_obj.ViewObject.Visibility=False
+
+                
+
+                # Hide selected objects
+                for hide_obj in part_bodies_preserve + part_bodies_obstacle:
+                    hide_obj.ViewObject.Visibility = False
+
+                # Define the multiCuts function
                 def multiCuts(base_o, Objects):
                     cuts = []
                     i = 0
@@ -376,18 +395,20 @@ class CreateGeoPanel:
                             continue
                         copy = FreeCAD.ActiveDocument.copyObject(o)
                         copy.Label = "copy, " + o.Label
-                
-                        cutName = baseName + str(i-1)
+
+                        cutName = baseName + str(i - 1)
                         cut = FreeCAD.ActiveDocument.addObject("Part::Cut", cutName)
                         cut.Base = base
                         cut.Tool = copy
-                        cut.Label = "Cut " + str(i-1) + ", " + baseLabel
+                        cut.Label = "Cut " + str(i - 1) + ", " + baseLabel
                         self.doc.recompute()
                         base = cut
                         cuts.append(cut)
                     base.Label = "Cutted"
                     return cuts
-                shape = Part.makeCompound([Part.Shape(obj.Shape) for obj in part_bodies_preserve+part_bodies_obstacle])
+
+                # Create the union of Preserve Bodies and a bounding box
+                shape = Part.makeCompound([Part.Shape(obj.Shape) for obj in part_bodies_preserve + part_bodies_obstacle])
                 boundBox_ = shape.BoundBox
                 boundBoxLX = boundBox_.XLength
                 boundBoxLY = boundBox_.YLength
@@ -395,43 +416,48 @@ class CreateGeoPanel:
                 boundBoxXMin = boundBox_.XMin
                 boundBoxYMin = boundBox_.YMin
                 boundBoxZMin = boundBox_.ZMin
-    
-                if self.doc.getObject('Analysis') :
+
+                if self.doc.getObject('Analysis'):
                     FreeCAD.Console.PrintError("CreateGeo Already Ran\n")
                 else:
                     box = self.doc.addObject("Part::Box", "MyBox")
                     box.Length = boundBoxLX + 2 * scale * boundBoxLX
                     box.Width = boundBoxLY + 2 * scale * boundBoxLY
                     box.Height = boundBoxLZ
-                    box.Placement.Base = FreeCAD.Vector(boundBoxXMin - scale * boundBoxLX, boundBoxYMin - scale * boundBoxLY, boundBoxZMin)
-                    box.ViewObject.Visibility=False
+                    box.Placement.Base = FreeCAD.Vector(boundBoxXMin - scale * boundBoxLX,
+                                                       boundBoxYMin - scale * boundBoxLY, boundBoxZMin)
+                    box.ViewObject.Visibility = False
+
                     preserve_shapes = [obj.Shape for obj in part_bodies_preserve]
                     preserve_compound = Part.makeCompound(preserve_shapes)
                     union_shape = box.Shape.fuse(preserve_compound)
                     union_object = self.doc.addObject("Part::Feature", "UnionObject")
                     union_object.Shape = union_shape
+
                     obj_list = multiCuts(union_object, part_bodies_obstacle)
                     for obj in obj_list:
                         self.doc.createGeo.addObject(obj)
                     self.doc.createGeo.addObject(box)
-                    active_analysis=ObjectsFem.makeAnalysis(self.doc, 'Analysis')
-                    solver_obj=ObjectsFem.makeSolverCalculixCcxTools(self.doc)
+                    import femmesh.gmshtools as gt
+                    active_analysis = ObjectsFem.makeAnalysis(self.doc, 'Analysis')
+                    solver_obj = ObjectsFem.makeSolverCalculixCcxTools(self.doc)
                     self.doc.createGeo.addObject(active_analysis)
                     self.doc.Analysis.addObject(solver_obj)
-                    import femmesh.gmshtools as gt
                     mesh_obj = ObjectsFem.makeMeshGmsh(self.doc, 'FEMMeshGmsh')
                     self.doc.Analysis.addObject(mesh_obj)
-                    mesh_obj.Part = obj_list[-1] #number of cutted obj
+                    mesh_obj.Part = obj_list[-1]  # The number of cutted objects
                     mesher = gt.GmshTools(mesh_obj)
                     mesher.create_mesh()
+
                     self.doc.recompute()
-                    logger.removeHandler(file_handler)
+
                     logger.info("Finished createGeoGenerations function")
-                    file_handler.close()
-                  
-            else:
-                logging.debug("No selected Obstacle Bodies")
-                file_handler.close()
+                    
+
+        else:
+                logger.debug("No selected Obstacle Bodies")
+                FreeCAD.Console.PrintError("No selected Obstacle Bodies")
+               
                 
     def show(self):
         self.myNewFreeCADWidget.setWidget(self.form)
