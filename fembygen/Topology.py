@@ -913,6 +913,7 @@ class TopologyPanel(QtGui.QWidget):
         evaluation_bar.addWidget(closebutton)
         evaluation_bar.setObjectName("Evaluation")
         mw.addToolBar(QtCore.Qt.ToolBarArea.BottomToolBarArea, evaluation_bar)
+        get_result(lastcase)
     def openExample(self):
         webbrowser.open_new_tab("https://github.com/fandaL/beso/wiki/Example-4:-GUI-in-FreeCAD")
 
