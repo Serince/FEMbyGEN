@@ -10,7 +10,7 @@ This project was devoloped based on [Rahul](https://github.com/MightyBucket/) Ma
 This folder contains the code for a workbench plug-in for FreeCAD. Therefore you must have FreeCAD installed to use it.
 FreeCAD 0.20 can be downloaded for free from https://www.freecadweb.org/
 
-Once installed, you can add this webpage address to Edit > Preferences > Addon Manager > Custom repository in Freecad. Second method after downloading this repository and  manually copy the 'FembyGen' folder to the user 'Mod' directory for FreeCAD. This is normally found in the following directory:
+You can install it by addon manager in the FreeCAD or you can add this webpage address to Edit > Preferences > Addon Manager > Custom repository in Freecad. Second method after downloading this repository and  manually copy the 'FembyGen' folder to the user 'Mod' directory for FreeCAD. This is normally found in the following directory:
 
 in Windows:
 `C:\Users\*UserName*\AppData\Roaming\FreeCAD\Mod
@@ -32,7 +32,11 @@ After then everything is easy, just click generate button, to create your new ge
 
 Then you can use Fea button to fem simulations of all created generations. 
 
-At the end, you can check all results by clicking results button. You can open the generated files by clicking table rows of results Gui. And all results also will come to master file, you can check tree view for that.
+You can check all results by clicking results button. You can open the generated files by clicking table rows of results Gui. And all results also will come to master file, you can check tree view for that.
+
+It offers also a suggesting optimum geometry for your boundry conditions. By clicking creategeo button, You can choose your boundries such as supports, pressures,forces and the function will create an optimum body for you.
+
+By clicking toplogy button you can run a topology optimization analysis. 
 
 ## Requirements
-- pyDOE2 (Optional)
+- scipy

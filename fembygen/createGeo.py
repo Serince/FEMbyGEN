@@ -1,7 +1,8 @@
 import FreeCAD,Part
 import FreeCADGui
 import os
-from fembygen import  ObjectsFem,Topology
+import ObjectsFem
+from fembygen import Topology
 from PySide import QtGui,QtCore,QtWidgets
 import shutil
 

@@ -9,9 +9,9 @@ class BesoMain:
     import subprocess
     import numpy as np
     from fembygen.topology import beso_filters, beso_separate, beso_lib
-    
-    def __init__(self,analysis):
-        
+
+    def __init__(self, analysis):
+
         self.doc = self.FreeCAD.ActiveDocument
         self.path = self.doc.Topology.path
         self.path_calculix = self.doc.Topology.path_calculix
@@ -60,7 +60,6 @@ class BesoMain:
         self.below_elm = {}
         self.filter_auto = False
 
-    
         self.domain_density = self.doc.Topology.domain_density[analysis]
         self.domain_material = self.doc.Topology.domain_material[analysis]
 
@@ -74,7 +73,7 @@ class BesoMain:
                         if dn_crit not in self.criteria:
                             self.criteria.append(dn_crit)
         except:
-            self.domain_FI={}
+            self.domain_FI = {}
         # default values if not defined by user
         for dn in self.domain_optimized:
 
@@ -98,20 +97,20 @@ class BesoMain:
         self.number_of_states = 0  # find number of states possible in elm_states
         for dn in self.domains_from_config:
             self.number_of_states = max(self.number_of_states, len(self.domain_density[dn]))
-        
+
         # set an environmental variable driving number of cpu cores to be used by CalculiX
 
-
-    def createFolder(self,path,file_name):
+    def createFolder(self, path, file_name):
         try:
             self.os.mkdir(self.os.path.join(path, "topology_iterations"))
         except:
             self.shutil.rmtree(self.os.path.join(path, "topology_iterations"))
-            msg="Earlier topology simulations deleted"
+            msg = "Earlier topology simulations deleted"
             self.FreeCAD.Console.PrintMessage(msg)
             self.beso_lib.write_to_log(file_name, msg)
             self.os.mkdir(self.os.path.join(path, "topology_iterations"))
-    def deleteFiles(self,file_nameW, save_solver_files, reference_points):
+
+    def deleteFiles(self, file_nameW, save_solver_files, reference_points):
         if "inp" not in save_solver_files:
             self.os.remove(file_nameW + ".inp")
             if reference_points == "nodes":
@@ -184,10 +183,10 @@ class BesoMain:
         domain_volumes = {}
         for dn in self.domains_from_config:  # distinguishing shell elements and volume elements
             domain_shells[dn] = set(domains[dn]).intersection(list(Elements.tria3.keys()) + list(Elements.tria6.keys()) +
-                                                        list(Elements.quad4.keys()) + list(Elements.quad8.keys()))
+                                                              list(Elements.quad4.keys()) + list(Elements.quad8.keys()))
             domain_volumes[dn] = set(domains[dn]).intersection(list(Elements.tetra4.keys()) + list(Elements.tetra10.keys()) +
-                                                        list(Elements.hexa8.keys()) + list(Elements.hexa20.keys()) +
-                                                        list(Elements.penta6.keys()) + list(Elements.penta15.keys()))
+                                                               list(Elements.hexa8.keys()) + list(Elements.hexa20.keys()) +
+                                                               list(Elements.penta6.keys()) + list(Elements.penta15.keys()))
 
         # initialize element states
         elm_states = {}
@@ -203,9 +202,11 @@ class BesoMain:
                 for en in domains[dn]:
                     elm_states[en] = sn
         elif self.continue_from[-4:] == ".frd":
-            elm_states = self.beso_lib.import_frd_state(self.continue_from, elm_states, self.number_of_states, self.file_name)
+            elm_states = self.beso_lib.import_frd_state(
+                self.continue_from, elm_states, self.number_of_states, self.file_name)
         elif self.continue_from[-4:] == ".inp":
-            elm_states = self.beso_lib.import_inp_state(self.continue_from, elm_states, self.number_of_states, self.file_name)
+            elm_states = self.beso_lib.import_inp_state(
+                self.continue_from, elm_states, self.number_of_states, self.file_name)
         elif self.continue_from[-4:] == ".csv":
             elm_states = self.beso_lib.import_csv_state(self.continue_from, elm_states, self.file_name)
         else:
@@ -222,7 +223,8 @@ class BesoMain:
         for dn in self.domains_from_config:
             if self.domain_optimized[dn] is True:
                 for en in domain_shells[dn]:
-                    mass[0] += self.domain_density[dn][elm_states[en]] * area_elm[en] * self.domain_thickness[dn][elm_states[en]]
+                    mass[0] += self.domain_density[dn][elm_states[en]] * \
+                        area_elm[en] * self.domain_thickness[dn][elm_states[en]]
                     mass_full += self.domain_density[dn][len(self.domain_density[dn]) - 1] * area_elm[en] * self.domain_thickness[dn][
                         len(self.domain_density[dn]) - 1]
                 for en in domain_volumes[dn]:
@@ -233,9 +235,11 @@ class BesoMain:
         if self.iterations_limit == "auto":  # automatic setting
             m = mass[0] / mass_full
             if self.ratio_type == "absolute" and (self.mass_removal_ratio - self.mass_addition_ratio > 0):
-                iterations_limit = int((m - self.mass_goal_ratio) / (self.mass_removal_ratio - self.mass_addition_ratio) + 25)
+                iterations_limit = int((m - self.mass_goal_ratio) /
+                                       (self.mass_removal_ratio - self.mass_addition_ratio) + 25)
             elif self.ratio_type == "absolute" and (self.mass_removal_ratio - self.mass_addition_ratio < 0):
-                iterations_limit = int((self.mass_goal_ratio - m) / (self.mass_addition_ratio - self.mass_removal_ratio) + 25)
+                iterations_limit = int((self.mass_goal_ratio - m) /
+                                       (self.mass_addition_ratio - self.mass_removal_ratio) + 25)
             elif self.ratio_type == "relative":
                 it = 0
                 if self.mass_removal_ratio - self.mass_addition_ratio > 0:
@@ -274,8 +278,9 @@ class BesoMain:
                 if ft[0] == "casting":
                     if len(ft) == 3:
                         domains_to_filter = list(opt_domains)
-                        filtered_dn = self.domains_from_config   
-                        self.beso_filters.check_same_state(self.domain_same_state, self.domains_from_config, self.file_name)
+                        filtered_dn = self.domains_from_config
+                        self.beso_filters.check_same_state(
+                            self.domain_same_state, self.domains_from_config, self.file_name)
                     else:
                         domains_to_filter = []
                         filtered_dn = []
@@ -292,11 +297,11 @@ class BesoMain:
                         size_avg = self.beso_filters.get_filter_range(size_elm, domains, filtered_dn)
                         f_range = size_avg * 2
                         msg = "Filtered average element size is {}, filter range set automatically to {}".format(size_avg,
-                                                                                                                f_range)
+                                                                                                                 f_range)
                         print(msg)
                         self.beso_lib.write_to_log(self.file_name, msg)
                     [above_elm, below_elm] = self.beso_filters.prepare2s_casting(cg, f_range, domains_to_filter,
-                                                                            above_elm, below_elm, casting_vector)
+                                                                                 above_elm, below_elm, casting_vector)
                     continue  # to evaluate other filters
                 if len(ft) == 2:
                     domains_to_filter = list(opt_domains)
@@ -320,22 +325,25 @@ class BesoMain:
                     self.beso_lib.write_to_log(self.file_name, msg)
                 if ft[0] == "over points":
                     self.beso_filters.check_same_state(self.domain_same_state, self.domains_from_config, self.file_name)
-                    [w_f3, n_e3, n_p] = self.beso_filters.prepare3_tetra_grid(self.file_name, cg, f_range, domains_to_filter)
+                    [w_f3, n_e3, n_p] = self.beso_filters.prepare3_tetra_grid(
+                        self.file_name, cg, f_range, domains_to_filter)
                     self.weight_factor3.append(w_f3)
                     self.near_elm3.append(n_e3)
                     self.near_points.append(n_p)
                 elif ft[0] == "over nodes":
                     self.beso_filters.check_same_state(self.domain_same_state, self.domains_from_config, self.file_name)
-                    [w_f_n, M_, w_f_d, n_n] = self.beso_filters.prepare1s(nodes, Elements, cg, f_range, domains_to_filter)
+                    [w_f_n, M_, w_f_d, n_n] = self.beso_filters.prepare1s(
+                        nodes, Elements, cg, f_range, domains_to_filter)
                     self.weight_factor_node.append(w_f_n)
                     self.M.append(M_)
                     self.weight_factor_distance.append(w_f_d)
                     self.near_nodes.append(n_n)
                 elif ft[0] == "simple":
                     [weight_factor2, near_elm] = self.beso_filters.prepare2s(cg, cg_min, cg_max, f_range, domains_to_filter,
-                                                                        self.weight_factor2, self.near_elm)
+                                                                             self.weight_factor2, self.near_elm)
                 elif ft[0].split()[0] in ["erode", "dilate", "open", "close", "open-close", "close-open", "combine"]:
-                    near_elm = self.beso_filters.prepare_morphology(cg, cg_min, cg_max, f_range, domains_to_filter, near_elm)
+                    near_elm = self.beso_filters.prepare_morphology(
+                        cg, cg_min, cg_max, f_range, domains_to_filter, near_elm)
 
         # separating elements for reading nodal input
         if self.reference_points == "nodes":
@@ -402,7 +410,7 @@ class BesoMain:
         elm_states_last = elm_states
         oscillations = False
 
-        self.createFolder(self.path,self.file_name)
+        self.createFolder(self.path, self.file_name)
 
         while True:
             if self.FreeCADGui.activeDocument() == None:
@@ -411,10 +419,10 @@ class BesoMain:
             # creating the new .inp file for CalculiX
             file_nameW = self.os.path.join(self.path, "topology_iterations", "file" + str(i).zfill(3))
             self.beso_lib.write_inp(self.file_name, file_nameW, elm_states, self.number_of_states, domains, self.domains_from_config,
-                            self.domain_optimized, self.domain_thickness, self.domain_offset, self.domain_orientation, self.domain_material,
-                            domain_volumes, domain_shells, plane_strain, plane_stress, axisymmetry, self.save_iteration_results,
-                            i, self.reference_points, self.shells_as_composite, self.optimization_base, self.displacement_graph,
-                            self.domain_FI_filled)
+                                    self.domain_optimized, self.domain_thickness, self.domain_offset, self.domain_orientation, self.domain_material,
+                                    domain_volumes, domain_shells, plane_strain, plane_stress, axisymmetry, self.save_iteration_results,
+                                    i, self.reference_points, self.shells_as_composite, self.optimization_base, self.displacement_graph,
+                                    self.domain_FI_filled)
             # running CalculiX analysis
 
             if self.sys.platform.startswith('linux'):
@@ -427,11 +435,12 @@ class BesoMain:
                     (self.optimization_base == "buckling") or (self.optimization_base == "heat"):  # from .dat file
                 [FI_step, energy_density_step, disp_i, buckling_factors, energy_density_eigen, heat_flux] = \
                     self.beso_lib.import_FI_int_pt(self.reference_value, file_nameW, domains, self.criteria, self.domain_FI, self.file_name, elm_states,
-                                            self.domains_from_config, self.steps_superposition, self.displacement_graph)
+                                                   self.domains_from_config, self.steps_superposition, self.displacement_graph)
             if self.reference_points == "nodes":  # from .frd file
                 FI_step = self.beso_lib.import_FI_node(self.reference_value, file_nameW, domains, self.criteria, self.domain_FI, self.file_name,
-                                                elm_states, self.steps_superposition)
-                disp_i = self.beso_lib.import_displacement(file_nameW, self.displacement_graph, self.steps_superposition)
+                                                       elm_states, self.steps_superposition)
+                disp_i = self.beso_lib.import_displacement(
+                    file_nameW, self.displacement_graph, self.steps_superposition)
             disp_max.append(disp_i)
 
             # check if results were found
@@ -492,7 +501,8 @@ class BesoMain:
                         try:
                             sensitivity_number[en] = heat_flux[en] / volume_elm[en]
                         except KeyError:
-                            sensitivity_number[en] = heat_flux[en] / (area_elm[en] * self.domain_thickness[dn][elm_states[en]])
+                            sensitivity_number[en] = heat_flux[en] / \
+                                (area_elm[en] * self.domain_thickness[dn][elm_states[en]])
                     elif self.optimization_base == "failure_index":
                         sensitivity_number[en] = FI_step_max[en] / self.domain_density[dn][elm_states[en]]
                     if self.domain_FI_filled:
@@ -521,7 +531,8 @@ class BesoMain:
                     for en in domains[dn]:
                         sensitivity_number[en] = energy_density_eigen[1][en] / denominator[0]
                         for bfn in bf_dif:
-                            sensitivity_number[en] += energy_density_eigen[bfn + 1][en] / denominator[bfn] * bf_coef[bfn]
+                            sensitivity_number[en] += energy_density_eigen[bfn + 1][en] / \
+                                denominator[bfn] * bf_coef[bfn]
 
             # filtering sensitivity number
             kp = 0
@@ -536,7 +547,7 @@ class BesoMain:
                             for dn in ft[3:]:
                                 domains_to_filter += domains[dn]
                         sensitivity_number = self.beso_filters.run2_casting(sensitivity_number, above_elm, below_elm,
-                                                                    domains_to_filter)
+                                                                            domains_to_filter)
                         continue  # to evaluate other filters
                     if len(ft) == 2:
                         domains_to_filter = list(opt_domains)
@@ -546,20 +557,20 @@ class BesoMain:
                             domains_to_filter += domains[dn]
                     if ft[0] == "over points":
                         sensitivity_number = self.beso_filters.run3(sensitivity_number, self.weight_factor3[kp], self.near_elm3[kp],
-                                                            self.near_points[kp])
+                                                                    self.near_points[kp])
                         kp += 1
                     elif ft[0] == "over nodes":
                         sensitivity_number = self.beso_filters.run1(self.file_name, sensitivity_number, self.weight_factor_node[kn], self.M[kn],
-                                                            self.weight_factor_distance[kn], self.near_nodes[kn], nodes,
-                                                            domains_to_filter)
+                                                                    self.weight_factor_distance[kn], self.near_nodes[kn], nodes,
+                                                                    domains_to_filter)
                         kn += 1
                     elif ft[0] == "simple":
                         sensitivity_number = self.beso_filters.run2(self.file_name, sensitivity_number, weight_factor2, near_elm,
-                                                            domains_to_filter)
+                                                                    domains_to_filter)
                     elif ft[0].split()[0] in ["erode", "dilate", "open", "close", "open-close", "close-open", "combine"]:
                         if ft[0].split()[1] == "sensitivity":
                             sensitivity_number = self.beso_filters.run_morphology(sensitivity_number, near_elm, domains_to_filter,
-                                                                            ft[0].split()[0])
+                                                                                  ft[0].split()[0])
 
             if self.sensitivity_averaging:
                 for en in opt_domains:
@@ -580,7 +591,8 @@ class BesoMain:
             for dn in self.domain_optimized:
                 if self.domain_optimized[dn] is True:
                     for en in domain_shells[dn]:
-                        mass_elm = self.domain_density[dn][elm_states[en]] * area_elm[en] * self.domain_thickness[dn][elm_states[en]]
+                        mass_elm = self.domain_density[dn][elm_states[en]] * \
+                            area_elm[en] * self.domain_thickness[dn][elm_states[en]]
                         if self.domain_FI_filled:
                             FI_mean_sum += FI_step_max[en] * mass_elm
                             if elm_states[en] != 0:
@@ -653,10 +665,10 @@ class BesoMain:
             if self.save_iteration_results and self.np.mod(float(i), self.save_iteration_results) == 0:
                 if "csv" in self.save_resulting_format:
                     self.beso_lib.export_csv(self.domains_from_config, domains, self.criteria, FI_step, FI_step_max, file_nameW, cg,
-                                        elm_states, sensitivity_number)
+                                             elm_states, sensitivity_number)
                 if "vtk" in self.save_resulting_format:
                     self.beso_lib.export_vtk(file_nameW, nodes, Elements, elm_states, sensitivity_number, self.criteria, FI_step,
-                                        FI_step_max)
+                                             FI_step_max)
 
             # relative difference in a mean stress for the last 5 iterations must be < tolerance
             if len(FI_mean) > 5:
@@ -677,8 +689,8 @@ class BesoMain:
                 for last in range(1, 6):
                     try:
                         difference_last.append(
-                        abs(energy_density_mean[i] - energy_density_mean[i - last]) / energy_density_mean[i])
-                        
+                            abs(energy_density_mean[i] - energy_density_mean[i - last]) / energy_density_mean[i])
+
                     except:
                         print("energy_density_mean is 0")
                         difference_last.append(0)
@@ -696,16 +708,16 @@ class BesoMain:
                 if not(self.save_iteration_results and self.np.mod(float(i), self.save_iteration_results) == 0):
                     if "csv" in self.save_resulting_format:
                         self.beso_lib.export_csv(self.domains_from_config, domains, self.criteria, FI_step, FI_step_max, file_nameW, cg,
-                                            elm_states, sensitivity_number)
+                                                 elm_states, sensitivity_number)
                     if "vtk" in self.save_resulting_format:
                         self.beso_lib.export_vtk(file_nameW, nodes, Elements, elm_states, sensitivity_number, self.criteria, FI_step,
-                                            FI_step_max)
+                                                 FI_step_max)
                 self.doc.Topology.LastState = i
                 break
             # plot and save figures
             beso_plots.replot(self.path, i, oscillations, mass, self.domain_FI_filled, self.domains_from_config, FI_violated, FI_mean,
-                            FI_mean_without_state0, FI_max, self.optimization_base, energy_density_mean, heat_flux_mean,
-                            self.displacement_graph, disp_max, buckling_factors_all, savefig=True)
+                              FI_mean_without_state0, FI_max, self.optimization_base, energy_density_mean, heat_flux_mean,
+                              self.displacement_graph, disp_max, buckling_factors_all, savefig=True)
 
             i += 1  # iteration number
             print("\n----------- new iteration number %d ----------" % i)
@@ -746,10 +758,10 @@ class BesoMain:
             elif self.ratio_type == "relative":
                 mass_referential = mass[i - 1]
             [elm_states, mass] = self.beso_lib.switching(elm_states, self.domains_from_config, self.domain_optimized, domains, FI_step_max,
-                                                    self.domain_density, self.domain_thickness, domain_shells, area_elm, volume_elm,
-                                                    sensitivity_number, mass, mass_referential, self.mass_addition_ratio,
-                                                    self.mass_removal_ratio, self.compensate_state_filter, mass_excess, self.decay_coefficient,
-                                                    FI_violated, i_violated, i, mass_goal_i, self.domain_same_state)
+                                                         self.domain_density, self.domain_thickness, domain_shells, area_elm, volume_elm,
+                                                         sensitivity_number, mass, mass_referential, self.mass_addition_ratio,
+                                                         self.mass_removal_ratio, self.compensate_state_filter, mass_excess, self.decay_coefficient,
+                                                         FI_violated, i_violated, i, mass_goal_i, self.domain_same_state)
 
             # filtering state
             mass_not_filtered = mass[i]  # use variable to store the "right" mass
@@ -768,7 +780,7 @@ class BesoMain:
                         if ft[0].split()[1] == "state":
                             # the same filter as for sensitivity numbers
                             elm_states_filtered = self.beso_filters.run_morphology(elm_states, near_elm, domains_to_filter,
-                                                                            ft[0].split()[0], FI_step_max)
+                                                                                   ft[0].split()[0], FI_step_max)
                             # compute mass difference
                             for dn in self.domains_from_config:
                                 if self.domain_optimized[dn] is True:
@@ -835,16 +847,17 @@ class BesoMain:
 
         # plot and save figures
         beso_plots.replot(self.path, i, oscillations, mass, self.domain_FI_filled, self.domains_from_config, FI_violated, FI_mean,
-                        FI_mean_without_state0, FI_max, self.optimization_base, energy_density_mean, heat_flux_mean,
-                        self.displacement_graph, disp_max, buckling_factors_all, savefig = True)
+                          FI_mean_without_state0, FI_max, self.optimization_base, energy_density_mean, heat_flux_mean,
+                          self.displacement_graph, disp_max, buckling_factors_all, savefig=True)
         # print total time
-        total_time=self.time.time() - self.start_time
-        total_time_h=int(total_time / 3600.0)
-        total_time_min=int((total_time % 3600) / 60.0)
-        total_time_s=int(round(total_time % 60))
-        msg="\n"
+        total_time = self.time.time() - self.start_time
+        total_time_h = int(total_time / 3600.0)
+        total_time_min = int((total_time % 3600) / 60.0)
+        total_time_s = int(round(total_time % 60))
+        msg = "\n"
         msg += ("Finished at  " + self.time.ctime() + "\n")
-        showMsg= ("Total time   " + str(total_time_h) + " h " + str(total_time_min) + " min " + str(total_time_s) +" \n")
-        msg += showMsg+ "\n"
+        showMsg = ("Total time   " + str(total_time_h) + " h " +
+                   str(total_time_min) + " min " + str(total_time_s) + " \n")
+        msg += showMsg + "\n"
         self.beso_lib.write_to_log(self.file_name, msg)
         print(showMsg)
