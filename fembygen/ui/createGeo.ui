@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>383</width>
-    <height>504</height>
+    <width>361</width>
+    <height>524</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -15,224 +15,264 @@
   </property>
   <layout class="QGridLayout" name="gridLayout">
    <item row="0" column="0">
-    <widget class="QWidget" name="widget" native="true">
-     <layout class="QGridLayout" name="gridLayout_9">
-      <item row="0" column="0">
-       <widget class="QWidget" name="layout" native="true">
-        <layout class="QGridLayout" name="gridLayout_8" rowstretch="1,0,0,0,0,0,0,0,0,0,0,0" columnstretch="1,0,0">
-         <property name="spacing">
-          <number>3</number>
+    <widget class="QGroupBox" name="groupBox">
+     <layout class="QGridLayout" name="gridLayout_2">
+      <item row="2" column="0">
+       <widget class="QPushButton" name="remove_in_preserve">
+        <property name="text">
+         <string>Remove Object</string>
+        </property>
+       </widget>
+      </item>
+      <item row="5" column="0">
+       <widget class="QPushButton" name="remove_in_obstacle">
+        <property name="text">
+         <string>Remove Object</string>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="0" colspan="3">
+       <widget class="QListWidget" name="obstacle_bodies">
+        <property name="enabled">
+         <bool>true</bool>
+        </property>
+        <property name="selectionMode">
+         <enum>QAbstractItemView::MultiSelection</enum>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0" colspan="3">
+       <widget class="QListWidget" name="preserve_bodies">
+        <property name="selectionMode">
+         <enum>QAbstractItemView::MultiSelection</enum>
+        </property>
+       </widget>
+      </item>
+      <item row="13" column="2">
+       <widget class="QPushButton" name="topology_create">
+        <property name="styleSheet">
+         <string notr="true">font: 1000 8pt &quot;MS Shell Dlg 2&quot;;</string>
+        </property>
+        <property name="text">
+         <string>Advanced</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="0" colspan="2">
+       <widget class="QLabel" name="label">
+        <property name="text">
+         <string>                           Preserve Bodies</string>
+        </property>
+       </widget>
+      </item>
+      <item row="10" column="2">
+       <widget class="QPushButton" name="AssignBC">
+        <property name="styleSheet">
+         <string notr="true">selection-background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:1, y2:0, stop:0 rgba(0, 0, 0, 255), stop:1 rgba(255, 255, 255, 255));</string>
+        </property>
+        <property name="text">
+         <string>Assign...</string>
+        </property>
+       </widget>
+      </item>
+      <item row="6" column="0">
+       <widget class="QLabel" name="offsetRatiol">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>200</width>
+          <height>30</height>
+         </size>
+        </property>
+        <property name="text">
+         <string>Offset Ratio(%)</string>
+        </property>
+       </widget>
+      </item>
+      <item row="6" column="1">
+       <widget class="QPlainTextEdit" name="OffsetRatio">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>70</width>
+          <height>30</height>
+         </size>
+        </property>
+        <property name="plainText">
+         <string>20</string>
+        </property>
+       </widget>
+      </item>
+      <item row="9" column="0">
+       <widget class="QLabel" name="selectMaterialL">
+        <property name="maximumSize">
+         <size>
+          <width>16777215</width>
+          <height>30</height>
+         </size>
+        </property>
+        <property name="text">
+         <string>Select Material</string>
+        </property>
+       </widget>
+      </item>
+      <item row="10" column="1">
+       <widget class="QComboBox" name="SelectBCtype">
+        <item>
+         <property name="text">
+          <string>Fixed Support</string>
          </property>
-         <item row="9" column="2">
-          <widget class="QPushButton" name="AssignBC">
-           <property name="styleSheet">
-            <string notr="true">selection-background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:1, y2:0, stop:0 rgba(0, 0, 0, 255), stop:1 rgba(255, 255, 255, 255));</string>
-           </property>
-           <property name="text">
-            <string>Assign...</string>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="0" colspan="3">
-          <widget class="QListWidget" name="preserve_bodies">
-           <property name="selectionMode">
-            <enum>QAbstractItemView::MultiSelection</enum>
-           </property>
-          </widget>
-         </item>
-         <item row="11" column="2">
-          <widget class="QPushButton" name="topology_create">
-           <property name="text">
-            <string>Create Topology</string>
-           </property>
-          </widget>
-         </item>
-         <item row="8" column="0">
-          <widget class="QLabel" name="selectMaterialL">
-           <property name="maximumSize">
-            <size>
-             <width>16777215</width>
-             <height>30</height>
-            </size>
-           </property>
-           <property name="text">
-            <string>Select Material</string>
-           </property>
-          </widget>
-         </item>
-         <item row="9" column="0">
-          <widget class="QLabel" name="Bc_type">
-           <property name="maximumSize">
-            <size>
-             <width>16777215</width>
-             <height>30</height>
-            </size>
-           </property>
-           <property name="text">
-            <string>Select BC Type</string>
-           </property>
-          </widget>
-         </item>
-         <item row="11" column="1">
-          <widget class="QPushButton" name="Run">
-           <property name="minimumSize">
-            <size>
-             <width>0</width>
-             <height>25</height>
-            </size>
-           </property>
-           <property name="text">
-            <string>Run</string>
-           </property>
-          </widget>
-         </item>
-         <item row="0" column="0" colspan="2">
-          <widget class="QLabel" name="label">
-           <property name="text">
-            <string>                        Preserve Bodies</string>
-           </property>
-          </widget>
-         </item>
-         <item row="7" column="0">
-          <widget class="QLabel" name="offsetRatiol">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="maximumSize">
-            <size>
-             <width>200</width>
-             <height>30</height>
-            </size>
-           </property>
-           <property name="text">
-            <string>Offset Ratio(%)</string>
-           </property>
-          </widget>
-         </item>
-         <item row="10" column="1">
-          <widget class="QComboBox" name="SelectLoadtype">
-           <item>
-            <property name="text">
-             <string>Force</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>Pressure</string>
-            </property>
-           </item>
-          </widget>
-         </item>
-         <item row="6" column="0">
-          <widget class="QPushButton" name="addItem_in_obstacle">
-           <property name="text">
-            <string>Add Object</string>
-           </property>
-          </widget>
-         </item>
-         <item row="10" column="2">
-          <widget class="QPushButton" name="AssignLoad">
-           <property name="text">
-            <string>Assign...</string>
-           </property>
-          </widget>
-         </item>
-         <item row="8" column="2">
-          <widget class="QPushButton" name="SelectMaterial">
-           <property name="text">
-            <string>Select...</string>
-           </property>
-          </widget>
-         </item>
-         <item row="2" column="0">
-          <widget class="QPushButton" name="remove_in_preserve">
-           <property name="text">
-            <string>Remove Object</string>
-           </property>
-          </widget>
-         </item>
-         <item row="9" column="1">
-          <widget class="QComboBox" name="SelectBCtype">
-           <item>
-            <property name="text">
-             <string>Fixed Support</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>Displacement</string>
-            </property>
-           </item>
-          </widget>
-         </item>
-         <item row="4" column="0" rowspan="2" colspan="3">
-          <widget class="QListWidget" name="obstacle_bodies">
-           <property name="selectionMode">
-            <enum>QAbstractItemView::MultiSelection</enum>
-           </property>
-          </widget>
-         </item>
-         <item row="7" column="2">
-          <widget class="QPlainTextEdit" name="OffsetRatio">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="maximumSize">
-            <size>
-             <width>70</width>
-             <height>30</height>
-            </size>
-           </property>
-           <property name="plainText">
-            <string>20</string>
-           </property>
-          </widget>
-         </item>
-         <item row="6" column="1">
-          <widget class="QPushButton" name="remove_in_obstacle">
-           <property name="text">
-            <string>Remove Object</string>
-           </property>
-          </widget>
-         </item>
-         <item row="2" column="1">
-          <widget class="QPushButton" name="addItem_in_preserve">
-           <property name="text">
-            <string>Add Object </string>
-           </property>
-          </widget>
-         </item>
-         <item row="10" column="0">
-          <widget class="QLabel" name="forceL">
-           <property name="text">
-            <string>Select Load Type</string>
-           </property>
-          </widget>
-         </item>
-         <item row="11" column="0">
-          <widget class="QPushButton" name="run_analysis">
-           <property name="text">
-            <string>Run Analysis</string>
-           </property>
-          </widget>
-         </item>
-         <item row="3" column="0" colspan="2">
-          <widget class="QLabel" name="label_2">
-           <property name="text">
-            <string>                        Obstacle Bodies</string>
-           </property>
-          </widget>
-         </item>
-        </layout>
+        </item>
+        <item>
+         <property name="text">
+          <string>Displacement</string>
+         </property>
+        </item>
+       </widget>
+      </item>
+      <item row="2" column="2">
+       <widget class="QPushButton" name="addItem_in_preserve">
+        <property name="text">
+         <string>Add Object </string>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="0" colspan="2">
+       <widget class="QLabel" name="label_2">
+        <property name="text">
+         <string>                            Obstacle Bodies</string>
+        </property>
+       </widget>
+      </item>
+      <item row="6" column="2">
+       <widget class="QPushButton" name="createGeo">
+        <property name="styleSheet">
+         <string notr="true">font: 1000 8pt &quot;MS Shell Dlg 2&quot;;</string>
+        </property>
+        <property name="text">
+         <string>Create Geo</string>
+        </property>
+       </widget>
+      </item>
+      <item row="9" column="2">
+       <widget class="QPushButton" name="SelectMaterial">
+        <property name="text">
+         <string>Select...</string>
+        </property>
+       </widget>
+      </item>
+      <item row="5" column="2">
+       <widget class="QPushButton" name="addItem_in_obstacle">
+        <property name="text">
+         <string>Add Object</string>
+        </property>
+       </widget>
+      </item>
+      <item row="13" column="0">
+       <widget class="QPushButton" name="Run">
+        <property name="minimumSize">
+         <size>
+          <width>0</width>
+          <height>25</height>
+         </size>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">font: 1000 8pt &quot;MS Shell Dlg 2&quot;;</string>
+        </property>
+        <property name="text">
+         <string>Run</string>
+        </property>
+       </widget>
+      </item>
+      <item row="11" column="2">
+       <widget class="QPushButton" name="AssignLoad">
+        <property name="text">
+         <string>Assign...</string>
+        </property>
+       </widget>
+      </item>
+      <item row="10" column="0">
+       <widget class="QLabel" name="Bc_type">
+        <property name="maximumSize">
+         <size>
+          <width>16777215</width>
+          <height>30</height>
+         </size>
+        </property>
+        <property name="text">
+         <string>Select BC Type</string>
+        </property>
+       </widget>
+      </item>
+      <item row="7" column="0" colspan="3">
+       <widget class="Line" name="line">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+       </widget>
+      </item>
+      <item row="11" column="1">
+       <widget class="QComboBox" name="SelectLoadtype">
+        <item>
+         <property name="text">
+          <string>Force</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Pressure</string>
+         </property>
+        </item>
+       </widget>
+      </item>
+      <item row="11" column="0">
+       <widget class="QLabel" name="forceL">
+        <property name="text">
+         <string>Select Load Type</string>
+        </property>
+       </widget>
+      </item>
+      <item row="12" column="0" colspan="3">
+       <widget class="Line" name="line_2">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
        </widget>
       </item>
      </layout>
+     <zorder>SelectLoadtype</zorder>
+     <zorder>AssignBC</zorder>
+     <zorder>AssignLoad</zorder>
+     <zorder>OffsetRatio</zorder>
+     <zorder>addItem_in_obstacle</zorder>
+     <zorder>offsetRatiol</zorder>
+     <zorder>selectMaterialL</zorder>
+     <zorder>label</zorder>
+     <zorder>SelectMaterial</zorder>
+     <zorder>addItem_in_preserve</zorder>
+     <zorder>remove_in_obstacle</zorder>
+     <zorder>Bc_type</zorder>
+     <zorder>preserve_bodies</zorder>
+     <zorder>remove_in_preserve</zorder>
+     <zorder>forceL</zorder>
+     <zorder>label_2</zorder>
+     <zorder>topology_create</zorder>
+     <zorder>SelectBCtype</zorder>
+     <zorder>obstacle_bodies</zorder>
+     <zorder>Run</zorder>
+     <zorder>createGeo</zorder>
+     <zorder>line</zorder>
+     <zorder>line_2</zorder>
     </widget>
    </item>
   </layout>
