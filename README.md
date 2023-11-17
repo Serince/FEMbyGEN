@@ -1,36 +1,45 @@
-# FEMbyGEN
+## FEMbyGEN
 A FreeCAD module that uses Generative Design to calculate and show structural analysis results
 
-![alt text](https://mightybucket.github.io/pics/masters-dissertation/process2.png)**from Rahul Master Thesis Poster**
+![diseration_poster](https://mightybucket.github.io/pics/masters-dissertation/process2.png)**from Rahul Master Thesis Poster**
 
-This project was devoloped based on [Rahul](https://github.com/MightyBucket/) Master's thesis and [Ogeday Yavuz](https://github.com/OgedaYY/) Graduation Thesis. To get more information about Rahul thesis click [here](https://mightybucket.github.io/projects/2021/05/31/masters-dissertation.html).
+### Background 
+This project was devoloped based on [Rahul](https://github.com/MightyBucket/) Master's thesis and [Ogeday Yavuz](https://github.com/OgedaYY/) Graduation Thesis. 
 
-## Installation instructions
+For more information about Rahul thesis please read the [dissertation](https://mightybucket.github.io/projects/2021/05/31/masters-dissertation.html).
 
-This folder contains the code for a workbench plug-in for FreeCAD. Therefore you must have FreeCAD installed to use it.
-FreeCAD can be downloaded for free from https://www.freecadweb.org/
-
-You can install it by addon manager in the FreeCAD. From the workbench selection drop down menu in the top middle of the window, you should see the option for "FEMbyGEN". Selecting this will activate the workbench. All of the functions will work out of the box.
-
-## Usage
-
-Create a Fem simulation in Freecad by using classical procedure which described freecad fem wiki pages. This file  will be your master simulation. 
-
-Then you can open fembygen workbench. First button for initialization. It will create a spreadsheet which name is Parameters. 
-You can open it and write your parameters and number of generations. Then you can click second button to alias parameter names and dimensions. You can assign your dimensions by classical spreadsheet definition. Freecad wiki and youtube can help you how to define it.
-
-After then everything is easy, just click generate button, to create your new generations. You can check the files simply by clicking table in Gui.
-
-Then you can use Fea button to fem simulations of all created generations. 
-
-You can check all results by clicking results button. You can open the generated files by clicking table rows of results Gui. And all results also will come to master file, you can check tree view for that.
-
-It offers also a suggesting optimum geometry for your boundry conditions. By clicking creategeo button, You can choose your boundries such as supports, pressures,forces and the function will create an optimum body for you.
-
-By clicking toplogy button you can run a topology optimization analysis. 
-
-## Requirements
+### Requirements
 - scipy => 1.0.0
-- FreeCAD => 0.19.0
+- [FreeCAD](https://freecadweb.org) => 0.19.0
 
 FEMbyGEN has been tested on FreeCAD 0.20 and scipy 1.10.1
+
+### Installation
+
+Recommended installation is via the FreeCAD [Addon Manager](https://wiki.freecad.org/Std_AddonMgr). 
+
+1. Tools → Addon manager
+2. Find the **FEMbyGEN** addon. Install.
+3. A restart prompt will display. Click Ok to restart FreeCAD.
+5. Once FreeCAD reloads, find the [workbench selection drop down menu](https://wiki.freecad.org/Interface) in the top middle of the window, you should see the option for "**FEMbyGEN**. Selecting this will activate the workbench.
+
+Result: All of the functions will work out of the box.
+
+### Usage
+1. Create a FEM simulation in Freecad by using the classical procedure described withing wiki documentation. This file will be your master simulation. 
+2. Open fembygen workbench. First button for initialization. It will create a spreadsheet which name is Parameters. You can open it and write your parameters and number of generations.
+3. Then click the second button to alias parameter names and dimensions. Assign your dimensions by classical spreadsheet definition. Freecad wiki documentation and youtube can illustrate how this is done.
+4. Click the generate button to create new generations. Check the files simply by clicking table in the FreeCAD UI.
+5. Use FEA button to generate FEM simulations of all created generations.
+6. Check all results by clicking results button. Note: open the generated files by clicking table rows of results GUI. In addition, all results will append to the master file, check tree view for that.
+
+#### Notes
+The addon will also suggest optimum geometry for boundry conditions. By clicking **Creategeo** button, the ability to choose boundries such as supports, pressures, forces, and the function will create an optimum body.
+
+By clicking the **Topology** button a topology optimization analysis will be executed.
+
+### Feedback
+Bug reports are greatly appreciated. Please open a ticket in this repository. Please remember to always add your full [About](https://wiki.freecad.org/About) info when opening a ticket (and make sure you're using the latest version of the addon). Feature requests can also be requested in this repository. Please consider logging into the FreeCAD [forum thread]() dedicated to the FEMbyGEN addon to discuss your ideas with the devs.
+
+### License
+LGPLv2.1 ([LICENSE](LICENSE))
