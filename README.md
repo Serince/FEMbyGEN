@@ -26,7 +26,7 @@ Recommended installation is via the FreeCAD [Addon Manager](https://wiki.freecad
 Result: All of the functions will work out of the box.
 
 ### Usage
-1. Create a FEM simulation in Freecad by using the classical procedure described withing wiki documentation. This file will be your master simulation. 
+1. Create a FEM simulation in Freecad by using the classical procedure described within wiki documentation. This file will be your master simulation. 
 2. Open fembygen workbench. First button for initialization. It will create a spreadsheet which name is Parameters. You can open it and write your parameters and number of generations.
 3. Then click the second button to alias parameter names and dimensions. Assign your dimensions by classical spreadsheet definition. Freecad wiki documentation and youtube can illustrate how this is done.
 4. Click the generate button to create new generations. Check the files simply by clicking table in the FreeCAD UI.
