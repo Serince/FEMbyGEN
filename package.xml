@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no" ?>
-<package format="1">
-    <name>FEMbyGEM</name>
+<package format="1" xmlns="https://wiki.freecad.org/Package_Metadata">
+    <name>FEMbyGEN</name>
     <description>Parametric Finite Element Analysis(FEM)</description>
     <version>2.0</version>
     <maintainer email="serince@outlook.com">Serdar T. Ince</maintainer>
-    <license file="LICENSE">LGPL-2</license>
+    <license file="LICENSE">LGPL-2.1</license>
     <url type="repository" branch="master">https://github.com/Serince/FEMbyGEN</url>
     <freecadmin>0.20</freecadmin>
     <content>
