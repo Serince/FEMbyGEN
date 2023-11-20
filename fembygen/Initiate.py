@@ -68,6 +68,7 @@ class InitiatePanel:
 
     def spreadsheetTemplate(self, sheet):
         """Spreadsheet editing"""
+        COLOR_BLACK = (1.0, 1.0, 1.0, 1.0)
         COLOR_GREY = (240/255, 240/255, 240/255, 1.0)
         for i in range(MAX_NUM_PARAMETER):
             sheet.set(f'A{i+2}', f'{i+1}')    # parameter number
@@ -79,7 +80,9 @@ class InitiatePanel:
         sheet.set('E1', 'Number of Generations')
         sheet.setStyle('A1:E1', 'bold')    # head
         sheet.setBackground('A1:E1', COLOR_GREY)    # label columns
+        sheet.setForeground('A1:E1', COLOR_BLACK)
         sheet.setBackground(f'A2:A{MAX_NUM_PARAMETER+1}', COLOR_GREY)
+        sheet.setForeground(f'A2:A{MAX_NUM_PARAMETER+1}', COLOR_BLACK)
         return sheet
 
 
