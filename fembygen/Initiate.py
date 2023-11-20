@@ -68,7 +68,7 @@ class InitiatePanel:
 
     def spreadsheetTemplate(self, sheet):
         """Spreadsheet editing"""
-        COLOR_BLACK = (1.0, 1.0, 1.0, 1.0)
+        COLOR_BLACK = (0.0, 0.0, 0.0, 1.0)
         COLOR_GREY = (240/255, 240/255, 240/255, 1.0)
         for i in range(MAX_NUM_PARAMETER):
             sheet.set(f'A{i+2}', f'{i+1}')    # parameter number
