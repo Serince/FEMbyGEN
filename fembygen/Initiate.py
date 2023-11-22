@@ -68,8 +68,9 @@ class InitiatePanel:
 
     def spreadsheetTemplate(self, sheet):
         """Spreadsheet editing"""
-        COLOR_BLACK = (0.0, 0.0, 0.0, 1.0)
-        COLOR_GREY = (240/255, 240/255, 240/255, 1.0)
+        pal = FreeCADGui.getMainWindow().palette()    # get colors from theme color palette
+        backColor = pal.background().color().getRgbF()
+        textColor = pal.text().color().getRgbF()
         for i in range(MAX_NUM_PARAMETER):
             sheet.set(f'A{i+2}', f'{i+1}')    # parameter number
 
@@ -79,10 +80,10 @@ class InitiatePanel:
         sheet.set('D1', 'Max Value')
         sheet.set('E1', 'Number of Generations')
         sheet.setStyle('A1:E1', 'bold')    # head
-        sheet.setBackground('A1:E1', COLOR_GREY)    # label columns
-        sheet.setForeground('A1:E1', COLOR_BLACK)
-        sheet.setBackground(f'A2:A{MAX_NUM_PARAMETER+1}', COLOR_GREY)
-        sheet.setForeground(f'A2:A{MAX_NUM_PARAMETER+1}', COLOR_BLACK)
+        sheet.setBackground('A1:E1', backColor)    # label columns
+        sheet.setForeground('A1:E1', textColor)
+        sheet.setBackground(f'A2:A{MAX_NUM_PARAMETER+1}', backColor)
+        sheet.setForeground(f'A2:A{MAX_NUM_PARAMETER+1}', textColor)
         return sheet
 
 
@@ -91,7 +92,7 @@ class ViewProviderIni:
         vobj.Proxy = self
 
     def getIcon(self):
-        icon_path = FreeCAD.getUserAppDataDir() + 'Mod/FEMbyGEN/fembygen/icons/Initiate.svg'
+        icon_path = os.path.join(FreeCAD.getUserAppDataDir(), LOCATION, 'icons/Initiate.svg')
         return icon_path
 
     def attach(self, vobj):
