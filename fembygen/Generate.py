@@ -10,6 +10,7 @@ import multiprocessing.dummy as mp
 from multiprocessing import cpu_count
 from functools import partial
 
+LOCATION = os.path.normpath('Mod/FEMbyGEN/fembygen')
 
 def makeGenerate():
     try:
@@ -57,7 +58,7 @@ class GenerateCommand():
     """Produce part generations"""
 
     def GetResources(self):
-        return {'Pixmap': os.path.join(FreeCAD.getUserAppDataDir() + 'Mod/FEMbyGEN/fembygen/icons/Generate.svg'),  # the name of a svg file available in the resources
+        return {'Pixmap': os.path.join(FreeCAD.getUserAppDataDir(), LOCATION, 'icons/Generate.svg'),
                 'Accel': "Shift+G",  # a default shortcut (optional)
                 'MenuText': "Generate",
                 'ToolTip': "Produce part generations"}
@@ -82,14 +83,12 @@ class GeneratePanel():
 
         self.obj = object
         # this will create a Qt widget from our ui file
-        guiPath = FreeCAD.getUserAppDataDir() + "Mod/FEMbyGEN/fembygen/ui/Generate.ui"
+        guiPath = os.path.join(FreeCAD.getUserAppDataDir(), LOCATION, 'ui/Generate.ui')
         self.form = FreeCADGui.PySideUic.loadUi(guiPath)
-        self.workingDir = '/'.join(
-            object.Object.Document.FileName.split('/')[0:-1])
+        self.doc = object.Object.Document
+        self.workingDir = os.path.dirname(os.path.normpath(self.doc.FileName))
 
         # Data variables for parameter table
-
-        self.doc = object.Object.Document
         # (paramNames, parameterValues) = Common.checkGenParameters(self.doc)
         # self.doc.Generate.ParametersName = paramNames
         # self.doc.Generate.GeneratedParameters = parameterValues
@@ -122,7 +121,7 @@ class GeneratePanel():
 
     def more(self):
         """I will write here a detailed inputs screens for methods"""
-        path = FreeCAD.getUserAppDataDir() + "Mod/FEMbyGEN/fembygen/ui/"
+        path = os.path.join(FreeCAD.getUserAppDataDir(), LOCATION, 'ui')
         method = self.form.selectDesign.currentText()
         if method == "Full Factorial Design":
             pass
@@ -133,7 +132,7 @@ class GeneratePanel():
                 self.doc.Generate.CenterPoints = int(settings.center.text())
                 settings.close()
 
-            settings = FreeCADGui.PySideUic.loadUi(path+"more_box_behnken.ui")
+            settings = FreeCADGui.PySideUic.loadUi(os.path.join(path, 'more_box_behnken.ui'))
             try:
                 settings.center.setText(str(self.doc.Generate.CenterPoints))
             except:
@@ -154,7 +153,7 @@ class GeneratePanel():
                 self.doc.Generate.Alpha = settings.alpha.currentText()
                 self.doc.Generate.Face = settings.face.currentText()
                 settings.close()
-            settings = FreeCADGui.PySideUic.loadUi(path+"more_composite.ui")
+            settings = FreeCADGui.PySideUic.loadUi(os.path.join(path, 'more_composite.ui'))
             settings.show()
             try:
                 settings.center.setText(str(self.doc.Generate.Center))
@@ -192,7 +191,7 @@ class GeneratePanel():
                 if corrmat != "None":
                     self.doc.Generate.CorrelationMatrix=ast.literal_eval(corrmat)
                 settings.close()
-            settings = FreeCADGui.PySideUic.loadUi(path+"more_lhs.ui")
+            settings = FreeCADGui.PySideUic.loadUi(os.path.join(path, 'more_lhs.ui'))
             settings.samples.setText(str(len(self.doc.Generate.ParametersName)))
             settings.show()
             try:
@@ -237,17 +236,17 @@ class GeneratePanel():
             gmsh_mesh.create_mesh()
 
     def copy_mesh(self, numgenerations, i):
-        docPath = self.doc.FileName
+        docPath = os.path.normpath(self.doc.FileName)
+        directory = os.path.join(self.workingDir, f"Gen{i+1}")
+        filename = f"Gen{i+1}.FCStd"
+        filePath = os.path.join(directory, filename)
         # Regenerate the part and save generation as FreeCAD doc
         try:
-            os.mkdir(self.workingDir + f"/Gen{i+1}")
+            os.mkdir(directory)
         except:
             FreeCAD.Console.PrintError(f"Please delete earlier generations folders...\n")
             return
 
-        filename = f"Gen{i+1}.FCStd"
-        directory = self.workingDir + f"/Gen{i+1}/"
-        filePath = directory + filename
         shutil.copy(docPath, filePath)
         shutil.copy(filePath, filePath+".backup")
 
@@ -304,7 +303,6 @@ class GeneratePanel():
     def generateParts(self):
         master = self.doc
         master.save()  # saving the prepared masterfile
-        docPath = master.FileName
 
         # Getting spreadsheet from FreeCAD
         paramNames = []
@@ -377,10 +375,10 @@ class GeneratePanel():
             numGens = Common.checkGenerations(self.workingDir)
             for i in range(1, numGens+1):
                 # Delete analysis directories
+                directory = os.path.join(self.workingDir, f"Gen{i}")
                 try:
-                    shutil.rmtree(self.workingDir + f"/Gen{i}/")
-                    FreeCAD.Console.PrintMessage(
-                        self.workingDir + f"/Gen{i}/ deleted\n")
+                    shutil.rmtree(directory)
+                    FreeCAD.Console.PrintMessage(directory + " deleted\n")
                 except FileNotFoundError:
                     FreeCAD.Console.PrintError("INFO: Generation " + str(i) +
                                                " analysis data not found\n")
@@ -435,9 +433,8 @@ class GeneratePanel():
         self.selectedGen = int(str(self.selectedGen).split()[-1])
 
         # Open the generation
-        docPath = self.workingDir + \
-            f"/Gen{self.selectedGen}/Gen{self.selectedGen}.FCStd"
         docName = f"Gen{self.selectedGen}"
+        docPath = os.path.join(self.workingDir, docName, docName+".FCStd")
         FreeCAD.open(docPath)
         # FreeCAD.setActiveDocument(docName)
 
@@ -545,8 +542,7 @@ class ViewProviderGen:
         vobj.Proxy = self
 
     def getIcon(self):
-        icon_path = os.path.join(
-            FreeCAD.getUserAppDataDir() + 'Mod/FEMbyGEN/fembygen/icons/Generate.svg')
+        icon_path = os.path.join(FreeCAD.getUserAppDataDir(), LOCATION, 'icons/Generate.svg')
         return icon_path
 
     def attach(self, vobj):
