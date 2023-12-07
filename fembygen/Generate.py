@@ -5,11 +5,12 @@ import os.path
 import shutil
 from fembygen import Common
 import numpy as np
-import PySide
+from PySide import QtCore, QtGui    # FreeCAD's PySide!
 import multiprocessing.dummy as mp
 from multiprocessing import cpu_count
 from functools import partial
 
+LOCATION = os.path.normpath('Mod/FEMbyGEN/fembygen')
 
 def makeGenerate():
     try:
@@ -26,7 +27,7 @@ def makeGenerate():
 
 
 class Generate:
-    """ Finite Element Analysis """
+    """Part generations"""
 
     def __init__(self, obj):
         obj.Proxy = self
@@ -44,10 +45,8 @@ class Generate:
                             "Generated parameter matrix")
             obj.addProperty("App::PropertyPythonObject", "GeneratedParameters", "Base",
                             "Generated parameter matrix")
-            
             obj.addProperty("App::PropertyInteger", "NumberOfCPU", "Base",
                             "Number of CPU's to use ")
-            
             obj.NumberOfCPU = cpu_count()-1
         except:
             pass
@@ -57,7 +56,7 @@ class GenerateCommand():
     """Produce part generations"""
 
     def GetResources(self):
-        return {'Pixmap': os.path.join(FreeCAD.getUserAppDataDir() + 'Mod/FEMbyGEN/fembygen/icons/Generate.svg'),  # the name of a svg file available in the resources
+        return {'Pixmap': os.path.join(FreeCAD.getUserAppDataDir(), LOCATION, 'icons/Generate.svg'),
                 'Accel': "Shift+G",  # a default shortcut (optional)
                 'MenuText': "Generate",
                 'ToolTip': "Produce part generations"}
@@ -82,58 +81,49 @@ class GeneratePanel():
 
         self.obj = object
         # this will create a Qt widget from our ui file
-        guiPath = FreeCAD.getUserAppDataDir() + "Mod/FEMbyGEN/fembygen/ui/Generate.ui"
+        guiPath = os.path.join(FreeCAD.getUserAppDataDir(), LOCATION, 'ui/Generate.ui')
         self.form = FreeCADGui.PySideUic.loadUi(guiPath)
-        self.workingDir = '/'.join(
-            object.Object.Document.FileName.split('/')[0:-1])
-
-        # Data variables for parameter table
-
         self.doc = object.Object.Document
-        # (paramNames, parameterValues) = Common.checkGenParameters(self.doc)
-        # self.doc.Generate.ParametersName = paramNames
-        # self.doc.Generate.GeneratedParameters = parameterValues
-        index = self.form.selectDesign.findText(self.doc.Generate.GenerationMethod, PySide.QtCore.Qt.MatchFixedString)
+        self.workingDir = os.path.dirname(os.path.normpath(self.doc.FileName))
+        Common.setWorkspace(self.doc, self.workingDir)
+
+        index = self.form.selectDesign.findText(
+            self.doc.Generate.GenerationMethod, QtCore.Qt.MatchFixedString)
         if index >= 0:
             self.form.selectDesign.setCurrentIndex(index)
+
         # Check if any generations have been made already, and up to what number
-        close = partial(Common.showGen,"close", self.doc)
-        self.form.selectDesign.currentTextChanged.connect(close)
-        numGens = Common.checkGenerations(self.workingDir)
-        self.resetViewControls(numGens)
-
-        self.form.numGensLabel.setText(f"{numGens} generations produced")
-
-        self.selectedGen = -1
-
-        # Connect the button procedures
-        self.form.generateButton.clicked.connect(self.generateParts)
-        self.form.viewGenButton.clicked.connect(self.viewGeneration)
-        self.form.deleteGensButton.clicked.connect(self.deleteGenerations)
-        self.form.nextGen.clicked.connect(lambda: self.nextG(numGens))
-        self.form.previousGen.clicked.connect(
-            lambda: self.previousG(numGens))
-
-        pix = PySide.QtWidgets.QStyle.SP_FileDialogDetailedView
-        icon = self.form.more.style().standardIcon(pix)
-        self.form.more.setIcon(icon)
-        self.form.more.clicked.connect(self.more)
+        self.resetViewControls()
         self.updateParametersTable()
 
+        self.form.more.setIcon(QtGui.QIcon(':/icons/Std_DlgParameter.svg'))
+        self.form.deleteGensButton.setIcon(QtGui.QIcon(':/icons/edit-delete.svg'))
+
+        # Connect the signal procedures
+        self.form.selectDesign.currentTextChanged.connect(self.designChanged)
+        self.form.more.clicked.connect(self.more)
+        self.form.generateButton.clicked.connect(self.generateParts)
+        self.form.selectGenBox.valueChanged.connect(self.viewGeneration)
+        self.form.nextGen.clicked.connect(self.form.selectGenBox.stepUp)
+        self.form.previousGen.clicked.connect(self.form.selectGenBox.stepDown)
+        self.form.deleteGensButton.clicked.connect(self.deleteGenerations)
+
+    def designChanged(self, text):
+        if text in ["Box Behnken Design", "Central Composite Design", "Latin Hyper Cube Design"]:
+            self.form.more.setEnabled(True)
+        else:
+            self.form.more.setEnabled(False)
+
     def more(self):
-        """I will write here a detailed inputs screens for methods"""
-        path = FreeCAD.getUserAppDataDir() + "Mod/FEMbyGEN/fembygen/ui/"
+        """Input screens for methods"""
+        path = os.path.join(FreeCAD.getUserAppDataDir(), LOCATION, 'ui')
         method = self.form.selectDesign.currentText()
-        if method == "Full Factorial Design":
-            pass
-        elif method == "Plackett Burman Design":
-            pass
-        elif method == "Box Behnken Design":
+        if method == "Box Behnken Design":
             def save():
                 self.doc.Generate.CenterPoints = int(settings.center.text())
                 settings.close()
 
-            settings = FreeCADGui.PySideUic.loadUi(path+"more_box_behnken.ui")
+            settings = FreeCADGui.PySideUic.loadUi(os.path.join(path, 'more_box_behnken.ui'))
             try:
                 settings.center.setText(str(self.doc.Generate.CenterPoints))
             except:
@@ -154,14 +144,14 @@ class GeneratePanel():
                 self.doc.Generate.Alpha = settings.alpha.currentText()
                 self.doc.Generate.Face = settings.face.currentText()
                 settings.close()
-            settings = FreeCADGui.PySideUic.loadUi(path+"more_composite.ui")
+            settings = FreeCADGui.PySideUic.loadUi(os.path.join(path, 'more_composite.ui'))
             settings.show()
             try:
                 settings.center.setText(str(self.doc.Generate.Center))
-                index_alpha = settings.alpha.findText(self.doc.Generate.Alpha, PySide.QtCore.Qt.MatchFixedString)
+                index_alpha = settings.alpha.findText(self.doc.Generate.Alpha, QtCore.Qt.MatchFixedString)
                 if index_alpha >= 0:
                     settings.alpha.setCurrentIndex(index_alpha)
-                index_face = settings.face.findText(self.doc.Generate.Face, PySide.QtCore.Qt.MatchFixedString)
+                index_face = settings.face.findText(self.doc.Generate.Face, QtCore.Qt.MatchFixedString)
                 if index_face >= 0:
                     settings.face.setCurrentIndex(index_face)
             except:
@@ -192,12 +182,12 @@ class GeneratePanel():
                 if corrmat != "None":
                     self.doc.Generate.CorrelationMatrix=ast.literal_eval(corrmat)
                 settings.close()
-            settings = FreeCADGui.PySideUic.loadUi(path+"more_lhs.ui")
+            settings = FreeCADGui.PySideUic.loadUi(os.path.join(path, 'more_lhs.ui'))
             settings.samples.setText(str(len(self.doc.Generate.ParametersName)))
             settings.show()
             try:
                 settings.samples.setText(str(self.doc.Generate.Samples))
-                index = settings.criterion.findText(self.doc.Generate.Criterion, PySide.QtCore.Qt.MatchFixedString)
+                index = settings.criterion.findText(self.doc.Generate.Criterion, QtCore.Qt.MatchFixedString)
                 if index >= 0:
                     settings.criterion.setCurrentIndex(index)
                 settings.iterations.setText(str(self.doc.Generate.Iterations))
@@ -221,9 +211,7 @@ class GeneratePanel():
             except:
                 pass
             settings.show()
-            settings.save.clicked.connect(save)            
-        elif method == "Taguchi Optimization Design":
-            pass
+            settings.save.clicked.connect(save)
 
     def meshing(self, mesh, type):
         # Remeshing new generation
@@ -237,17 +225,17 @@ class GeneratePanel():
             gmsh_mesh.create_mesh()
 
     def copy_mesh(self, numgenerations, i):
-        docPath = self.doc.FileName
+        docPath = os.path.normpath(self.doc.FileName)
+        name = f"Gen{i+1}"
+        directory = os.path.join(self.workingDir, name)
+        filePath = os.path.join(directory, name+".FCStd")
+        
         # Regenerate the part and save generation as FreeCAD doc
         try:
-            os.mkdir(self.workingDir + f"/Gen{i+1}")
+            os.mkdir(directory)
         except:
-            FreeCAD.Console.PrintError(f"Please delete earlier generations folders...\n")
+            FreeCAD.Console.PrintWarning(f"Keeping existing {name}\n")
             return
-
-        filename = f"Gen{i+1}.FCStd"
-        directory = self.workingDir + f"/Gen{i+1}/"
-        filePath = directory + filename
         shutil.copy(docPath, filePath)
         shutil.copy(filePath, filePath+".backup")
 
@@ -288,7 +276,7 @@ class GeneratePanel():
                     if lc > 1:
                         for femobj in obj.Group:
                             # delete old mesh of second or later analysis
-                            if femobj.TypeId == 'Fem::FemMeshObjectPython' or femobj.TypeId == 'Fem::FemMeshShapeNetgenObject':
+                            if femobj.TypeId in ['Fem::FemMeshObjectPython', 'Fem::FemMeshShapeNetgenObject']:
                                 doc.removeObject(femobj.Name)
 
                         # copying same mesh to other loadcases
@@ -299,12 +287,11 @@ class GeneratePanel():
 
         doc.recompute()
         doc.save()
-        FreeCAD.closeDocument(filename[:-6])
+        FreeCAD.closeDocument(name)
 
     def generateParts(self):
         master = self.doc
         master.save()  # saving the prepared masterfile
-        docPath = master.FileName
 
         # Getting spreadsheet from FreeCAD
         paramNames = []
@@ -329,23 +316,27 @@ class GeneratePanel():
             numberofgen = int(master.Parameters.get(f'E{i+2}'))
             param.append(np.linspace(mins, maxs, numberofgen))
 
-        self.form.progressBar.setStyleSheet(
-            'QProgressBar {text-align: center; } QProgressBar::chunk {background-color: #009688;}')
         # Combination of all parameters
         selectedModule = self.form.selectDesign.currentText()
         self.doc.Generate.GenerationMethod = selectedModule
 
         numgenerations = self.design(selectedModule, param, numberofgen)
+        iterationnumber = len(numgenerations)
 
-        numGens = Common.checkGenerations(self.workingDir)  # delete earlier generations files before
-        if numGens > 0:
+        # delete earlier generations files before
+        if Common.checkGenerations() > 0:
             self.deleteGenerations()
 
+        # Progress bars
+        progress_bar = FreeCAD.Base.ProgressIndicator()    # FreeCAD's progress bar
+        progress_bar.start('Generate parts ...', iterationnumber)
+        self.form.progressBar.setValue(1)
+
         func = partial(self.copy_mesh, numgenerations)
-        iterationnumber = len(numgenerations)
         p = mp.Pool(self.doc.Generate.NumberOfCPU)
         for i, _ in enumerate(p.imap_unordered(func, range(iterationnumber))):
             # Update progress bar
+            progress_bar.next()
             progress = ((i+1)/iterationnumber) * 100
             self.form.progressBar.setValue(progress)
         p.close()
@@ -355,148 +346,106 @@ class GeneratePanel():
         FreeCAD.setActiveDocument(master.Name)
         master.Generate.GeneratedParameters = numgenerations
         master.Generate.ParametersName = paramNames
-        self.updateParametersTable()
 
         # Update number of generations produced in window
-        numGens = Common.checkGenerations(self.workingDir)
-        self.form.numGensLabel.setText(
-            str(numGens) + " generations produced")
-        self.resetViewControls(numGens)
+        self.resetViewControls()
         self.updateParametersTable()
+        progress_bar.stop()
+
         master.save()  # too store generated values in generate object
         FreeCAD.Console.PrintMessage("Generation done successfully!\n")
+        Common.openGen(1)
 
     def deleteGenerations(self):
-        qm = PySide.QtWidgets.QMessageBox
-        ret = qm.question(None, '', "Are you sure to delete all the earlier generation files?", qm.Yes | qm.No)
+        qm = QtGui.QMessageBox
+        ret = qm.question(None, '',
+                          "Are you sure to delete all the earlier generation files?",
+                          qm.Yes | qm.No)
+        if ret == qm.No:
+            FreeCAD.Console.PrintMessage("Nothing Deleted\n")
+        else:
+            Common.closeGen(0)    # close all generations
 
-        if ret == qm.Yes:
-
-            FreeCAD.Console.PrintMessage("Deleting...\n")
-
+            # Delete analysis directories
             numGens = Common.checkGenerations(self.workingDir)
             for i in range(1, numGens+1):
-                # Delete analysis directories
+                directory = os.path.join(self.workingDir, f"Gen{i}")
                 try:
-                    shutil.rmtree(self.workingDir + f"/Gen{i}/")
-                    FreeCAD.Console.PrintMessage(
-                        self.workingDir + f"/Gen{i}/ deleted\n")
+                    shutil.rmtree(directory)
                 except FileNotFoundError:
-                    FreeCAD.Console.PrintError("INFO: Generation " + str(i) +
-                                               " analysis data not found\n")
-                    pass
-                except:
+                    FreeCAD.Console.PrintError(f"Generation {i} analysis data not found\n")
+                except Exception:
                     FreeCAD.Console.PrintError(
-                        "Error while trying to delete analysis folder for generation\n " + str(i))
+                        f"Error while trying to delete analysis folder for generation {i}\n")
+                else:
+                    FreeCAD.Console.PrintMessage(directory + " deleted\n")
 
             # Delete if earlier generative objects exist
-            try:
-                for l in self.doc.GenerativeDesign.Group:
-                    if l.Name == "Parameters" or l.Name == "Generate":
-                        pass
-                    elif l.Name == "Results":
-                        Common.purge_results(self.doc)
-                    else:
-                        self.doc.removeObject(l.Name)
-            except:
-                pass
+            for l in self.doc.GenerativeDesign.Group:
+                if l.Name == "Parameters" or l.Name == "Generate":
+                    pass
+                elif l.Name == "Results":
+                    Common.purge_results(self.doc)
+                else:
+                    self.doc.removeObject(l.Name)
 
             self.doc.Generate.GeneratedParameters = None
-            # refreshing the table
-            self.resetViewControls(numGens)
+            self.resetViewControls()
             self.updateParametersTable()
             FreeCAD.setActiveDocument(self.doc.Name)
-        else:
-            qm.information(None, '', "Nothing Changed")
-            FreeCAD.Console.PrintMessage("Nothing Deleted\n")
 
-    def nextG(self, numGens):
-        index = self.form.selectGenBox.currentIndex()
-        if index >= numGens-1:
-            index = -1
-        self.form.selectGenBox.setCurrentIndex(index+1)
-        self.viewGeneration()
+    def viewGeneration(self, value):
+        keep = self.form.checkBoxKeep.isChecked()
+        Common.viewGen(value, keep)
+        self.form.parametersTable.selectRow(value-1)
 
-    def previousG(self, numGens):
-        index = self.form.selectGenBox.currentIndex()
-        if index <= 0:
-            index = numGens
-        self.form.selectGenBox.setCurrentIndex(index-1)
-        self.viewGeneration()
+    def resetViewControls(self):
+        numGens = Common.checkGenerations()
 
-    def viewGeneration(self):
-        # Close the generation that the user might be viewing previously
-        if self.selectedGen > 0:
-            docName = f"Gen{self.selectedGen}"
-            FreeCAD.closeDocument(docName)
+        enable = True if numGens > 0 else False
+        self.form.selectGenBox.setEnabled(enable)
+        self.form.nextGen.setEnabled(enable)
+        self.form.previousGen.setEnabled(enable)
 
-        # Find which generation is selected in the combo box
-        self.selectedGen = self.form.selectGenBox.currentText()
-        self.selectedGen = int(str(self.selectedGen).split()[-1])
-
-        # Open the generation
-        docPath = self.workingDir + \
-            f"/Gen{self.selectedGen}/Gen{self.selectedGen}.FCStd"
-        docName = f"Gen{self.selectedGen}"
-        FreeCAD.open(docPath)
-        # FreeCAD.setActiveDocument(docName)
-
-    def resetViewControls(self, numGens):
-        comboBoxItems = []
-
-        if numGens > 0:
-            self.form.viewGenButton.setEnabled(True)
-            self.form.selectGenBox.setEnabled(True)
-            self.form.nextGen.setEnabled(True)
-            self.form.previousGen.setEnabled(True)
-
-            for i in range(1, numGens+1):
-                comboBoxItems.append("Generation " + str(i))
-
-            self.form.selectGenBox.clear()
-            self.form.selectGenBox.addItems(comboBoxItems)
-        else:
-            self.form.viewGenButton.setEnabled(False)
-            self.form.selectGenBox.setEnabled(False)
-            self.form.nextGen.setEnabled(False)
-            self.form.previousGen.setEnabled(False)
-            self.form.selectGenBox.clear()
+        self.form.numGensLabel.setText(f"{numGens} generations produced")
+        self.form.selectGenBox.setRange(1, numGens)
 
     def updateParametersTable(self):
         paramNames = self.doc.Generate.ParametersName
         parameterValues = self.doc.Generate.GeneratedParameters
+        tableWidget = self.form.parametersTable
+        
         if parameterValues == None:
-            paramNames = [""]
-            parameterValues = []
-        # Insert generation number column into table
+            tableWidget.setEnabled(False)
+            return
 
-        paramNames.insert(0, "Gen")
-        table = []
-        for i in range(1, len(parameterValues)+1):
-            table.append([i]+list(parameterValues[i-1]))
+        tableWidget.setEnabled(True)
+        tableWidget.setColumnCount(len(paramNames))
+        tableWidget.setRowCount(len(parameterValues))
+        tableWidget.setHorizontalHeaderLabels(paramNames)
+        tableWidget.horizontalHeader().setResizeMode(QtGui.QHeaderView.ResizeToContents)
 
-        tableModel = Common.GenTableModel(
-            self.form, table, paramNames)
-        tableModel.layoutChanged.emit()
-        self.form.parametersTable.setModel(tableModel)
-        self.form.parametersTable.horizontalHeader().setResizeMode(
-            PySide.QtWidgets.QHeaderView.ResizeToContents)
-        self.form.parametersTable.clicked.connect(partial(
-            Common.showGen, self.form.parametersTable, self.doc))
-        self.form.parametersTable.setMinimumHeight(22+len(parameterValues)*30)
-        self.form.parametersTable.setMaximumHeight(22+len(parameterValues)*30)
+        for col in range(tableWidget.columnCount()):
+            for row in range(tableWidget.rowCount()):
+                item = QtGui.QTableWidgetItem(str(parameterValues[row][col]))
+                tableWidget.setItem(row, col, item)
+        if Common.checkGenerations() > 0:
+            tableWidget.itemClicked.connect(
+                lambda item: self.form.selectGenBox.setValue(item.row()+1))
 
     def accept(self):
-        doc = FreeCADGui.getDocument(self.obj.Document)
-        doc.resetEdit()
-        doc.Document.recompute()
-        # closes the gen file If a generated file opened to check before
-        Common.showGen("close", self.doc, None)
+        """Qt convenience function: Ok pressed"""
+        if not self.form.checkBoxKeep.isChecked():
+            Common.closeGen(0)    # close all generations
+        guiDoc = FreeCADGui.getDocument(self.doc)
+        guiDoc.resetEdit()    # close dialog
+        self.doc.recompute()
 
     def reject(self):
-        doc = FreeCADGui.getDocument(self.obj.Document)
-        doc.resetEdit()
-        # Common.showGen("close", self.doc, None)   # closes the gen file If a generated file opened to check before
+        """Qt convenience function: Cancel pressed"""
+        Common.closeGen(0)    # close all generations
+        guiDoc = FreeCADGui.getDocument(self.doc)
+        guiDoc.resetEdit()    # close dialog
 
     def design(self, method, parameters, numberofgen):
         from fembygen.design import Design, Taguchi
@@ -545,8 +494,7 @@ class ViewProviderGen:
         vobj.Proxy = self
 
     def getIcon(self):
-        icon_path = os.path.join(
-            FreeCAD.getUserAppDataDir() + 'Mod/FEMbyGEN/fembygen/icons/Generate.svg')
+        icon_path = os.path.join(FreeCAD.getUserAppDataDir(), LOCATION, 'icons/Generate.svg')
         return icon_path
 
     def attach(self, vobj):

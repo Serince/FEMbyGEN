@@ -7,11 +7,22 @@ import glob
 import Fem
 import FreeCADGui as Gui
 
+g_master = None
+g_workingDir = ''
 
-def checkGenerations(workingDir):
+def setWorkspace(doc, workingDir):
+    """Set master document and working directory"""
+    global g_master, g_workingDir
+    g_master = doc
+    g_workingDir = workingDir
+
+
+def checkGenerations(workingDir=None):
+    """Check how many gen folders exist"""
+    if workingDir is None:
+        workingDir = g_workingDir
     numGens = 1
-    # workingDir = '/'.join(master.FileName.split('/')[0:-1])
-    while os.path.isdir(workingDir + "/Gen" + str(numGens)):
+    while os.path.isdir(os.path.join(workingDir, "Gen" + str(numGens))):
         numGens += 1
     return numGens-1
 
@@ -78,12 +89,12 @@ def searchAnalysed(master):
 def checkAnalyses(master):
     statuses = master.FEA.Status
     numAnalysed = master.FEA.NumberOfAnalysis
-
     return (statuses, numAnalysed)
 
 
 
 def showGen(table, master, item):
+    """try to replace by viewGen"""
     global old
     old = FreeCAD.ActiveDocument.Name
     if old[:3] == "Gen" and old[3:4].isnumeric():
@@ -101,6 +112,35 @@ def showGen(table, master, item):
     docName = f"Gen{index}"
     FreeCAD.open(docPath)
     FreeCAD.setActiveDocument(docName)
+
+
+def viewGen(gen: int, keepOtherGens=False):
+    """View specified gen"""
+    if not keepOtherGens:
+        closeGen(-gen)    # close all but value
+    openGen(gen)
+
+
+def openGen(gen: int, workingDir=None):
+    """Open document for specified gen or activate if already open"""
+    if workingDir is None:
+        workingDir = g_workingDir
+    name = f"Gen{gen}"
+    if name in FreeCAD.listDocuments():
+        FreeCAD.setActiveDocument(name)
+    else:
+        path = os.path.join(workingDir, name, name+".FCStd")
+        FreeCAD.open(path)
+
+
+def closeGen(gen: int):
+    """Close document for specified gen, or all if zero, or all but gen if < 0"""
+    for docName in FreeCAD.listDocuments():
+        if docName[:3] == "Gen" and docName[3:].isnumeric():
+            if gen < 0 and docName[3:] == str(-gen):
+                pass
+            elif gen <= 0 or docName[3:] == str(gen):
+                FreeCAD.closeDocument(docName)
 
 
 

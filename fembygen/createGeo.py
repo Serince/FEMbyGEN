@@ -3,7 +3,7 @@ import FreeCADGui
 import os
 import ObjectsFem
 from fembygen import Topology
-from PySide import QtGui,QtCore,QtWidgets
+from PySide import QtGui, QtCore
 import shutil
 
 
@@ -131,7 +131,7 @@ class CreateGeoPanel:
             FreeCAD.Console.PrintError("Please Select Body\n")
             return
         for obj in selection:
-            item = QtWidgets.QListWidgetItem(obj.Label)
+            item = QtGui.QListWidgetItem(obj.Label)
             self.form.preserve_bodies.addItem(item)
             font = item.font()
             font_size = font.pointSize()
@@ -172,7 +172,7 @@ class CreateGeoPanel:
             FreeCAD.Console.PrintError("Please Select Body\n")
             return
         for obj in selection:
-            item = QtWidgets.QListWidgetItem(obj.Label)
+            item = QtGui.QListWidgetItem(obj.Label)
             self.form.obstacle_bodies.addItem(item)
             font = item.font()
             font_size = font.pointSize()
