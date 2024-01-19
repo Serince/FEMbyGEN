@@ -12,7 +12,6 @@ from functools import partial
 
 LOCATION = os.path.normpath('Mod/FEMbyGEN/fembygen')
 
-
 class Generate:
     """Part generations"""
 

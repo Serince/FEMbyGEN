@@ -7,6 +7,7 @@ import operator
 import glob
 import Fem
 
+
 LOCATION = os.path.normpath('Mod/FEMbyGEN/fembygen')
 
 g_master = None
@@ -36,6 +37,7 @@ def addToDocumentObjectGroup(type: str, name: str):
         parameter = doc.addObject(type, name)
         group.addObject(parameter)
     return group, parameter
+
 
 
 def checkGenerations(workingDir=None):
@@ -155,6 +157,7 @@ def openGen(gen: int, workingDir=None):
     name = f"Gen{gen}"
     if name in FreeCAD.listDocuments():
         FreeCAD.setActiveDocument(name)
+
         doc = FreeCAD.getDocument(name)
     else:
         path = os.path.join(workingDir, name, name+".FCStd")
