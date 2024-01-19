@@ -1,11 +1,14 @@
 import FreeCAD
-import PySide
+import FreeCADGui as Gui
+from PySide import QtCore, QtGui    # FreeCAD's PySide!
 import os.path
 import numpy as np
 import operator
 import glob
 import Fem
-import FreeCADGui as Gui
+
+
+LOCATION = os.path.normpath('Mod/FEMbyGEN/fembygen')
 
 g_master = None
 g_workingDir = ''
@@ -17,6 +20,26 @@ def setWorkspace(doc, workingDir):
     g_workingDir = workingDir
 
 
+def addToDocumentObjectGroup(type: str, name: str):
+    """Add object to workbench group in document tree"""
+    doc = FreeCAD.ActiveDocument
+    try:
+        group = doc.GenerativeDesign
+        group.isValid()
+    except:
+        group = doc.addObject('App::DocumentObjectGroupPython', 'GenerativeDesign')
+        if FreeCAD.GuiUp:
+            ViewProviderIni(group.ViewObject)    # object icon etc.
+    try:
+        parameter = getattr(doc, name)
+        parameter.isValid()
+    except:
+        parameter = doc.addObject(type, name)
+        group.addObject(parameter)
+    return group, parameter
+
+
+
 def checkGenerations(workingDir=None):
     """Check how many gen folders exist"""
     if workingDir is None:
@@ -25,6 +48,12 @@ def checkGenerations(workingDir=None):
     while os.path.isdir(os.path.join(workingDir, "Gen" + str(numGens))):
         numGens += 1
     return numGens-1
+
+
+def error(msg: str):
+    """Show error message"""
+    FreeCAD.Console.PrintError(msg + '\n')
+    QtGui.QMessageBox.critical(Gui.getMainWindow(), 'Error', msg)
 
 
 def purge_results(doc):
@@ -128,9 +157,12 @@ def openGen(gen: int, workingDir=None):
     name = f"Gen{gen}"
     if name in FreeCAD.listDocuments():
         FreeCAD.setActiveDocument(name)
+
+        doc = FreeCAD.getDocument(name)
     else:
         path = os.path.join(workingDir, name, name+".FCStd")
-        FreeCAD.open(path)
+        doc = FreeCAD.open(path)
+    return doc
 
 
 def closeGen(gen: int):
@@ -189,10 +221,10 @@ def get_results_fc(doc, case):
     if state2 is not None:
         state2.Visibility = False
 
-class GenTableModel(PySide.QtCore.QAbstractTableModel):
+class GenTableModel(QtCore.QAbstractTableModel):
     def __init__(self, parent, itemList, header, colours=None, score=None, *args):
 
-        PySide.QtCore.QAbstractTableModel.__init__(self, parent, *args)
+        QtCore.QAbstractTableModel.__init__(self, parent, *args)
         self.itemList = []
         for i in itemList:
             self.itemList.append(list(i))
@@ -200,7 +232,7 @@ class GenTableModel(PySide.QtCore.QAbstractTableModel):
         self.header = header[:]
         height = len(itemList)
         width = len(header)
-        defaultColour = PySide.QtGui.QColor("white")
+        defaultColour = QtGui.QColor("white")
 
         if colours == None:
             self.colours = [
@@ -229,14 +261,14 @@ class GenTableModel(PySide.QtCore.QAbstractTableModel):
     def data(self, index, role):
         if not index.isValid():
             return None
-        elif role == PySide.QtCore.Qt.BackgroundRole:
+        elif role == QtCore.Qt.BackgroundRole:
             # Return colour
             return self.colours[index.row()][index.column()]
-        elif role == PySide.QtCore.Qt.DisplayRole:
+        elif role == QtCore.Qt.DisplayRole:
             return str(self.itemList[index.row()][index.column()])
 
     def headerData(self, col, orientation, role):
-        if orientation == PySide.QtCore.Qt.Horizontal and role == PySide.QtCore.Qt.DisplayRole:
+        if orientation == QtCore.Qt.Horizontal and role == QtCore.Qt.DisplayRole:
             return self.header[col]
         return None
 
@@ -253,6 +285,40 @@ class GenTableModel(PySide.QtCore.QAbstractTableModel):
             self.colours = [c for _, c in sorted(
                 zip(self.itemList, self.colours))]
 
-        if order != PySide.QtCore.Qt.DescendingOrder:
+        if order != QtCore.Qt.DescendingOrder:
             self.itemList.reverse()
         self.layoutChanged.emit()
+
+
+class ViewProviderIni:
+    """Viewprovider of the DocumentObjectGroup"""
+    
+    def __init__(self, vobj):
+        vobj.Proxy = self
+
+    def getIcon(self):
+        return os.path.join(FreeCAD.getUserAppDataDir(), LOCATION, 'icons/icon.svg')
+
+    def attach(self, vobj):
+        self.ViewObject = vobj
+        self.Object = vobj.Object
+
+    def updateData(self, obj, prop):
+        return
+
+    def onChanged(self, vobj, prop):
+        return
+
+    # FreeCAD < 0.21.2
+    def __getstate__(self):
+        return None
+
+    def __setstate__(self, state):
+        return None
+    
+    # FreeCAD >= 0.21.2
+    def dumps(self):
+        return None
+
+    def loads(self, state):
+        return None
