@@ -13,6 +13,7 @@ from functools import partial
 LOCATION = os.path.normpath('Mod/FEMbyGEN/fembygen')
 
 def makeGenerate():
+    """Creating generate in combo view """
     try:
         obj = FreeCAD.ActiveDocument.Generate
         obj.isValid()
