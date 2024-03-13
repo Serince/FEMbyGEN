@@ -650,6 +650,7 @@ def write_inp(file_name, file_nameW, elm_states, number_of_states, domains, doma
 # Failure Indices are computed at each integration point and maximum or average above each element is returned
 def import_FI_int_pt(reference_value, file_nameW, domains, criteria, domain_FI, file_name, elm_states,
                      domains_from_config, steps_superposition, displacement_graph):
+    
     try:
         f = open(file_nameW + ".dat", "r")
     except IOError:
