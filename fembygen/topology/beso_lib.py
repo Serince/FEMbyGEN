@@ -371,17 +371,26 @@ def elm_volume_cg(file_name, nodes, Elements):
         [area_elm[en], cg[en]] = tria_area_cg(nod)
 
     if Elements.tria6:
-        second_order_info("tria6")
-    for en, nod in Elements.tria6.items():  # copy from tria3
-        [area_elm[en], cg[en]] = tria_area_cg(nod)
+    second_order_info("tria6")
+
+    en_list, nod_list = zip(*Elements.tria6.items())
+    nod_array = np.array(nod_list)
+
+    area_elm, cg = tria_area_cg(nod_array.T)
+
+    for i, en in enumerate(en_list):
+        area_elm[en] = area_elm[i]
+        cg[en] = cg[i]
 
     for en, nod in Elements.quad4.items():
-        [a1, cg1] = tria_area_cg(nod[0:3])
-        [a2, cg2] = tria_area_cg(nod[0:1] + nod[2:4])
-        area_elm[en] = float(a1 + a2)
-        cg[en] = [[], [], []]
-        for k in [0, 1, 2]:  # denote x, y, z dimensions
-            cg[en][k] = (a1 * cg1[k] + a2 * cg2[k]) / area_elm[en]
+    a1, cg1 = tria_area_cg(nod[0:3])
+    a2, cg2 = tria_area_cg(np.concatenate((nod[0:1], nod[2:4])))
+
+    area_elm[en] = float(a1 + a2)
+    cg[en] = [[], [], []]
+    
+    for k in range(3):  # denote x, y, z dimensions
+        cg[en][k] = (a1 * cg1[k] + a2 * cg2[k]) / area_elm[en]
 
     if Elements.quad8:
         second_order_info("quad8")
