@@ -331,29 +331,29 @@ def elm_volume_cg(file_name, nodes, Elements):
     w = [0.0, 0.0, 0.0]
 
     def tria_area_cg(nod):
-        # compute volume
-        for i in [0, 1, 2]:  # denote x, y, z directions
+        # Compute volume
+        for i in range(3):
             u[i] = nodes[nod[2]][i] - nodes[nod[1]][i]
             v[i] = nodes[nod[0]][i] - nodes[nod[1]][i]
         area_tria = np.linalg.norm(np.cross(u, v)) / 2.0
-        # compute centre of gravity
-        x_cg = (nodes[nod[0]][0] + nodes[nod[1]][0] + nodes[nod[2]][0]) / 3.0
-        y_cg = (nodes[nod[0]][1] + nodes[nod[1]][1] + nodes[nod[2]][1]) / 3.0
-        z_cg = (nodes[nod[0]][2] + nodes[nod[1]][2] + nodes[nod[2]][2]) / 3.0
+        # Compute centre of gravity
+        x_cg = sum(nodes[n][0] for n in nod) / 3.0
+        y_cg = sum(nodes[n][1] for n in nod) / 3.0
+        z_cg = sum(nodes[n][2] for n in nod) / 3.0
         cg_tria = [x_cg, y_cg, z_cg]
         return area_tria, cg_tria
 
     def tetra_volume_cg(nod):
-        # compute volume
-        for i in [0, 1, 2]:  # denote x, y, z directions
+        # Compute volume
+        for i in range(3):
             u[i] = nodes[nod[2]][i] - nodes[nod[1]][i]
             v[i] = nodes[nod[3]][i] - nodes[nod[1]][i]
             w[i] = nodes[nod[0]][i] - nodes[nod[1]][i]
-            volume_tetra = abs(np.dot(np.cross(u, v), w)) / 6.0
-        # compute centre of gravity
-        x_cg = (nodes[nod[0]][0] + nodes[nod[1]][0] + nodes[nod[2]][0] + nodes[nod[3]][0]) / 4.0
-        y_cg = (nodes[nod[0]][1] + nodes[nod[1]][1] + nodes[nod[2]][1] + nodes[nod[3]][1]) / 4.0
-        z_cg = (nodes[nod[0]][2] + nodes[nod[1]][2] + nodes[nod[2]][2] + nodes[nod[3]][2]) / 4.0
+        volume_tetra = abs(np.dot(np.cross(u, v), w)) / 6.0
+        # Compute centre of gravity
+        x_cg = sum(nodes[n][0] for n in nod) / 4.0
+        y_cg = sum(nodes[n][1] for n in nod) / 4.0
+        z_cg = sum(nodes[n][2] for n in nod) / 4.0
         cg_tetra = [x_cg, y_cg, z_cg]
         return volume_tetra, cg_tetra
 
@@ -371,26 +371,17 @@ def elm_volume_cg(file_name, nodes, Elements):
         [area_elm[en], cg[en]] = tria_area_cg(nod)
 
     if Elements.tria6:
-    second_order_info("tria6")
-
-    en_list, nod_list = zip(*Elements.tria6.items())
-    nod_array = np.array(nod_list)
-
-    area_elm, cg = tria_area_cg(nod_array.T)
-
-    for i, en in enumerate(en_list):
-        area_elm[en] = area_elm[i]
-        cg[en] = cg[i]
+        second_order_info("tria6")
+    for en, nod in Elements.tria6.items():  # copy from tria3
+        [area_elm[en], cg[en]] = tria_area_cg(nod)
 
     for en, nod in Elements.quad4.items():
-    a1, cg1 = tria_area_cg(nod[0:3])
-    a2, cg2 = tria_area_cg(np.concatenate((nod[0:1], nod[2:4])))
-
-    area_elm[en] = float(a1 + a2)
-    cg[en] = [[], [], []]
-    
-    for k in range(3):  # denote x, y, z dimensions
-        cg[en][k] = (a1 * cg1[k] + a2 * cg2[k]) / area_elm[en]
+        [a1, cg1] = tria_area_cg(nod[0:3])
+        [a2, cg2] = tria_area_cg(nod[0:1] + nod[2:4])
+        area_elm[en] = float(a1 + a2)
+        cg[en] = [[], [], []]
+        for k in [0, 1, 2]:  # denote x, y, z dimensions
+            cg[en][k] = (a1 * cg1[k] + a2 * cg2[k]) / area_elm[en]
 
     if Elements.quad8:
         second_order_info("quad8")
@@ -695,19 +686,23 @@ def import_FI_int_pt(reference_value, file_nameW, domains, criteria, domain_FI, 
                     cr.append(criteria.index(dn_crit))
                 criteria_elm[en] = cr
 
-    def compute_FI():  # for the actual integration point
-        if en in criteria_elm:
-            for FIn in criteria_elm[en]:
-                if criteria[FIn][0] == "stress_von_Mises":
-                    s_allowable = criteria[FIn][1]
-                    FI_int_pt[FIn].append(np.sqrt(0.5 * ((sxx - syy) ** 2 + (syy - szz) ** 2 + (szz - sxx) ** 2 +
-                                                         6 * (sxy ** 2 + syz ** 2 + sxz ** 2))) / s_allowable)
-                elif criteria[FIn][0] == "user_def":
-                    FI_int_pt[FIn].append(eval(criteria[FIn][1]))
-                else:
-                    msg = "\nError: failure criterion " + str(criteria[FIn]) + " not recognised.\n"
-                    write_to_log(file_name, msg)
-
+    def compute_FI(sxx, syy, szz, sxy, syz, sxz, criteria_elm, criteria, FI_int_pt):
+        for en in criteria_elm:
+            if en in criteria_elm:
+                criteria_en = criteria[en]
+                for FIn in criteria_elm[en]:
+                    criterion_type, criterion_value = criteria_en[FIn]
+                    if criterion_type == "stress_von_Mises":
+                        s_allowable = criterion_value
+                        s_diff_sq_sum = 0.5 * ((sxx - syy) ** 2 + (syy - szz) ** 2 + (szz - sxx) ** 2 +
+                                           6 * (sxy ** 2 + syz ** 2 + sxz ** 2))
+                        FI = np.sqrt(s_diff_sq_sum) / s_allowable
+                        FI_int_pt[FIn].append(FI)
+                    elif criterion_type == "user_def":
+                        FI_int_pt[FIn].append(eval(criterion_value))
+                    else:
+                        msg = f"\nError: failure criterion {criteria[FIn]} not recognized.\n"
+                        write_to_log(file_name, msg)
     def save_FI(sn, en):
         FI_step[sn][en] = []
         for FIn in range(len(criteria)):
