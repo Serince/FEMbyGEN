@@ -215,7 +215,7 @@ class ResultsPanel:
         for i, row in enumerate(statuses):
             # open the generation file
             filename = f"Gen{i+1}"
-            filePath = self.workingDir + f"/Gen{i+1}/{filename}.FCStd"
+            filePath = os.path.join(self.workingDir ,f"Gen{i+1}/{filename}.FCStd")
             doc = FreeCAD.open(filePath, hidden=True)
 
             # for each loadcases it's read the results
@@ -223,7 +223,7 @@ class ResultsPanel:
             for j, value in enumerate(row):
                 if value == "Analysed":
                     try:
-                        resultPath = self.workingDir + f"/Gen{i+1}/loadCase_{j+1}/"
+                        resultPath =os.path.join(self.workingDir, f"Gen{i+1}/loadCase_{j+1}/")
                         mean = np.mean(results[j].vonMises)
                         max = np.max(results[j].vonMises)
                         maxDisp = np.max(results[j].DisplacementLengths)

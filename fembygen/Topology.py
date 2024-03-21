@@ -217,7 +217,7 @@ class TopologyMasterPanel(QtGui.QWidget):
 
         # open selected generation file to make topology optimizations
         partName = f"Gen{gen}"
-        filePath = self.workingDir + f"/Gen{gen}/Gen{gen}.FCStd"
+        filePath = os.path.join(self.workingDir, f"Gen{gen}/Gen{gen}.FCStd")
         self.obj.Label = partName+"_Topology"
         self.obj.Path = filePath
         self.accept()
