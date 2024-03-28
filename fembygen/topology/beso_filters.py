@@ -14,7 +14,8 @@ def find_size_elm(Elements, nodes):
                             ((x1 - x3) ** 2 + (y1 - y3) ** 2 + (z1 - z3) ** 2) ** 0.5 +
                             ((x2 - x3) ** 2 + (y2 - y3) ** 2 + (z2 - z3) ** 2) ** 0.5
                             ) / 3
-
+# noktalar arası uzakıkların  hesaplanması 
+            
     def size_quad(elm_category):
         for en in elm_category:
             x1, y1, z1 = nodes[elm_category[en][0]]
@@ -106,7 +107,7 @@ def get_filter_range(size_elm, domains, filtered_dn):
         for en in domains[dn]:
             size_sum += size_elm[en]
     return size_sum / len_filtered_dn
-
+# noktalar arası uzaklıklar toplamının eleman sayısınıa bölünmesi 
 
 def sround(x, s):
     """round float number x to s significant digits
