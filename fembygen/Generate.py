@@ -10,24 +10,9 @@ import multiprocessing.dummy as mp
 from multiprocessing import cpu_count
 from functools import partial
 
+
 translate = FreeCAD.Qt.translate
-
 LOCATION = os.path.normpath('Mod/FEMbyGEN/fembygen')
-
-def makeGenerate():
-    """Creating generate in combo view """
-    try:
-        obj = FreeCAD.ActiveDocument.Generate
-        obj.isValid()
-    except:
-        obj = FreeCAD.ActiveDocument.addObject(
-            "Part::FeaturePython", "Generate")
-        FreeCAD.ActiveDocument.GenerativeDesign.addObject(obj)
-    Generate(obj)
-    if FreeCAD.GuiUp:
-        ViewProviderGen(obj.ViewObject)
-    return obj
-
 
 class Generate:
     """Part generations"""
@@ -51,7 +36,8 @@ class Generate:
             obj.addProperty("App::PropertyInteger", "NumberOfCPU", "Base",
                             "Number of CPU's to use ")
             obj.NumberOfCPU = cpu_count()-1
-        except:
+        except NameError:
+            # property already exists
             pass
 
 
@@ -65,13 +51,12 @@ class GenerateCommand():
                 'ToolTip': "Produce part generations"}
 
     def Activated(self):
-        obj = makeGenerate()
-        doc = FreeCADGui.ActiveDocument
-        if not doc.getInEdit():
-            doc.setEdit(obj.ViewObject.Object.Name)
-        else:
-            FreeCAD.Console.PrintError(translate("FEMbyGEN",'Existing task dialog already open\n'))
-        return
+        group, obj = Common.addToDocumentObjectGroup('Part::FeaturePython', 'Generate')
+        Generate(obj)
+        if FreeCAD.GuiUp:
+            ViewProviderGen(obj.ViewObject)    # object icon, task dialog etc.
+        FreeCADGui.ActiveDocument.setEdit(obj.ViewObject.Object.Name)    # open task dialog
+
 
     def IsActive(self):
         """Here you can define if the command must be active or not (greyed) if certain conditions
@@ -237,7 +222,9 @@ class GeneratePanel():
         try:
             os.mkdir(directory)
         except:
+
             FreeCAD.Console.PrintWarning(translate("FEMbyGEN",f"Keeping existing {name}\n"))
+
             return
         shutil.copy(docPath, filePath)
         shutil.copy(filePath, filePath+".backup")
@@ -356,7 +343,9 @@ class GeneratePanel():
         progress_bar.stop()
 
         master.save()  # too store generated values in generate object
+
         FreeCAD.Console.PrintMessage(translate("FEMbyGEN","Generation done successfully!\n"))
+
         Common.openGen(1)
 
     def deleteGenerations(self):
@@ -365,7 +354,9 @@ class GeneratePanel():
                           "Are you sure to delete all the earlier generation files?",
                           qm.Yes | qm.No)
         if ret == qm.No:
+
             FreeCAD.Console.PrintMessage(translate("FEMbyGEN","Nothing Deleted\n"))
+
         else:
             Common.closeGen(0)    # close all generations
 
@@ -376,12 +367,14 @@ class GeneratePanel():
                 try:
                     shutil.rmtree(directory)
                 except FileNotFoundError:
+
                     FreeCAD.Console.PrintError(translate("FEMbyGEN",f"Generation {i} analysis data not found\n"))
                 except Exception:
                     FreeCAD.Console.PrintError(translate("FEMbyGEN",
                         f"Error while trying to delete analysis folder for generation {i}\n"))
                 else:
                     FreeCAD.Console.PrintMessage(translate("FEMbyGEN",directory + " deleted\n"))
+
 
             # Delete if earlier generative objects exist
             for l in self.doc.GenerativeDesign.Group:
@@ -396,6 +389,7 @@ class GeneratePanel():
             self.resetViewControls()
             self.updateParametersTable()
             FreeCAD.setActiveDocument(self.doc.Name)
+
 
     def viewGeneration(self, value):
         keep = self.form.checkBoxKeep.isChecked()
@@ -512,10 +506,7 @@ class ViewProviderGen:
 
     def doubleClicked(self, vobj):
         doc = FreeCADGui.getDocument(vobj.Object.Document)
-        if not doc.getInEdit():
-            doc.setEdit(vobj.Object.Name)
-        else:
-            FreeCAD.Console.PrintError('Existing task dialog already open\n')
+        doc.setEdit(vobj.Object.Name)
         return True
 
     def setEdit(self, vobj, mode):
@@ -528,10 +519,18 @@ class ViewProviderGen:
         FreeCADGui.Control.closeDialog()
         return
 
+    # FreeCAD < 0.21.2
     def __getstate__(self):
         return None
 
     def __setstate__(self, state):
+        return None
+    
+    # FreeCAD >= 0.21.2
+    def dumps(self):
+        return None
+
+    def loads(self, state):
         return None
 
 
