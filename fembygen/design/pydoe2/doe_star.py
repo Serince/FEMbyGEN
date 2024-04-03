@@ -15,6 +15,9 @@ Abraham Lee.
 
 import numpy as np
 
+def QT_TRANSLATE_NOOP(context, text):
+    return text
+
 def star(n, alpha='faced', center=(1, 1)):
     """
     Create the star points of various design matrices

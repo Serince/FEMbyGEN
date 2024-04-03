@@ -1,5 +1,8 @@
 import numpy as np    
 
+def QT_TRANSLATE_NOOP(context, text):
+    return text
+
 class Taguchipy():
     def __init__(self,param,numberofgen):
         self.variables=param

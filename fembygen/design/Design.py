@@ -2,6 +2,8 @@ import numpy as np
 from fembygen.design.pydoe2 import doe_lhs, doe_box_behnken, doe_composite, doe_plackett_burman
 import itertools
 
+def QT_TRANSLATE_NOOP(context, text):
+    return text
 
 def fullfact(A):
     numgenerations = list(itertools.product(*A))

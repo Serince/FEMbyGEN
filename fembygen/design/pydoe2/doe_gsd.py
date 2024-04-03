@@ -3,8 +3,11 @@ Copyright (C) 2018 - Rickard Sjoegren
 """
 import itertools
 
+
 import numpy as np
 
+def QT_TRANSLATE_NOOP(context, text):
+    return text
 
 def gsd(levels, reduction, n=1):
     """

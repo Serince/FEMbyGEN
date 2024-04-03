@@ -7,7 +7,7 @@ from fembygen import Common
 import glob
 import functools
 from femresult.resulttools import fill_femresult_stats
-
+translate = FreeCAD.Qt.translate
 
 def makeResult():
     try:
@@ -62,10 +62,10 @@ class ResultsCommand():
             if not doc.getInEdit():
                 doc.setEdit(obj.ViewObject.Object.Name)
             else:
-                FreeCAD.Console.PrintError('Existing task dialog already open\n')
+                FreeCAD.Console.PrintError(translate("FEMbyGEN",'Existing task dialog already open\n'))
             return
         except:
-            FreeCAD.Console.PrintError('Make sure that you are working on the master file. Close the generated file\n')
+            FreeCAD.Console.PrintError(translate("FEMbyGEN",'Make sure that you are working on the master file. Close the generated file\n'))
 
     def IsActive(self):
         """Here you can define if the command must be active or not (greyed) if certain conditions
@@ -85,7 +85,7 @@ class ResultsPanel:
 
         self.doc = object.Object.Document
         if self.doc.Results.FEAMetricsAll == []:
-            FreeCAD.Console.PrintMessage("Calculating metrics...\n")
+            FreeCAD.Console.PrintMessage(translate("FEMbyGEN","Calculating metrics...\n"))
             self.calcAndSaveFEAMetrics()
         self.form.arrange.clicked.connect(self.ranking)
 
@@ -159,7 +159,7 @@ class ResultsPanel:
             try:
                 vals = items[:, i]
             except ValueError:
-                FreeCAD.Console.PrintError("Results couldn't converted to the number.\n")
+                FreeCAD.Console.PrintError(translate("FEMbyGEN","Results couldn't converted to the number.\n"))
 
             # Calculate value range to calibrate colour scale
             minVal = min(vals)
@@ -215,7 +215,7 @@ class ResultsPanel:
         for i, row in enumerate(statuses):
             # open the generation file
             filename = f"Gen{i+1}"
-            filePath = self.workingDir + f"/Gen{i+1}/{filename}.FCStd"
+            filePath = os.path.join(self.workingDir ,f"Gen{i+1}/{filename}.FCStd")
             doc = FreeCAD.open(filePath, hidden=True)
 
             # for each loadcases it's read the results
@@ -223,7 +223,7 @@ class ResultsPanel:
             for j, value in enumerate(row):
                 if value == "Analysed":
                     try:
-                        resultPath = self.workingDir + f"/Gen{i+1}/loadCase_{j+1}/"
+                        resultPath =os.path.join(self.workingDir, f"Gen{i+1}/loadCase_{j+1}/")
                         mean = np.mean(results[j].vonMises)
                         max = np.max(results[j].vonMises)
                         maxDisp = np.max(results[j].DisplacementLengths)
@@ -234,13 +234,13 @@ class ResultsPanel:
                         deviation.append(denData)
                         result.append([f"{totalVol:.2e}", f"{max:.2e}", f"{maxDisp:.2e}",
                                        f"{mean:.2e}", f"{totalInt:.2e}", f"{energyDenStd:.2e}"])
-                        FreeCAD.Console.PrintMessage(f"Generation {i+1} Analysis {j+1} result values imported\n")
+                        FreeCAD.Console.PrintMessage(translate("FEMbyGEN",f"Generation {i+1} Analysis {j+1} result values imported\n"))
                     except:
-                        FreeCAD.Console.PrintError(
-                            f"During getting result values of Generation {i+1} Analysis {j+1} problem occured. Please check the generation results by opening Gen{i+1} folder in master file directory.\n")
+                        FreeCAD.Console.PrintError(translate("FEMbyGEN",
+                            f"During getting result values of Generation {i+1} Analysis {j+1} problem occured. Please check the generation results by opening Gen{i+1} folder in master file directory.\n"))
                         result.append([None]*6)
                 else:
-                    FreeCAD.Console.PrintError(f"Generation {i+1} Loadcase {j+1} couldn't imported\n")
+                    FreeCAD.Console.PrintError(translate("FEMbyGEN",f"Generation {i+1} Loadcase {j+1} couldn't imported\n"))
                     result.append([None]*6)
 
             self.getResultsToMaster(doc, results[0])
@@ -350,8 +350,8 @@ class ResultsPanel:
             master.copyObject(object, False)
             master.copyObject(object.Mesh, False)
         except:
-            FreeCAD.Console.PrintError(
-                f"Results of {doc.Name} is not found in the file. Please check the results by opening the file directly.\n")
+            FreeCAD.Console.PrintError(translate("FEMbyGEN",
+                f"Results of {doc.Name} is not found in the file. Please check the results by opening the file directly.\n"))
             return
         totalResult = master.getObjectsByLabel(f"{doc.Name}_Results")[0]
         resultMesh = master.getObjectsByLabel(f"{doc.Name}_Mesh")[0]
@@ -429,7 +429,7 @@ class ResultsPanel:
                 normTable[:, 4] + std*normTable[:, 5]
             self.updateResultsTableSum(score)
         except:
-            FreeCAD.Console.PrintError('Total weignt needs to be 100\n')
+            FreeCAD.Console.PrintError(translate("FEMbyGEN",'Total weignt needs to be 100\n'))
 
     def normalize(self, vals):
         """Resuls range can be different. So, the function make results between 0~1 to calculate ranking score.
@@ -478,7 +478,7 @@ class ViewProviderResult:
         if not doc.getInEdit():
             doc.setEdit(vobj.Object.Name)
         else:
-            FreeCAD.Console.PrintError('Existing task dialog already open\n')
+            FreeCAD.Console.PrintError(translate("FEMbyGEN",'Existing task dialog already open\n'))
         return True
 
     def setEdit(self, vobj, mode):

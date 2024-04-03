@@ -1,3 +1,6 @@
+import FreeCAD
+
+translate = FreeCAD.Qt.translate
 """
 This code was originally published by the following individuals for use with
 Scilab:
@@ -20,6 +23,8 @@ import string
 
 import numpy as np
 
+def QT_TRANSLATE_NOOP(context, text):
+    return text
 
 __all__ = ['np', 'fullfact', 'ff2n', 'fracfact', 'fracfact_by_res', 'fracfact_opt',
     'fracfact_aliasing', 'alias_vector_indices']
@@ -351,7 +356,7 @@ def _n_fac_at_res(n, res):
         from scipy.special import binom
         return sum(binom(n, r) for r in range(res - 1, n)) + n
     except:
-        print("you need to install scipy library to use it")
+        print(translate("FEMbyGEN","you need to install scipy library to use it"))
         return None
     
 
