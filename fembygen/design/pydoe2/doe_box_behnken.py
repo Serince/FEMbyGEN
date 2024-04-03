@@ -16,6 +16,8 @@ Abraham Lee.
 import numpy as np
 from fembygen.design.pydoe2.doe_factorial import ff2n
 
+def QT_TRANSLATE_NOOP(context, text):
+    return text
 
 __all__ = ['bbdesign']
 

@@ -10,6 +10,8 @@ import multiprocessing.dummy as mp
 from multiprocessing import cpu_count
 from functools import partial
 
+translate = FreeCAD.Qt.translate
+
 LOCATION = os.path.normpath('Mod/FEMbyGEN/fembygen')
 
 def makeGenerate():
@@ -68,7 +70,7 @@ class GenerateCommand():
         if not doc.getInEdit():
             doc.setEdit(obj.ViewObject.Object.Name)
         else:
-            FreeCAD.Console.PrintError('Existing task dialog already open\n')
+            FreeCAD.Console.PrintError(translate("FEMbyGEN",'Existing task dialog already open\n'))
         return
 
     def IsActive(self):
@@ -235,7 +237,7 @@ class GeneratePanel():
         try:
             os.mkdir(directory)
         except:
-            FreeCAD.Console.PrintWarning(f"Keeping existing {name}\n")
+            FreeCAD.Console.PrintWarning(translate("FEMbyGEN",f"Keeping existing {name}\n"))
             return
         shutil.copy(docPath, filePath)
         shutil.copy(filePath, filePath+".backup")
@@ -354,7 +356,7 @@ class GeneratePanel():
         progress_bar.stop()
 
         master.save()  # too store generated values in generate object
-        FreeCAD.Console.PrintMessage("Generation done successfully!\n")
+        FreeCAD.Console.PrintMessage(translate("FEMbyGEN","Generation done successfully!\n"))
         Common.openGen(1)
 
     def deleteGenerations(self):
@@ -363,7 +365,7 @@ class GeneratePanel():
                           "Are you sure to delete all the earlier generation files?",
                           qm.Yes | qm.No)
         if ret == qm.No:
-            FreeCAD.Console.PrintMessage("Nothing Deleted\n")
+            FreeCAD.Console.PrintMessage(translate("FEMbyGEN","Nothing Deleted\n"))
         else:
             Common.closeGen(0)    # close all generations
 
@@ -374,12 +376,12 @@ class GeneratePanel():
                 try:
                     shutil.rmtree(directory)
                 except FileNotFoundError:
-                    FreeCAD.Console.PrintError(f"Generation {i} analysis data not found\n")
+                    FreeCAD.Console.PrintError(translate("FEMbyGEN",f"Generation {i} analysis data not found\n"))
                 except Exception:
-                    FreeCAD.Console.PrintError(
-                        f"Error while trying to delete analysis folder for generation {i}\n")
+                    FreeCAD.Console.PrintError(translate("FEMbyGEN",
+                        f"Error while trying to delete analysis folder for generation {i}\n"))
                 else:
-                    FreeCAD.Console.PrintMessage(directory + " deleted\n")
+                    FreeCAD.Console.PrintMessage(translate("FEMbyGEN",directory + " deleted\n"))
 
             # Delete if earlier generative objects exist
             for l in self.doc.GenerativeDesign.Group:

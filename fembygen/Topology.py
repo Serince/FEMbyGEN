@@ -12,7 +12,7 @@ import glob
 import shutil
 from multiprocessing import cpu_count
 
-
+translate = FreeCAD.Qt.translate
 
 def makeTopology():
     def attach(self, vobj):
@@ -181,7 +181,7 @@ class TopologyCommand():
         if not doc.getInEdit() and obj is not None:
             doc.setEdit(obj.ViewObject.Object.Name)  
         else:
-            FreeCAD.Console.PrintError('Existing task dialog already open\n')
+            FreeCAD.Console.PrintError(translate("FEMbyGEN",'Existing task dialog already open\n'))
         return
     
 
@@ -532,7 +532,7 @@ class TopologyPanel(QtGui.QWidget):
                             self.selectFile()
                             return
                         except:
-                            FreeCAD.Console.PrintMessage("Target path has previous files. Old files are deleted.")
+                            FreeCAD.Console.PrintMessage(translate("FEMbyGEN","Target path has previous files. Old files are deleted."))
                             folders = glob.glob(self.workingDir + "/TopologyCase*")
 
                             for i in folders:
@@ -833,7 +833,7 @@ class TopologyPanel(QtGui.QWidget):
                 self.doc.Topology.domain_FI[analysis] = {elset_name: [[('stress_von_Mises', von_mises * 1e6)],
                                                                       [('stress_von_Mises', von_mises)]]}
         self.doc.Topology.mass_goal_ratio = float(self.form.massGoalRatio.text())
-        FreeCAD.Console.PrintMessage("Config file created\n")
+        FreeCAD.Console.PrintMessage(translate("FEMbyGEN","Config file created\n"))
 
     def massratio(self, slider_position):
         if slider_position == 0:
@@ -863,7 +863,7 @@ class TopologyPanel(QtGui.QWidget):
     def get_case(self, numberofcase):
         lastcase = self.doc.Topology.LastState
         if not numberofcase:
-            FreeCAD.Console.PrintError("The simulations are not completed\n")
+            FreeCAD.Console.PrintError(translate("FEMbyGEN","The simulations are not completed\n"))
             return
         elif numberofcase == "last":
             numberofcase = lastcase
@@ -923,7 +923,7 @@ class TopologyPanel(QtGui.QWidget):
     def openLog(self):
         """Open log file"""
         if self.form.fileName.text() in ["None analysis file selected", ""]:
-            FreeCAD.Console.PrintMessage("None analysis file selected")
+            FreeCAD.Console.PrintMessage(translate("FEMbyGEN","None analysis file selected"))
         else:
             log_file = os.path.normpath(self.form.fileName.text()[:-4] + ".log.fcmacro")
             FreeCADGui.insert(log_file, "Log File")
@@ -1064,7 +1064,7 @@ class ViewProviderGen:
         if not doc.getInEdit():
             doc.setEdit(vobj.Object.Name)
         else:
-            FreeCAD.Console.PrintError('Existing task dialog already open\n')
+            FreeCAD.Console.PrintError(translate("FEMbyGEN",'Existing task dialog already open\n'))
         return True
 
     def setEdit(self, vobj, mode):
@@ -1108,7 +1108,7 @@ class ViewProviderLink:
         if not guiDoc.getInEdit():
             guiDoc.setEdit(doc.Topology)
         else:
-            FreeCAD.Console.PrintError('Existing task dialog already open\n')
+            FreeCAD.Console.PrintError(translate("FEMbyGEN",'Existing task dialog already open\n'))
         return True
 
     def setEdit(self, vobj, mode):

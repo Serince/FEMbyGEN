@@ -15,6 +15,9 @@ Abraham Lee.
 
 import numpy as np
 
+def QT_TRANSLATE_NOOP(context, text):
+    return text
+
 def union(H1, H2):
     """
     Join two matrices by stacking them on top of each other.

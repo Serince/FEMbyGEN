@@ -2,6 +2,8 @@ import FreeCAD
 import FreeCADGui
 import os
 
+translate = FreeCAD.Qt.translate
+
 LOCATION = 'Mod/FEMbyGEN/fembygen'
 MAX_NUM_PARAMETER = 10    # maximum number of parameters
 
@@ -36,8 +38,8 @@ class AliasPanel:
             else:
                 aliasedNum += 1
         doc.Parameters.recompute()
-        FreeCAD.Console.PrintMessage(
-            f"{aliasedNum} parameters are aliased and can be used in expressions.\n")
+        FreeCAD.Console.PrintMessage(translate("FEMbyGEN",
+            f"{aliasedNum} parameters are aliased and can be used in expressions.\n"))
 
 
 FreeCADGui.addCommand('Alias', AliasCommand())

@@ -7,6 +7,8 @@ import glob
 import Fem
 import FreeCADGui as Gui
 
+translate = FreeCAD.Qt.translate
+
 g_master = None
 g_workingDir = ''
 
@@ -81,7 +83,7 @@ def searchAnalysed(master):
                 try:
                     lcStatus.append(status)
                 except:
-                    FreeCAD.Console.PrintError("Analysis not found.\n")
+                    FreeCAD.Console.PrintError(translate("FEMbyGEN","Analysis not found.\n"))
         statuses.append(lcStatus)
     return (statuses, numAnalysed, lc)
 

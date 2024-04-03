@@ -3,6 +3,8 @@ import operator
 from math import *
 import os
 
+def QT_TRANSLATE_NOOP(context, text):
+    return text
 
 class Elements:
     def __init__(self):

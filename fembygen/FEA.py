@@ -11,6 +11,7 @@ from femtools import ccxtools
 import numpy as np
 import functools
 
+translate = FreeCAD.Qt.translate
 
 def makeFEA():
     try:
@@ -65,10 +66,10 @@ class FEACommand():
             if not doc.getInEdit():
                 doc.setEdit(obj.ViewObject.Object.Name)
             else:
-                FreeCAD.Console.PrintError('Existing task dialog already open\n')
+                FreeCAD.Console.PrintError(translate("FEMbyGEN",'Existing task dialog already open\n'))
             return
         except:
-            FreeCAD.Console.PrintError('Make sure that you are working on the master file. Close the generated file\n')
+            FreeCAD.Console.PrintError(translate("FEMbyGEN",'Make sure that you are working on the master file. Close the generated file\n'))
 
     def IsActive(self):
         """Here you can define if the command must be active or not (greyed) if certain conditions
@@ -101,18 +102,18 @@ class FEAPanel:
         self.form.deleteAnalyses.clicked.connect(self.deleteGenerations)
 
     def deleteGenerations(self):
-        FreeCAD.Console.PrintMessage("Deleting...\n")
+        FreeCAD.Console.PrintMessage(translate("FEMbyGEN","Deleting...\n"))
         numGens = Common.checkGenerations(self.workingDir)
         for i in range(1, numGens+1):
             lcases = glob.glob(self.workingDir + f"/Gen{i}/loadCase*")
             for j in lcases:
                 try:
                     shutil.rmtree(j)
-                    FreeCAD.Console.PrintMessage(f"{j} deleted\n")
+                    FreeCAD.Console.PrintMessage(translate("FEMbyGEN",f"{j} deleted\n"))
 
                 except FileNotFoundError:
-                    FreeCAD.Console.PrintError(
-                        f"INFO: Generation {j} analysis data not found\n")
+                    FreeCAD.Console.PrintError(translate("FEMbyGEN",
+                        f"INFO: Generation {j} analysis data not found\n"))
                 # Delete if earlier generative objects exist
 
         try:  # If already results imported, try to delete those
@@ -125,7 +126,7 @@ class FEAPanel:
         self.updateAnalysisTable()
 
     def FEAGenerations(self):
-        FreeCAD.Console.PrintMessage("Analysis starting\n")
+        FreeCAD.Console.PrintMessage(translate("FEMbyGEN","Analysis starting\n"))
         for i in range(self.numGenerations):
             # Open generated part
             partName = f"Gen{i+1}"
@@ -235,7 +236,7 @@ class FEAPanel:
         try:
             fea=ccxtools.FemToolsCcx(Analysis)
         except:
-            print("adding")
+            print(translate("FEMbyGEN","adding"))
             import ObjectsFem
             Analysis.addObject(ObjectsFem.makeSolverCalculixCcxTools(doc))
             fea=ccxtools.FemToolsCcx(Analysis)
@@ -251,8 +252,8 @@ class FEAPanel:
             fea.ccx_run()
             fea.load_results()
         else:
-            FreeCAD.Console.PrintError(
-                "Houston, we have a problem! {}\n".format(message))  # in report view
+            FreeCAD.Console.PrintError(translate("FEMbyGEN",
+                "Houston, we have a problem! {}\n".format(message)))  # in report view
 
         # save FEA results
         doc.save()
@@ -295,7 +296,7 @@ class ViewProviderFEA:
         if not doc.getInEdit():
             doc.setEdit(vobj.Object.Name)
         else:
-            FreeCAD.Console.PrintError('Existing task dialog already open\n')
+            FreeCAD.Console.PrintError(translate("FEMbyGEN",'Existing task dialog already open\n'))
         return True
 
     def setEdit(self, vobj, mode):
