@@ -44,7 +44,7 @@ class AliasPanel:
                 aliasedNum += 1
         doc.Parameters.recompute()
         FreeCAD.Console.PrintMessage(translate("FEMbyGEN",
-            f"{aliasedNum} parameters are aliased and can be used in expressions.\n"))
+            f"{aliasedNum} parameters are aliased and can be used in expressions.")+"\n")
 
 
 FreeCADGui.addCommand('Alias', AliasCommand())

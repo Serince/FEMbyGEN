@@ -90,7 +90,7 @@ def searchAnalysed(master):
                 try:
                     lcStatus.append(status)
                 except:
-                    FreeCAD.Console.PrintError(translate("FEMbyGEN","Analysis not found.\n"))
+                    FreeCAD.Console.PrintError(translate("FEMbyGEN","Analysis not found.")+"\n")
         statuses.append(lcStatus)
     return (statuses, numAnalysed, lc)
 

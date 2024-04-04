@@ -134,7 +134,7 @@ class CreateGeoPanel:
     def add_to_preserve(self):
         selection = FreeCADGui.Selection.getSelection()
         if not selection:
-            FreeCAD.Console.PrintError(translate("FEMbyGEN","Please Select Body\n"))
+            FreeCAD.Console.PrintError(translate("FEMbyGEN","Please Select Body")+"\n")
             return
         for obj in selection:
             item = QtGui.QListWidgetItem(obj.Label)
@@ -151,12 +151,12 @@ class CreateGeoPanel:
     # Removing from the preserve list widget
     def remove_to_preserve(self):
         if self.form.preserve_bodies.count() == 0:
-            FreeCAD.Console.PrintError(translate("FEMbyGEN","Preserve list is empty. Nothing to remove.\n"))
+            FreeCAD.Console.PrintError(translate("FEMbyGEN","Preserve list is empty. Nothing to remove.")+"\n")
             return
 
         selected_items = self.form.preserve_bodies.selectedItems()
         if not selected_items:
-            FreeCAD.Console.PrintError(translate("FEMbyGEN","Please select items to remove from the Preserve list.\n"))
+            FreeCAD.Console.PrintError(translate("FEMbyGEN","Please select items to remove from the Preserve list.")+"\n")
             return
 
         for item in selected_items:
@@ -175,7 +175,7 @@ class CreateGeoPanel:
     def add_to_obstacle(self):
         selection = FreeCADGui.Selection.getSelection()
         if not selection:
-            FreeCAD.Console.PrintError(translate("FEMbyGEN","Please Select Body\n"))
+            FreeCAD.Console.PrintError(translate("FEMbyGEN","Please Select Body")+"\n")
             return
         for obj in selection:
             item = QtGui.QListWidgetItem(obj.Label)
@@ -192,12 +192,12 @@ class CreateGeoPanel:
     # Removing from the obstacle list widget
     def remove_to_obstacle(self):
         if self.form.obstacle_bodies.count() == 0:
-            FreeCAD.Console.PrintError(translate("FEMbyGEN","Obstacle list is empty. Nothing to remove.\n"))
+            FreeCAD.Console.PrintError(translate("FEMbyGEN","Obstacle list is empty. Nothing to remove.")+"\n")
             return
 
         selected_items = self.form.obstacle_bodies.selectedItems()
         if not selected_items:
-            FreeCAD.Console.PrintError(translate("FEMbyGEN","Please select items to remove from the Obstacle list.\n"))
+            FreeCAD.Console.PrintError(translate("FEMbyGEN","Please select items to remove from the Obstacle list.")+"\n")
             return
 
         for item in selected_items:
@@ -215,14 +215,14 @@ class CreateGeoPanel:
                 try:
                     shutil.rmtree(self.workingDir + f"/TopologyCase_1/")
                     FreeCAD.Console.PrintMessage(translate("FEMbyGEN",
-                        self.workingDir + f"/TopologyCase_/ deleted\n"))
+                        self.workingDir + f"/TopologyCase_/ deleted")+"\n")
                 except FileNotFoundError:
                     FreeCAD.Console.PrintError(translate("FEMbyGEN","INFO: TopologyCase_1 "  +
-                                               " analysis data not found\n"))
+                                               " analysis data not found")+"\n")
                     pass
                 except:
                     FreeCAD.Console.PrintError(translate("FEMbyGEN",
-                        "Error while trying to delete analysis folder for generation\n "))
+                        "Error while trying to delete analysis folder for generation ")+"\n")
 
         
 #///////////////////////////////////////////////////////////////////////////////////////////// 
@@ -232,9 +232,9 @@ class CreateGeoPanel:
         constraint_displacement = self.doc.getObject("ConstraintDisplacement")
         constraint_pressure = self.doc.getObject("ConstraintPressure")
         if constraint_fixed is None and constraint_displacement is None:
-            FreeCAD.Console.PrintError(translate("FEMbyGEN","Please Select BC type.\n"))
+            FreeCAD.Console.PrintError(translate("FEMbyGEN","Please Select BC type.")+"\n")
         elif constraint_force is None and constraint_pressure is None:
-            FreeCAD.Console.PrintError(translate("FEMbyGEN","Please Select Load type.\n"))
+            FreeCAD.Console.PrintError(translate("FEMbyGEN","Please Select Load type.")+"\n")
         else:
             Topology.TopologyCommand.Activated(self.doc)
             self.doc.recompute()
@@ -349,7 +349,7 @@ class CreateGeoPanel:
             file_handler.setFormatter(formatter)
             logger.addHandler(file_handler)
         except Exception as e:
-            FreeCAD.Console.PrintError(translate("FEMbyGEN",f"Error setting up logging: {str(e)}\n"))
+            FreeCAD.Console.PrintError(translate("FEMbyGEN",f"Error setting up logging: {str(e)}")+"\n")
             return logger
         logging.shutdown()
         return logger
@@ -368,7 +368,7 @@ class CreateGeoPanel:
                 try:
                     percentage = float(percentage_text)
                 except ValueError:
-                    FreeCAD.Console.PrintError(translate("FEMbyGEN","Invalid percentage value! Please enter a valid number.\n"))
+                    FreeCAD.Console.PrintError(translate("FEMbyGEN","Invalid percentage value! Please enter a valid number.")+"\n")
                     return
 
                 scale = percentage / 100
@@ -425,7 +425,7 @@ class CreateGeoPanel:
                 boundBoxZMin = boundBox_.ZMin
 
                 if self.doc.getObject('Analysis'):
-                    FreeCAD.Console.PrintError(translate("FEMbyGEN","CreateGeo Already Ran\n"))
+                    FreeCAD.Console.PrintError(translate("FEMbyGEN","CreateGeo Already Ran")+"\n")
                 else:
                     box = self.doc.addObject("Part::Box", "MyBox")
                     box.Length = boundBoxLX + 2 * scale * boundBoxLX

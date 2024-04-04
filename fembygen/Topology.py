@@ -839,7 +839,7 @@ class TopologyPanel(QtGui.QWidget):
                 self.doc.Topology.domain_FI[analysis] = {elset_name: [[('stress_von_Mises', von_mises * 1e6)],
                                                                       [('stress_von_Mises', von_mises)]]}
         self.doc.Topology.mass_goal_ratio = float(self.form.massGoalRatio.text())
-        FreeCAD.Console.PrintMessage(translate("FEMbyGEN","Config file created\n"))
+        FreeCAD.Console.PrintMessage(translate("FEMbyGEN","Config file created")+"\n")
 
     def massratio(self, slider_position):
         if slider_position == 0:
@@ -869,7 +869,7 @@ class TopologyPanel(QtGui.QWidget):
     def get_case(self, numberofcase):
         lastcase = self.doc.Topology.LastState
         if not numberofcase:
-            FreeCAD.Console.PrintError(translate("FEMbyGEN","The simulations are not completed\n"))
+            FreeCAD.Console.PrintError(translate("FEMbyGEN","The simulations are not completed")+"\n")
             return
         elif numberofcase == "last":
             numberofcase = lastcase
@@ -1070,7 +1070,7 @@ class ViewProviderGen:
         if not doc.getInEdit():
             doc.setEdit(vobj.Object.Name)
         else:
-            FreeCAD.Console.PrintError(translate("FEMbyGEN",'Existing task dialog already open\n'))
+            FreeCAD.Console.PrintError(translate("FEMbyGEN",'Existing task dialog already open')+"\n")
         return True
 
     def setEdit(self, vobj, mode):
@@ -1114,7 +1114,7 @@ class ViewProviderLink:
         if not guiDoc.getInEdit():
             guiDoc.setEdit(doc.Topology)
         else:
-            FreeCAD.Console.PrintError(translate("FEMbyGEN",'Existing task dialog already open\n'))
+            FreeCAD.Console.PrintError(translate("FEMbyGEN",'Existing task dialog already open')+"\n")
         return True
 
     def setEdit(self, vobj, mode):
