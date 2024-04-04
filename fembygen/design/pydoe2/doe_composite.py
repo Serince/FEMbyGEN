@@ -20,6 +20,12 @@ from fembygen.design.pydoe2.doe_union import union
 
 def QT_TRANSLATE_NOOP(context, text):
     return text
+import FreeCADGui
+import os
+
+FreeCADGui.addLanguagePath(os.path.join(FreeCAD.getUserAppDataDir(),"\Mod\FEMbyGEN\fembygen\translations"))
+FreeCADGui.updateLocale()
+
 __all__ = ['ccdesign']
 
 

@@ -4,6 +4,11 @@ def QT_TRANSLATE_NOOP(context, text):
     return text
 
 translate = FreeCAD.Qt.translate
+import FreeCADGui
+import os
+FreeCADGui.addLanguagePath(os.path.join(FreeCAD.getUserAppDataDir(),"\Mod\FEMbyGEN\fembygen\translations"))
+FreeCADGui.updateLocale()
+
 """
 This code was originally published by the following individuals for use with
 Scilab:

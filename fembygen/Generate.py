@@ -11,6 +11,12 @@ from multiprocessing import cpu_count
 from functools import partial
 
 translate = FreeCAD.Qt.translate
+def QT_TRANSLATE_NOOP(context, text):
+    return text
+import FreeCADGui
+import os
+FreeCADGui.addLanguagePath(os.path.join(FreeCAD.getUserAppDataDir(),"\Mod\FEMbyGEN\fembygen\translations"))
+FreeCADGui.updateLocale()
 
 LOCATION = os.path.normpath('Mod/FEMbyGEN/fembygen')
 
@@ -61,8 +67,8 @@ class GenerateCommand():
     def GetResources(self):
         return {'Pixmap': os.path.join(FreeCAD.getUserAppDataDir(), LOCATION, 'icons/Generate.svg'),
                 'Accel': "Shift+G",  # a default shortcut (optional)
-                'MenuText': "Generate",
-                'ToolTip': "Produce part generations"}
+                'MenuText': QT_TRANSLATE_NOOP("CommandName","Generate"),
+                'ToolTip': QT_TRANSLATE_NOOP("CommandName","Produce part generations")}
 
     def Activated(self):
         obj = makeGenerate()

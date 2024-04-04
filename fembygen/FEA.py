@@ -12,6 +12,12 @@ import numpy as np
 import functools
 
 translate = FreeCAD.Qt.translate
+def QT_TRANSLATE_NOOP(context, text):
+    return text
+import FreeCADGui
+import os
+FreeCADGui.addLanguagePath(os.path.join(FreeCAD.getUserAppDataDir(),"\Mod\FEMbyGEN\fembygen\translations"))
+FreeCADGui.updateLocale()
 
 def makeFEA():
     try:
@@ -56,8 +62,8 @@ class FEACommand():
     def GetResources(self):
         return {'Pixmap': os.path.join(FreeCAD.getUserAppDataDir() + 'Mod/FEMbyGEN/fembygen/icons/FEA.svg'),  # the name of a svg file available in the resources
                 'Accel': "Shift+A",  # a default shortcut (optional)
-                'MenuText': "FEA Generations",
-                'ToolTip': "Perform FEA on generated parts"}
+                'MenuText': QT_TRANSLATE_NOOP("CommandName","FEA Generations"),
+                'ToolTip': QT_TRANSLATE_NOOP("CommandName","Perform FEA on generated parts")}
 
     def Activated(self):
         obj = makeFEA()

@@ -18,6 +18,11 @@ import numpy as np
 def QT_TRANSLATE_NOOP(context, text):
     return text
 
+import FreeCADGui
+import os
+FreeCADGui.addLanguagePath(os.path.join(FreeCAD.getUserAppDataDir(),"\Mod\FEMbyGEN\fembygen\translations"))
+FreeCADGui.updateLocale()
+
 def grep(haystack, needle):
     start = 0
     while True:

@@ -13,6 +13,12 @@ import shutil
 from multiprocessing import cpu_count
 
 translate = FreeCAD.Qt.translate
+def QT_TRANSLATE_NOOP(context, text):
+    return text
+import FreeCADGui
+import os
+FreeCADGui.addLanguagePath(os.path.join(FreeCAD.getUserAppDataDir(),"\Mod\FEMbyGEN\fembygen\translations"))
+FreeCADGui.updateLocale()
 
 def makeTopology():
     def attach(self, vobj):
@@ -171,8 +177,8 @@ class TopologyCommand():
     def GetResources(self):
         return {'Pixmap': os.path.join(FreeCAD.getUserAppDataDir() + 'Mod/FEMbyGEN/fembygen/icons/Topology.svg'),  # the name of a svg file available in the resources
                 'Accel': "Shift+T",  # a default shortcut (optional)
-                'MenuText': "Topology",
-                'ToolTip': "Opens Topology gui"}
+                'MenuText': QT_TRANSLATE_NOOP("CommandName","Topology"),
+                'ToolTip':  QT_TRANSLATE_NOOP("CommandName","Opens Topology gui")}
 
     def Activated(self):
 
@@ -181,7 +187,7 @@ class TopologyCommand():
         if not doc.getInEdit() and obj is not None:
             doc.setEdit(obj.ViewObject.Object.Name)  
         else:
-            FreeCAD.Console.PrintError(translate("FEMbyGEN",'Existing task dialog already open\n'))
+            FreeCAD.Console.PrintError(translate("FEMbyGEN",'Existing task dialog already open')+"\n")
         return
     
 

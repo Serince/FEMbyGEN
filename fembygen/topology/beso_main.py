@@ -1,9 +1,14 @@
 import FreeCAD
+import os
+
 
 translate = FreeCAD.Qt.translate
 
 def QT_TRANSLATE_NOOP(context, text):
     return text
+import FreeCADGui
+FreeCADGui.addLanguagePath(os.path.join(FreeCAD.getUserAppDataDir(),"\Mod\FEMbyGEN\fembygen\translations"))
+FreeCADGui.updateLocale()
 
 class BesoMain:
     import FreeCADGui

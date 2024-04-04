@@ -9,6 +9,13 @@ import functools
 from femresult.resulttools import fill_femresult_stats
 translate = FreeCAD.Qt.translate
 
+def QT_TRANSLATE_NOOP(context, text):
+    return text
+import FreeCADGui
+import os
+FreeCADGui.addLanguagePath(os.path.join(FreeCAD.getUserAppDataDir(),"\Mod\FEMbyGEN\fembygen\translations"))
+FreeCADGui.updateLocale()
+
 def makeResult():
     try:
         obj = FreeCAD.ActiveDocument.Results
@@ -52,8 +59,8 @@ class ResultsCommand():
     def GetResources(self):
         return {'Pixmap': os.path.join(FreeCAD.getUserAppDataDir() + 'Mod/FEMbyGEN/fembygen/icons/Results.svg'),  # the name of a svg file available in the resources
                 'Accel': "Shift+R",  # a default shortcut (optional)
-                'MenuText': "Show Results",
-                'ToolTip': "Show results of analysed generations"}
+                'MenuText': QT_TRANSLATE_NOOP("CommandName","Show Results"),
+                'ToolTip': QT_TRANSLATE_NOOP("CommandName","Show results of analysed generations")}
 
     def Activated(self):
         obj = makeResult()

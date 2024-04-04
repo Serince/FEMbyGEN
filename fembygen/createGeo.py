@@ -7,6 +7,12 @@ from PySide import QtGui, QtCore
 import shutil
 
 translate = FreeCAD.Qt.translate
+def QT_TRANSLATE_NOOP(context, text):
+    return text
+import FreeCADGui
+import os
+FreeCADGui.addLanguagePath(os.path.join(FreeCAD.getUserAppDataDir(),"\Mod\FEMbyGEN\fembygen\translations"))
+FreeCADGui.updateLocale()
 
 def makecreateGeo():
     try:
@@ -53,8 +59,8 @@ class CreateGeoCommand:
         return {
             'Pixmap': os.path.join(FreeCAD.getUserAppDataDir(), 'Mod/FEMbyGEN/fembygen/icons/createGeo.svg'),
             'Accel': "Shift+S",
-            'MenuText': "Create Geo Generations",
-            'ToolTip': "Perform createGeo operations on selected objects"
+            'MenuText': QT_TRANSLATE_NOOP("CommandName","Create Geo Generations"),
+            'ToolTip': QT_TRANSLATE_NOOP("CommandName","Perform createGeo operations on selected objects")
         }
     def Activated(self):
         makecreateGeo()

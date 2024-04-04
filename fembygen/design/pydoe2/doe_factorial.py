@@ -25,6 +25,11 @@ import numpy as np
 
 def QT_TRANSLATE_NOOP(context, text):
     return text
+import FreeCADGui
+import os
+
+FreeCADGui.addLanguagePath(os.path.join(FreeCAD.getUserAppDataDir(),"\Mod\FEMbyGEN\fembygen\translations"))
+FreeCADGui.updateLocale()
 
 __all__ = ['np', 'fullfact', 'ff2n', 'fracfact', 'fracfact_by_res', 'fracfact_opt',
     'fracfact_aliasing', 'alias_vector_indices']

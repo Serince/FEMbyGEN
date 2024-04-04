@@ -5,6 +5,9 @@ import os
 
 def QT_TRANSLATE_NOOP(context, text):
     return text
+import FreeCADGui
+FreeCADGui.addLanguagePath(os.path.join(FreeCAD.getUserAppDataDir(),"\Mod\FEMbyGEN\fembygen\translations"))
+FreeCADGui.updateLocale()
 
 class Elements:
     def __init__(self):
