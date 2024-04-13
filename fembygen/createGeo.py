@@ -471,6 +471,7 @@ class CreateGeoPanel:
         self.myNewFreeCADWidget.show()
     def close(self):
         self.form.close()
+
 class ViewProvidercreateGeo:
     def __init__(self, vobj):
         vobj.Proxy = self
@@ -504,11 +505,20 @@ class ViewProvidercreateGeo:
         FreeCADGui.control.closedialog()
         return None
 
+    # FreeCAD < 0.21.2
     def __getstate__(self):
         return None
 
     def __setstate__(self, state):
         return None
+    
+    # FreeCAD >= 0.21.2
+    def dumps(self):
+        return None
+
+    def loads(self, state):
+        return None
+
 
 # Path to your UI file
 guiPath = FreeCAD.getUserAppDataDir() + "/Mod/FEMbyGEN/fembygen/ui/createGeo.ui"

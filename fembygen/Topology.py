@@ -1083,10 +1083,18 @@ class ViewProviderGen:
         FreeCADGui.Control.closeDialog()
         return
 
+    # FreeCAD < 0.21.2
     def __getstate__(self):
         return None
 
     def __setstate__(self, state):
+        return None
+    
+    # FreeCAD >= 0.21.2
+    def dumps(self):
+        return None
+
+    def loads(self, state):
         return None
 
 
@@ -1127,10 +1135,18 @@ class ViewProviderLink:
         FreeCADGui.Control.closeDialog()
         return
 
+    # FreeCAD < 0.21.2
     def __getstate__(self):
         return None
 
     def __setstate__(self, state):
+        return None
+    
+    # FreeCAD >= 0.21.2
+    def dumps(self):
+        return None
+
+    def loads(self, state):
         return None
 
 

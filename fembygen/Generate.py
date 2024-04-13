@@ -20,21 +20,6 @@ FreeCADGui.updateLocale()
 
 LOCATION = os.path.normpath('Mod/FEMbyGEN/fembygen')
 
-def makeGenerate():
-    """Creating generate in combo view """
-    try:
-        obj = FreeCAD.ActiveDocument.Generate
-        obj.isValid()
-    except:
-        obj = FreeCAD.ActiveDocument.addObject(
-            "Part::FeaturePython", "Generate")
-        FreeCAD.ActiveDocument.GenerativeDesign.addObject(obj)
-    Generate(obj)
-    if FreeCAD.GuiUp:
-        ViewProviderGen(obj.ViewObject)
-    return obj
-
-
 class Generate:
     """Part generations"""
 
@@ -57,7 +42,8 @@ class Generate:
             obj.addProperty("App::PropertyInteger", "NumberOfCPU", "Base",
                             "Number of CPU's to use ")
             obj.NumberOfCPU = cpu_count()-1
-        except:
+        except NameError:
+            # property already exists
             pass
 
 
@@ -71,12 +57,11 @@ class GenerateCommand():
                 'ToolTip': QT_TRANSLATE_NOOP("CommandName","Produce part generations")}
 
     def Activated(self):
-        obj = makeGenerate()
-        doc = FreeCADGui.ActiveDocument
-        if not doc.getInEdit():
-            doc.setEdit(obj.ViewObject.Object.Name)
-        else:
-            FreeCAD.Console.PrintError(translate("FEMbyGEN",'Existing task dialog already open')+"\n")
+        group, obj = Common.addToDocumentObjectGroup('Part::FeaturePython', 'Generate')
+        Generate(obj)
+        if FreeCAD.GuiUp:
+            ViewProviderGen(obj.ViewObject)    # object icon, task dialog etc.
+        FreeCADGui.ActiveDocument.setEdit(obj.ViewObject.Object.Name)    # open task dialog
         return
 
     def IsActive(self):
@@ -518,10 +503,7 @@ class ViewProviderGen:
 
     def doubleClicked(self, vobj):
         doc = FreeCADGui.getDocument(vobj.Object.Document)
-        if not doc.getInEdit():
-            doc.setEdit(vobj.Object.Name)
-        else:
-            FreeCAD.Console.PrintError('Existing task dialog already open\n')
+        doc.setEdit(vobj.Object.Name)
         return True
 
     def setEdit(self, vobj, mode):
@@ -534,10 +516,18 @@ class ViewProviderGen:
         FreeCADGui.Control.closeDialog()
         return
 
+    # FreeCAD < 0.21.2
     def __getstate__(self):
         return None
 
     def __setstate__(self, state):
+        return None
+    
+    # FreeCAD >= 0.21.2
+    def dumps(self):
+        return None
+
+    def loads(self, state):
         return None
 
 
