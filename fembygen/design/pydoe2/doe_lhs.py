@@ -1,8 +1,3 @@
-import FreeCAD
-
-def QT_TRANSLATE_NOOP(context, text):
-    return text
-translate = FreeCAD.Qt.translate
 """
 This code was originally published by the following individuals for use with
 Scilab:
@@ -205,7 +200,7 @@ def _lhsmaximin(n, samples, iterations, lhstype, randomstate):
         
         return H
     except:
-        print(translate("FEMbyGEN","You need to install scipy to use it"))
+        print("You need to install scipy to use it")
         return None
 
 ################################################################################
@@ -285,5 +280,5 @@ def _lhsmu(N, samples=None, corr=None, random_state=None, M=5):
                 H[l_pos] = random_state.uniform(low, high, size=N)
         return H
     except:
-        print(translate("FEMbyGEN","You need to install scipy to use it"))
+        print("You need to install scipy to use it")
         return None

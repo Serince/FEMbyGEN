@@ -15,9 +15,6 @@ Abraham Lee.
 
 import numpy as np
 
-def QT_TRANSLATE_NOOP(context, text):
-    return text
-
 def grep(haystack, needle):
     start = 0
     while True:

@@ -19,9 +19,6 @@ Recommended installation of the workbench is via the FreeCAD [Addon Manager](htt
 A restart of FreeCAD is required after installation.
 
 ### Usage
-
-A starter guide exist in [forum post](https://forum.freecad.org/viewtopic.php?p=728205#p728205)
-
 1. Create a FEM simulation in FreeCAD by using the [classical procedure](https://wiki.freecad.org/FEM_Workbench). This file will be your master simulation.
 2. Open FEMbyGEN workbench. Press first toolbar icon for initialization. It will create a spreadsheet which name is `Parameters`. Open it and write your parameters for different generations.
 3. Click the second toolbar icon to automatically alias parameter names and dimensions all at once.

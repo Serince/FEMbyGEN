@@ -18,8 +18,6 @@ from fembygen.design.pydoe2.doe_factorial import ff2n
 from fembygen.design.pydoe2.doe_star import star
 from fembygen.design.pydoe2.doe_union import union
 
-def QT_TRANSLATE_NOOP(context, text):
-    return text
 __all__ = ['ccdesign']
 
 

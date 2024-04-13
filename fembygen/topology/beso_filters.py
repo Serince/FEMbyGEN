@@ -1,9 +1,6 @@
 import numpy as np
 from fembygen.topology import beso_lib
 
-def QT_TRANSLATE_NOOP(context, text):
-    return text
-
 def find_size_elm(Elements, nodes):
     """calculate size of elements used for automatic filter range"""
     size_elm = {}  # output of this function

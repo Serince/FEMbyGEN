@@ -1,9 +1,3 @@
-import FreeCAD
-
-def QT_TRANSLATE_NOOP(context, text):
-    return text
-
-translate = FreeCAD.Qt.translate
 """
 This code was originally published by the following individuals for use with
 Scilab:
@@ -99,7 +93,7 @@ def pbdesign(n):
         
         return np.flipud(H)
     except:
-        print(translate("FEMbyGEN","You need to install scipy library to use it"))
+        print("You need to install scipy library to use it")
         return None
     
     
