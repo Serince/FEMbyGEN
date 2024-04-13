@@ -7,11 +7,8 @@ import operator
 import glob
 import Fem
 
-translate = FreeCAD.Qt.translate
-
 
 LOCATION = os.path.normpath('Mod/FEMbyGEN/fembygen')
-
 
 g_master = None
 g_workingDir = ''
@@ -113,7 +110,7 @@ def searchAnalysed(master):
                 try:
                     lcStatus.append(status)
                 except:
-                    FreeCAD.Console.PrintError(translate("FEMbyGEN","Analysis not found.\n"))
+                    FreeCAD.Console.PrintError("Analysis not found.\n")
         statuses.append(lcStatus)
     return (statuses, numAnalysed, lc)
 
@@ -166,7 +163,6 @@ def openGen(gen: int, workingDir=None):
         path = os.path.join(workingDir, name, name+".FCStd")
         doc = FreeCAD.open(path)
     return doc
-
 
 
 def closeGen(gen: int):
