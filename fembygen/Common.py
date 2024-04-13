@@ -7,17 +7,22 @@ import operator
 import glob
 import Fem
 
+g_master = None
+g_workingDir = ''
+
 
 LOCATION = os.path.normpath('Mod/FEMbyGEN/fembygen')
 
 g_master = None
 g_workingDir = ''
 
+
 def setWorkspace(doc, workingDir):
     """Set master document and working directory"""
     global g_master, g_workingDir
     g_master = doc
     g_workingDir = workingDir
+
 
 
 def addToDocumentObjectGroup(type: str, name: str):
@@ -37,6 +42,7 @@ def addToDocumentObjectGroup(type: str, name: str):
         parameter = doc.addObject(type, name)
         group.addObject(parameter)
     return group, parameter
+
 
 
 
@@ -157,12 +163,12 @@ def openGen(gen: int, workingDir=None):
     name = f"Gen{gen}"
     if name in FreeCAD.listDocuments():
         FreeCAD.setActiveDocument(name)
-
         doc = FreeCAD.getDocument(name)
     else:
         path = os.path.join(workingDir, name, name+".FCStd")
         doc = FreeCAD.open(path)
     return doc
+
 
 
 def closeGen(gen: int):
