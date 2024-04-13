@@ -16,6 +16,14 @@ Abraham Lee.
 import numpy as np
 from fembygen.design.pydoe2.doe_factorial import ff2n
 
+def QT_TRANSLATE_NOOP(context, text):
+    return text
+
+import FreeCADGui
+import os
+
+FreeCADGui.addLanguagePath(os.path.join(FreeCAD.getUserAppDataDir(),"\Mod\FEMbyGEN\fembygen\translations"))
+FreeCADGui.updateLocale()
 
 __all__ = ['bbdesign']
 

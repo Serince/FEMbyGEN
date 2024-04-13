@@ -1,9 +1,15 @@
 import FreeCAD
 import FreeCADGui
 from fembygen import Common
+import os
 
 MAX_NUM_PARAMETER = 10    # maximum number of parameters
 
+def QT_TRANSLATE_NOOP(context, text):
+    return text
+
+FreeCADGui.addLanguagePath(os.path.join(FreeCAD.getUserAppDataDir(),"\Mod\FEMbyGEN\fembygen\translations"))
+FreeCADGui.updateLocale()
 
 class InitiateCommand():
     """Create parameter spreadsheet"""
@@ -11,8 +17,9 @@ class InitiateCommand():
     def GetResources(self):
         return {'Pixmap': ':/icons/Spreadsheet.svg',
                 'Accel': "Shift+N",  # a default shortcut (optional)
-                'MenuText': "Initiate",
-                'ToolTip': "Create parameter spreadsheet"}
+                'MenuText': QT_TRANSLATE_NOOP("CommandName","Initiate"),
+                'ToolTip': QT_TRANSLATE_NOOP("CommandName","Initialise and create parameter spreadsheet")}
+
 
     def Activated(self):
         group, obj = Common.addToDocumentObjectGroup('Spreadsheet::Sheet', 'Parameters')

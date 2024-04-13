@@ -7,6 +7,15 @@ import operator
 import glob
 import Fem
 
+translate = FreeCAD.Qt.translate
+def QT_TRANSLATE_NOOP(context, text):
+    return text
+
+import FreeCADGui
+import os
+FreeCADGui.addLanguagePath(os.path.join(FreeCAD.getUserAppDataDir(),"\Mod\FEMbyGEN\fembygen\translations"))
+FreeCADGui.updateLocale()
+
 g_master = None
 g_workingDir = ''
 
@@ -116,7 +125,7 @@ def searchAnalysed(master):
                 try:
                     lcStatus.append(status)
                 except:
-                    FreeCAD.Console.PrintError("Analysis not found.\n")
+                    FreeCAD.Console.PrintError(translate("FEMbyGEN","Analysis not found.")+"\n")
         statuses.append(lcStatus)
     return (statuses, numAnalysed, lc)
 

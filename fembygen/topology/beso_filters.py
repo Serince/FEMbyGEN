@@ -1,5 +1,12 @@
 import numpy as np
 from fembygen.topology import beso_lib
+import os
+
+def QT_TRANSLATE_NOOP(context, text):
+    return text
+import FreeCADGui
+FreeCADGui.addLanguagePath(os.path.join(FreeCAD.getUserAppDataDir(),"\Mod\FEMbyGEN\fembygen\translations"))
+FreeCADGui.updateLocale()
 
 def find_size_elm(Elements, nodes):
     """calculate size of elements used for automatic filter range"""

@@ -1,3 +1,15 @@
+import FreeCAD
+import os
+
+
+translate = FreeCAD.Qt.translate
+
+def QT_TRANSLATE_NOOP(context, text):
+    return text
+import FreeCADGui
+FreeCADGui.addLanguagePath(os.path.join(FreeCAD.getUserAppDataDir(),"\Mod\FEMbyGEN\fembygen\translations"))
+FreeCADGui.updateLocale()
+
 class BesoMain:
     import FreeCADGui
     import FreeCAD
@@ -230,7 +242,7 @@ class BesoMain:
                 for en in domain_volumes[dn]:
                     mass[0] += self.domain_density[dn][elm_states[en]] * volume_elm[en]
                     mass_full += self.domain_density[dn][len(self.domain_density[dn]) - 1] * volume_elm[en]
-        print("initial optimization domains mass {}" .format(mass[0]))
+        print(translate("FEMbyGEN","initial optimization domains mass {}" .format(mass[0])))
 
         if self.iterations_limit == "auto":  # automatic setting
             m = mass[0] / mass_full
@@ -251,7 +263,7 @@ class BesoMain:
                         m += m * (self.mass_addition_ratio - self.mass_removal_ratio)
                         it += 1
                 iterations_limit = it + 25
-            print("\niterations_limit set automatically to %s" % iterations_limit)
+            print(translate("FEMbyGEN","\niterations_limit set automatically to %s" % iterations_limit))
             msg = ("\niterations_limit        = %s\n" % iterations_limit)
             self.beso_lib.write_to_log(self.file_name, msg)
 
@@ -305,7 +317,7 @@ class BesoMain:
                     continue  # to evaluate other filters
                 if len(ft) == 2:
                     domains_to_filter = list(opt_domains)
-                    print("!!!!!! Domains to filter !!!!!!")
+                    print(translate("FEMbyGEN","!!!!!! Domains to filter !!!!!!"))
                     print(domains_to_filter)
                     filtered_dn = self.domains_from_config
                     self.beso_filters.check_same_state(self.domain_same_state, filtered_dn, self.file_name)
@@ -476,7 +488,7 @@ class BesoMain:
                                     "settings"
                                 self.beso_lib.write_to_log(self.file_name, "\nERROR: " + msg + "\n")
                                 raise Exception(msg)
-                print("FI_max, number of violated elements, domain name")
+                print(translate("FEMbyGEN","FI_max, number of violated elements, domain name"))
 
             # handling with more steps
             FI_step_max = {}  # maximal FI over all steps for each element in this iteration
@@ -631,7 +643,7 @@ class BesoMain:
             if self.optimization_base == "buckling":
                 k = 1
                 for bf in buckling_factors:
-                    print("buckling factor K{} = {}".format(k, bf))
+                    print(translate("FEMbyGEN","buckling factor K{} = {}".format(k, bf)))
                     k += 1
             # writing log table row
             msg = str(i).rjust(4, " ") + " " + str(mass[i]).rjust(17, " ") + " "
@@ -677,7 +689,7 @@ class BesoMain:
                     difference_last.append(abs(FI_mean[i] - FI_mean[i-last]) / FI_mean[i])
                 difference = max(difference_last)
                 if check_tolerance is True:
-                    print("maximum relative difference in FI_mean for the last 5 iterations = {}" .format(difference))
+                    print(translate("FEMbyGEN","maximum relative difference in FI_mean for the last 5 iterations = {}" .format(difference)))
                 if difference < self.tolerance:
                     continue_iterations = False
                 elif FI_mean[i] == FI_mean[i-1] == FI_mean[i-2]:
@@ -692,16 +704,16 @@ class BesoMain:
                             abs(energy_density_mean[i] - energy_density_mean[i - last]) / energy_density_mean[i])
 
                     except:
-                        print("energy_density_mean is 0")
+                        print(translate("FEMbyGEN","energy_density_mean is 0"))
                         difference_last.append(0)
                 difference = max(difference_last)
                 if check_tolerance is True:
-                    print("maximum relative difference in energy_density_mean for the last 5 iterations = {}".format(difference))
+                    print(translate("FEMbyGEN","maximum relative difference in energy_density_mean for the last 5 iterations = {}".format(difference)))
                 if difference < self.tolerance:
                     continue_iterations = False
                 elif energy_density_mean[i] == energy_density_mean[i - 1] == energy_density_mean[i - 2]:
                     continue_iterations = False
-                    print("energy_density_mean[i] == energy_density_mean[i-1] == energy_density_mean[i-2]")
+                    print(translate("FEMbyGEN","energy_density_mean[i] == energy_density_mean[i-1] == energy_density_mean[i-2]"))
 
             # finish or start new iteration
             if continue_iterations is False or i >= iterations_limit:
@@ -720,7 +732,7 @@ class BesoMain:
                               self.displacement_graph, disp_max, buckling_factors_all, savefig=True)
 
             i += 1  # iteration number
-            print("\n----------- new iteration number %d ----------" % i)
+            print(translate("FEMbyGEN","\n----------- new iteration number %d ----------" % i))
 
             # set mass_goal for i-th iteration, check for number of violated elements
             if self.mass_removal_ratio - self.mass_addition_ratio > 0:  # removing from initial mass

@@ -5,6 +5,14 @@ try:
 except ImportError:
     from freecad.plot import Plot
 
+def QT_TRANSLATE_NOOP(context, text):
+    return text
+import FreeCADGui
+import os
+
+FreeCADGui.addLanguagePath(os.path.join(FreeCAD.getUserAppDataDir(),"\Mod\FEMbyGEN\fembygen\translations"))
+FreeCADGui.updateLocale()
+
 fig = Plot.figure(winTitle = "Topology Optimization")
 axes = Plot.axesList()
 ax1 = axes[0]
