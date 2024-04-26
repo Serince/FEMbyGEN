@@ -1,5 +1,6 @@
 # plotting graphs
 import os
+import FreeCAD
 try:
     from FreeCAD.Plot import Plot
 except ImportError:
@@ -8,7 +9,6 @@ except ImportError:
 def QT_TRANSLATE_NOOP(context, text):
     return text
 import FreeCADGui
-import os
 
 FreeCADGui.addLanguagePath(os.path.join(FreeCAD.getUserAppDataDir(),"\Mod\FEMbyGEN\fembygen\translations"))
 FreeCADGui.updateLocale()
