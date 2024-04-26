@@ -10,10 +10,10 @@ FreeCADGui.addLanguagePath(os.path.join(FreeCAD.getUserAppDataDir(),"\Mod\FEMbyG
 FreeCADGui.updateLocale()
 
 class BesoFilters:
-    def __init__(self, elements, nodes):
+    def __init__(self, Elements, nodes):
         self.size_elm = {} # output of this function
         self.nodes= nodes
-        self.elements= elements
+        self.Elements= Elements
     
     def find_size_elm(self):
         """calculate size of elements used for automatic filter range""" 
