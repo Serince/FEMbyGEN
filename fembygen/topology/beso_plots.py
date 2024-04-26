@@ -1,5 +1,6 @@
 # plotting graphs
 import os
+import FreeCAD
 try:
     from FreeCAD.Plot import Plot
 except ImportError:

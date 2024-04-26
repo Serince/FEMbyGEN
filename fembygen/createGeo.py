@@ -5,6 +5,7 @@ import ObjectsFem
 from fembygen import Topology
 from PySide import QtGui, QtCore
 import shutil
+import FreeCAD
 
 translate = FreeCAD.Qt.translate
 def QT_TRANSLATE_NOOP(context, text):
