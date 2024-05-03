@@ -15,7 +15,7 @@ class BesoFilters:
         self.nodes= nodes
         self.Elements= Elements
     
-    def find_size_elm(self):
+    def find_size_elm(self,elm_category):
         """calculate size of elements used for automatic filter range""" 
 
         def size_tria(elm_category):
