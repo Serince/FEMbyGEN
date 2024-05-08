@@ -12,7 +12,7 @@ Scilab:
 Much thanks goes to these individuals. It has been converted to Python by 
 Abraham Lee.
 """
-
+import FreeCAD
 import numpy as np
 import os
 
