@@ -11,19 +11,18 @@ FreeCADGui.updateLocale()
 
 class BesoFilters:
     def __init__(self, Elements, nodes):
-        self.size_elm = {} # output of this function
         self.nodes= nodes
         self.Elements= Elements
     
     def find_size_elm(self):
         """calculate size of elements used for automatic filter range""" 
-
+        size_elm={}
         def size_tria(elm_category):
             for en in elm_category:
                 x1, y1, z1 = self.nodes[elm_category[en][0]]
                 x2, y2, z2 = self.nodes[elm_category[en][1]]
                 x3, y3, z3 = self.nodes[elm_category[en][2]]
-                self.size_elm[en] = (((x1 - x2) ** 2 + (y1 - y2) ** 2 + (z1 - z2) ** 2) ** 0.5 +
+                size_elm[en] = (((x1 - x2) ** 2 + (y1 - y2) ** 2 + (z1 - z2) ** 2) ** 0.5 +
                                 ((x1 - x3) ** 2 + (y1 - y3) ** 2 + (z1 - z3) ** 2) ** 0.5 +
                                 ((x2 - x3) ** 2 + (y2 - y3) ** 2 + (z2 - z3) ** 2) ** 0.5
                                 ) / 3
@@ -34,7 +33,7 @@ class BesoFilters:
                 x2, y2, z2 = self.nodes[elm_category[en][1]]
                 x3, y3, z3 = self.nodes[elm_category[en][2]]
                 x4, y4, z4 = self.nodes[elm_category[en][3]]
-                self.size_elm[en] = (((x1 - x2) ** 2 + (y1 - y2) ** 2 + (z1 - z2) ** 2) ** 0.5 +
+                size_elm[en] = (((x1 - x2) ** 2 + (y1 - y2) ** 2 + (z1 - z2) ** 2) ** 0.5 +
                                 ((x1 - x4) ** 2 + (y1 - y4) ** 2 + (z1 - z4) ** 2) ** 0.5 +
                                 ((x2 - x3) ** 2 + (y2 - y3) ** 2 + (z2 - z3) ** 2) ** 0.5 +
                                 ((x3 - x4) ** 2 + (y3 - y4) ** 2 + (z3 - z4) ** 2) ** 0.5
@@ -46,7 +45,7 @@ class BesoFilters:
                 x2, y2, z2 = self.nodes[elm_category[en][1]]
                 x3, y3, z3 = self.nodes[elm_category[en][2]]
                 x4, y4, z4 = self.nodes[elm_category[en][3]]
-                self.size_elm[en] = (((x1 - x2) ** 2 + (y1 - y2) ** 2 + (z1 - z2) ** 2) ** 0.5 +
+                size_elm[en] = (((x1 - x2) ** 2 + (y1 - y2) ** 2 + (z1 - z2) ** 2) ** 0.5 +
                                 ((x1 - x3) ** 2 + (y1 - y3) ** 2 + (z1 - z3) ** 2) ** 0.5 +
                                 ((x1 - x4) ** 2 + (y1 - y4) ** 2 + (z1 - z4) ** 2) ** 0.5 +
                                 ((x2 - x3) ** 2 + (y2 - y3) ** 2 + (z2 - z3) ** 2) ** 0.5 +
@@ -62,7 +61,7 @@ class BesoFilters:
                 x4, y4, z4 = self.nodes[elm_category[en][3]]
                 x5, y5, z5 = self.nodes[elm_category[en][4]]
                 x6, y6, z6 = self.nodes[elm_category[en][5]]
-                self.size_elm[en] = (((x1 - x2) ** 2 + (y1 - y2) ** 2 + (z1 - z2) ** 2) ** 0.5 +
+                size_elm[en] = (((x1 - x2) ** 2 + (y1 - y2) ** 2 + (z1 - z2) ** 2) ** 0.5 +
                                 ((x1 - x3) ** 2 + (y1 - y3) ** 2 + (z1 - z3) ** 2) ** 0.5 +
                                 ((x1 - x4) ** 2 + (y1 - y4) ** 2 + (z1 - z4) ** 2) ** 0.5 +
                                 ((x2 - x3) ** 2 + (y2 - y3) ** 2 + (z2 - z3) ** 2) ** 0.5 +
@@ -83,7 +82,7 @@ class BesoFilters:
                 x6, y6, z6 = self.nodes[elm_category[en][5]]
                 x7, y7, z7 = self.nodes[elm_category[en][6]]
                 x8, y8, z8 = self.nodes[elm_category[en][7]]
-                self.size_elm[en] = (((x1 - x2) ** 2 + (y1 - y2) ** 2 + (z1 - z2) ** 2) ** 0.5 +
+                size_elm[en] = (((x1 - x2) ** 2 + (y1 - y2) ** 2 + (z1 - z2) ** 2) ** 0.5 +
                                 ((x1 - x4) ** 2 + (y1 - y4) ** 2 + (z1 - z4) ** 2) ** 0.5 +
                                 ((x1 - x5) ** 2 + (y1 - y5) ** 2 + (z1 - z5) ** 2) ** 0.5 +
                                 ((x2 - x3) ** 2 + (y2 - y3) ** 2 + (z2 - z3) ** 2) ** 0.5 +
@@ -107,17 +106,17 @@ class BesoFilters:
         size_penta(self.Elements.penta15)
         size_hexa(self.Elements.hexa8)
         size_hexa(self.Elements.hexa20)
-        return self.size_elm
+        return size_elm
 
 
-    def get_filter_range(self, domains, filtered_dn):
+    def get_filter_range(self, size_elm, domains, filtered_dn):
         """calculate average element size in domains given by filtered_dn"""
         size_sum = 0
         len_filtered_dn = 0
         for dn in filtered_dn:
             len_filtered_dn += len(domains[dn])
             for en in domains[dn]:
-                size_sum += self.size_elm[en]
+                size_sum += size_elm[en]
         return size_sum / len_filtered_dn
     
     def sround(x, s):
@@ -288,8 +287,8 @@ class BesoFilters:
                 z = nodes_min[2] + 0.5 * r_min
                 while z <= nodes_max[2] + 0.5 * r_min:
                     # 6 significant digit round because of small declination (6 must be used for all sround)
-                    sector_nodes[(self.sround(x, 6), self.sround(y, 6), self.sround(z, 6))] = []
-                    sector_elm[(self.sround(x, 6), self.sround(y, 6), self.sround(z, 6))] = []
+                    sector_nodes[(BesoFilters.sround(x, 6), BesoFilters.sround(y, 6), BesoFilters.sround(z, 6))] = []
+                    sector_elm[(BesoFilters.sround(x, 6), BesoFilters.sround(y, 6), BesoFilters.sround(z, 6))] = []
                     z += r_min
                 y += r_min
             x += r_min
@@ -298,14 +297,14 @@ class BesoFilters:
             sector_centre = []
             for k in range(3):
                 position = nodes_min[k] + r_min * (0.5 + np.floor((self.nodes[nn][k] - nodes_min[k]) / r_min))
-                sector_centre.append(self.sround(position, 6))
+                sector_centre.append(BesoFilters.sround(position, 6))
             sector_nodes[tuple(sector_centre)].append(nn)
         # assigning elements to the sectors
         for en in opt_domains:
             sector_centre = []
             for k in range(3):
                 position = nodes_min[k] + r_min * (0.5 + np.floor((cg[en][k] - nodes_min[k]) / r_min))
-                sector_centre.append(self.sround(position, 6))
+                sector_centre.append(BesoFilters.sround(position, 6))
             sector_elm[tuple(sector_centre)].append(en)
             near_nodes[en] = []
         # finding near nodes in neighbouring sectors (even inside) by comparing distance with neighbouring sector elements
@@ -315,11 +314,11 @@ class BesoFilters:
             while y <= nodes_max[1] + 0.5 * r_min:
                 z = nodes_min[2] + 0.5 * r_min
                 while z <= nodes_max[2] + 0.5 * r_min:
-                    position = (self.sround(x, 6), self.sround(y, 6), self.sround(z, 6))
+                    position = (BesoFilters.sround(x, 6), BesoFilters.sround(y, 6), BesoFilters.sround(z, 6))
                     for xx in [x + r_min, x, x - r_min]:
                         for yy in [y + r_min, y, y - r_min]:
                             for zz in [z + r_min, z, z - r_min]:
-                                position_neighbour = (self.sround(xx, 6), self.sround(yy, 6), self.sround(zz, 6))
+                                position_neighbour = (BesoFilters.sround(xx, 6), BesoFilters.sround(yy, 6), BesoFilters.sround(zz, 6))
                                 for en in sector_elm[position]:
                                     try:
                                         for nn in sector_nodes[position_neighbour]:
@@ -381,7 +380,7 @@ class BesoFilters:
                 z = cg_min[2] + 0.5 * r_min
                 while z <= cg_max[2] + 0.5 * r_min:
                     # 6 significant digit round because of small declination (6 must be used for all sround below)
-                    sector_elm[(self.sround(x, 6), self.sround(y, 6), self.sround(z, 6))] = []
+                    sector_elm[(BesoFilters.sround(x, 6), BesoFilters.sround(y, 6), BesoFilters.sround(z, 6))] = []
                     z += r_min
                 y += r_min
             x += r_min
@@ -390,7 +389,7 @@ class BesoFilters:
             sector_centre = []
             for k in range(3):
                 position = cg_min[k] + r_min * (0.5 + np.floor((cg[en][k] - cg_min[k]) / r_min))
-                sector_centre.append(self.sround(position, 6))
+                sector_centre.append(BesoFilters.sround(position, 6))
             sector_elm[tuple(sector_centre)].append(en)
         # finding near elements inside each sector
         for sector_centre in sector_elm:
@@ -419,7 +418,7 @@ class BesoFilters:
             while y <= cg_max[1] + 0.5 * r_min:
                 z = cg_min[2] + 0.5 * r_min
                 while z <= cg_max[2] + 0.5 * r_min:
-                    position = (self.sround(x, 6), self.sround(y, 6), self.sround(z, 6))
+                    position = (BesoFilters.sround(x, 6), BesoFilters.sround(y, 6), BesoFilters.sround(z, 6))
                     # down level neighbouring sectors:
                     # o  o  -
                     # o  -  -
@@ -445,8 +444,8 @@ class BesoFilters:
                                             (x + r_min, y + r_min, z + r_min),
                                             (x, y + r_min, z + r_min),
                                             (x, y, z + r_min)]:
-                        position_neighbour = (self.sround(position_neighbour[0], 6), self.sround(position_neighbour[1], 6),
-                                            self.sround(position_neighbour[2], 6))
+                        position_neighbour = (BesoFilters.sround(position_neighbour[0], 6), BesoFilters.sround(position_neighbour[1], 6),
+                                            BesoFilters.sround(position_neighbour[2], 6))
                         for en in sector_elm[position]:
                             try:
                                 for en2 in sector_elm[position_neighbour]:
@@ -667,7 +666,7 @@ class BesoFilters:
                 z = cg_min[2] + 0.5 * r_min
                 while z <= cg_max[2] + 0.5 * r_min:
                     # 6 significant digit round because of small declination (6 must be used for all sround below)
-                    sector_elm[(self.sround(x, 6), self.sround(y, 6), self.sround(z, 6))] = []
+                    sector_elm[(BesoFilters.sround(x, 6), BesoFilters.sround(y, 6), BesoFilters.sround(z, 6))] = []
                     z += r_min
                 y += r_min
             x += r_min
@@ -677,7 +676,7 @@ class BesoFilters:
             sector_centre = []
             for k in range(3):
                 position = cg_min[k] + r_min * (0.5 + np.floor((cg[en][k] - cg_min[k]) / r_min))
-                sector_centre.append(self.sround(position, 6))
+                sector_centre.append(BesoFilters.sround(position, 6))
             sector_elm[tuple(sector_centre)].append(en)
 
         # finding near elements inside each sector
@@ -703,7 +702,7 @@ class BesoFilters:
             while y <= cg_max[1] + 0.5 * r_min:
                 z = cg_min[2] + 0.5 * r_min
                 while z <= cg_max[2] + 0.5 * r_min:
-                    position = (self.sround(x, 6), self.sround(y, 6), self.sround(z, 6))
+                    position = (BesoFilters.sround(x, 6), BesoFilters.sround(y, 6), BesoFilters.sround(z, 6))
                     # down level neighbouring sectors:
                     # o  o  -
                     # o  -  -
@@ -729,8 +728,8 @@ class BesoFilters:
                                             (x + r_min, y + r_min, z + r_min),
                                             (x, y + r_min, z + r_min),
                                             (x, y, z + r_min)]:
-                        position_neighbour = (self.sround(position_neighbour[0], 6), self.sround(position_neighbour[1], 6),
-                                            self.sround(position_neighbour[2], 6))
+                        position_neighbour = (BesoFilters.sround(position_neighbour[0], 6), BesoFilters.sround(position_neighbour[1], 6),
+                                            BesoFilters.sround(position_neighbour[2], 6))
                         for en in sector_elm[position]:
                             try:
                                 for en2 in sector_elm[position_neighbour]:
@@ -837,7 +836,7 @@ class BesoFilters:
             y = cg_cast_min[1] + 0.5 * r_min
             while y <= cg_cast_max[1] + 0.5 * r_min:
                 # 6 significant digit round because of small declination (6 must be used for all sround below)
-                sector_elm[(self.sround(x, 6), self.sround(y, 6))] = []
+                sector_elm[(BesoFilters.sround(x, 6), BesoFilters.sround(y, 6))] = []
                 y += r_min
             x += r_min
         # assigning elements to the sectors
@@ -845,7 +844,7 @@ class BesoFilters:
             sector_centre = []
             for k in range(2):
                 position = cg_cast_min[k] + r_min * (0.5 + np.floor((cg_cast[en][k] - cg_cast_min[k]) / r_min))
-                sector_centre.append(self.sround(position, 6))
+                sector_centre.append(BesoFilters.sround(position, 6))
             sector_elm[tuple(sector_centre)].append(en)
 
         # finding elements above inside each sector
@@ -874,7 +873,7 @@ class BesoFilters:
         while x <= cg_cast_max[0] + 0.5 * r_min:
             y = cg_cast_min[1] + 0.5 * r_min
             while y <= cg_cast_max[1] + 0.5 * r_min:
-                position = (self.sround(x, 6), self.sround(y, 6))
+                position = (BesoFilters.sround(x, 6), BesoFilters.sround(y, 6))
                 for position_neighbour in [(x - r_min, y - r_min),
                                         (x - r_min, y),
                                         (x - r_min, y + r_min),
@@ -883,7 +882,7 @@ class BesoFilters:
                                         (x + r_min, y - r_min),
                                         (x + r_min, y),
                                         (x + r_min, y + r_min)]:
-                    position_neighbour = (self.sround(position_neighbour[0], 6), self.sround(position_neighbour[1], 6))
+                    position_neighbour = (BesoFilters.sround(position_neighbour[0], 6), BesoFilters.sround(position_neighbour[1], 6))
                     for en in sector_elm[position]:
                         try:
                             for en2 in sector_elm[position_neighbour]:

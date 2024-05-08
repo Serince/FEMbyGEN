@@ -329,7 +329,7 @@ class BesoMain:
                         filtered_dn.append(dn)
                     self.beso_filters.BesoFilters(Elements,nodes).check_same_state(self.domain_same_state, filtered_dn, self.file_name)
                 if f_range == "auto":
-                    size_avg = self.beso_filters.BesoFilters(Elements,nodes).get_filter_range(domains, filtered_dn)
+                    size_avg = self.beso_filters.BesoFilters(Elements,nodes).get_filter_range(size_elm,domains, filtered_dn)
                     f_range = size_avg * 2
                     msg = "Filtered average element size is {}, filter range set automatically to {}".format(
                         size_avg, f_range)
@@ -577,7 +577,7 @@ class BesoMain:
                                                                     domains_to_filter)
                         kn += 1
                     elif ft[0] == "simple":
-                        sensitivity_number = self.beso_filters.BesoFilters(Elements,nodes).run2(self.file_name, sensitivity_number, weight_factor2, near_elm,
+                        sensitivity_number = self.beso_filters.BesoFilters.run2(self.file_name, sensitivity_number, weight_factor2, near_elm,
                                                                     domains_to_filter)
                     elif ft[0].split()[0] in ["erode", "dilate", "open", "close", "open-close", "close-open", "combine"]:
                         if ft[0].split()[1] == "sensitivity":
