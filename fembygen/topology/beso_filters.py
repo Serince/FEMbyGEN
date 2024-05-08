@@ -119,8 +119,7 @@ class BesoFilters:
             for en in domains[dn]:
                 size_sum += self.size_elm[en]
         return size_sum / len_filtered_dn
-
-
+    
     def sround(x, s):
         """round float number x to s significant digits
         https://stackoverflow.com/a/58491045/9582881 fastest way"""

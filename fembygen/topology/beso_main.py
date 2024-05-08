@@ -329,7 +329,7 @@ class BesoMain:
                         filtered_dn.append(dn)
                     self.beso_filters.BesoFilters(Elements,nodes).check_same_state(self.domain_same_state, filtered_dn, self.file_name)
                 if f_range == "auto":
-                    size_avg = self.beso_filters.BesoFilters(Elements,nodes).get_filter_range(size_elm, domains, filtered_dn)
+                    size_avg = self.beso_filters.BesoFilters(Elements,nodes).get_filter_range(domains, filtered_dn)
                     f_range = size_avg * 2
                     msg = "Filtered average element size is {}, filter range set automatically to {}".format(
                         size_avg, f_range)
