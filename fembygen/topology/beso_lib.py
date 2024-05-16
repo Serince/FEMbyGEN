@@ -333,142 +333,147 @@ class BesoLib_types:
 
 # function for computing volumes or area (shell elements) and centres of gravity
 # approximate for 2nd order elements!
-def elm_volume_cg(file_name, nodes, Elements):
-    u = [0.0, 0.0, 0.0]
-    v = [0.0, 0.0, 0.0]
-    w = [0.0, 0.0, 0.0]
+class elm_volume_cg:
+    def  __init__(self,file_name, nodes, Elements):
+        self.file_name= file_name
+        self.nodes= nodes
+        self.Elements= Elements
+        self.u = [0.0, 0.0, 0.0]
+        self.v = [0.0, 0.0, 0.0]
+        self.w = [0.0, 0.0, 0.0]
 
-    def tria_area_cg(nod):
+    def tria_area_cg(self,nod):
         # Compute volume
         for i in range(3):
-            u[i] = nodes[nod[2]][i] - nodes[nod[1]][i]
-            v[i] = nodes[nod[0]][i] - nodes[nod[1]][i]
+            self.u[i] = self.nodes[nod[2]][i] - self.nodes[nod[1]][i]
+            self.v[i] = self.nodes[nod[0]][i] - self.nodes[nod[1]][i]
         area_tria = np.linalg.norm(np.cross(u, v)) / 2.0
         # Compute centre of gravity
-        x_cg = sum(nodes[n][0] for n in nod) / 3.0
-        y_cg = sum(nodes[n][1] for n in nod) / 3.0
-        z_cg = sum(nodes[n][2] for n in nod) / 3.0
+        x_cg = sum(self.nodes[n][0] for n in nod) / 3.0
+        y_cg = sum(self.nodes[n][1] for n in nod) / 3.0
+        z_cg = sum(self.nodes[n][2] for n in nod) / 3.0
         cg_tria = [x_cg, y_cg, z_cg]
         return area_tria, cg_tria
 
-    def tetra_volume_cg(nod):
+    def tetra_volume_cg(self,nod):
         # Compute volume
         for i in range(3):
-            u[i] = nodes[nod[2]][i] - nodes[nod[1]][i]
-            v[i] = nodes[nod[3]][i] - nodes[nod[1]][i]
-            w[i] = nodes[nod[0]][i] - nodes[nod[1]][i]
+            self.u[i] = self.nodes[nod[2]][i] - self.nodes[nod[1]][i]
+            self.v[i] = self.nodes[nod[3]][i] - self.nodes[nod[1]][i]
+            self.w[i] = self.nodes[nod[0]][i] - self.nodes[nod[1]][i]
         volume_tetra = abs(np.dot(np.cross(u, v), w)) / 6.0
         # Compute centre of gravity
-        x_cg = sum(nodes[n][0] for n in nod) / 4.0
-        y_cg = sum(nodes[n][1] for n in nod) / 4.0
-        z_cg = sum(nodes[n][2] for n in nod) / 4.0
+        x_cg = sum(self.nodes[n][0] for n in nod) / 4.0
+        y_cg = sum(self.nodes[n][1] for n in nod) / 4.0
+        z_cg = sum(self.nodes[n][2] for n in nod) / 4.0
         cg_tetra = [x_cg, y_cg, z_cg]
         return volume_tetra, cg_tetra
 
-    def second_order_info(elm_type):
+    def second_order_info(self,elm_type):
         msg = "\nINFO: areas and centres of gravity of " + elm_type.upper() + " elements ignore mid-nodes' positions\n"
         print(msg)
-        write_to_log(file_name, msg)
+        BesoLib_types.write_to_log(self.file_name, msg)
 
-    # defining volume and centre of gravity for all element types
-    volume_elm = {}
-    area_elm = {}
-    cg = {}
+        # defining volume and centre of gravity for all element types
+        volume_elm = {}
+        area_elm = {}
+        cg = {}
 
-    for en, nod in Elements.tria3.items():
-        [area_elm[en], cg[en]] = tria_area_cg(nod)
+        for en, nod in Elements.tria3.items():
+            [area_elm[en], cg[en]] = self.tria_area_cg(nod)
 
-    if Elements.tria6:
-        second_order_info("tria6")
-    for en, nod in Elements.tria6.items():  # copy from tria3
-        [area_elm[en], cg[en]] = tria_area_cg(nod)
+        if Elements.tria6:
+            self.second_order_info("tria6")
+        for en, nod in Elements.tria6.items():  # copy from tria3
+            [area_elm[en], cg[en]] = self.tria_area_cg(nod)
 
-    for en, nod in Elements.quad4.items():
-        [a1, cg1] = tria_area_cg(nod[0:3])
-        [a2, cg2] = tria_area_cg(nod[0:1] + nod[2:4])
-        area_elm[en] = float(a1 + a2)
-        cg[en] = [[], [], []]
-        for k in [0, 1, 2]:  # denote x, y, z dimensions
-            cg[en][k] = (a1 * cg1[k] + a2 * cg2[k]) / area_elm[en]
+        for en, nod in Elements.quad4.items():
+            [a1, cg1] = self.tria_area_cg(nod[0:3])
+            [a2, cg2] = self.tria_area_cg(nod[0:1] + nod[2:4])
+            area_elm[en] = float(a1 + a2)
+            cg[en] = [[], [], []]
+            for k in [0, 1, 2]:  # denote x, y, z dimensions
+                cg[en][k] = (a1 * cg1[k] + a2 * cg2[k]) / area_elm[en]
 
-    if Elements.quad8:
-        second_order_info("quad8")
-    for en, nod in Elements.quad8.items():  # copy from quad4
-        [a1, cg1] = tria_area_cg(nod[0:3])
-        [a2, cg2] = tria_area_cg(nod[0:1] + nod[2:4])
-        area_elm[en] = float(a1 + a2)
-        cg[en] = [[], [], []]
-        for k in [0, 1, 2]:  # denote x, y, z dimensions
-            cg[en][k] = (a1 * cg1[k] + a2 * cg2[k]) / area_elm[en]
+        if Elements.quad8:
+            self.second_order_info("quad8")
+        for en, nod in Elements.quad8.items():  # copy from quad4
+            [a1, cg1] = self.tria_area_cg(nod[0:3])
+            [a2, cg2] = self.tria_area_cg(nod[0:1] + nod[2:4])
+            area_elm[en] = float(a1 + a2)
+            cg[en] = [[], [], []]
+            for k in [0, 1, 2]:  # denote x, y, z dimensions
+                cg[en][k] = (a1 * cg1[k] + a2 * cg2[k]) / area_elm[en]
 
-    for en, nod in Elements.tetra4.items():
-        [volume_elm[en], cg[en]] = tetra_volume_cg(nod)
+        for en, nod in Elements.tetra4.items():
+            [volume_elm[en], cg[en]] = self.tetra_volume_cg(nod)
 
-    if Elements.tetra10:
-        second_order_info("tetra10")
-    for en, nod in Elements.tetra10.items():  # copy from tetra4
-        [volume_elm[en], cg[en]] = tetra_volume_cg(nod)
+        if Elements.tetra10:
+            self.second_order_info("tetra10")
+        for en, nod in Elements.tetra10.items():  # copy from tetra4
+            [volume_elm[en], cg[en]] = self.tetra_volume_cg(nod)
 
-    for en, nod in Elements.hexa8.items():
-        [v1, cg1] = tetra_volume_cg(nod[0:3] + nod[5:6])
-        [v2, cg2] = tetra_volume_cg(nod[0:1] + nod[2:3] + nod[4:6])
-        [v3, cg3] = tetra_volume_cg(nod[2:3] + nod[4:7])
-        [v4, cg4] = tetra_volume_cg(nod[0:1] + nod[2:5])
-        [v5, cg5] = tetra_volume_cg(nod[3:5] + nod[6:8])
-        [v6, cg6] = tetra_volume_cg(nod[2:5] + nod[6:7])
-        volume_elm[en] = float(v1 + v2 + v3 + v4 + v5 + v6)
-        cg[en] = [[], [], []]
-        for k in [0, 1, 2]:  # denote x, y, z dimensions
-            cg[en][k] = (v1 * cg1[k] + v2 * cg2[k] + v3 * cg3[k] + v4 * cg4[k] + v5 * cg5[k] + v6 * cg6[k]
-                         ) / volume_elm[en]
+        for en, nod in Elements.hexa8.items():
+            [v1, cg1] = self.tetra_volume_cg(nod[0:3] + nod[5:6])
+            [v2, cg2] = self.tetra_volume_cg(nod[0:1] + nod[2:3] + nod[4:6])
+            [v3, cg3] = self.tetra_volume_cg(nod[2:3] + nod[4:7])
+            [v4, cg4] = self.tetra_volume_cg(nod[0:1] + nod[2:5])
+            [v5, cg5] = self.tetra_volume_cg(nod[3:5] + nod[6:8])
+            [v6, cg6] = self.tetra_volume_cg(nod[2:5] + nod[6:7])
+            volume_elm[en] = float(v1 + v2 + v3 + v4 + v5 + v6)
+            cg[en] = [[], [], []]
+            for k in [0, 1, 2]:  # denote x, y, z dimensions
+                cg[en][k] = (v1 * cg1[k] + v2 * cg2[k] + v3 * cg3[k] + v4 * cg4[k] + v5 * cg5[k] + v6 * cg6[k]
+                            ) / volume_elm[en]
 
-    if Elements.hexa20:
-        second_order_info("hexa20")
-    for en, nod in Elements.hexa20.items():  # copy from hexa8
-        [v1, cg1] = tetra_volume_cg(nod[0:3] + nod[5:6])
-        [v2, cg2] = tetra_volume_cg(nod[0:1] + nod[2:3] + nod[4:6])
-        [v3, cg3] = tetra_volume_cg(nod[2:3] + nod[4:7])
-        [v4, cg4] = tetra_volume_cg(nod[0:1] + nod[2:5])
-        [v5, cg5] = tetra_volume_cg(nod[3:5] + nod[6:8])
-        [v6, cg6] = tetra_volume_cg(nod[2:5] + nod[6:7])
-        volume_elm[en] = float(v1 + v2 + v3 + v4 + v5 + v6)
-        cg[en] = [[], [], []]
-        for k in [0, 1, 2]:  # denote x, y, z dimensions
-            cg[en][k] = (v1 * cg1[k] + v2 * cg2[k] + v3 * cg3[k] + v4 * cg4[k] + v5 * cg5[k] + v6 * cg6[k]
-                         ) / volume_elm[en]
+        if Elements.hexa20:
+            self.second_order_info("hexa20")
+        for en, nod in Elements.hexa20.items():  # copy from hexa8
+            [v1, cg1] = self.tetra_volume_cg(nod[0:3] + nod[5:6])
+            [v2, cg2] = self.tetra_volume_cg(nod[0:1] + nod[2:3] + nod[4:6])
+            [v3, cg3] = self.tetra_volume_cg(nod[2:3] + nod[4:7])
+            [v4, cg4] = self.tetra_volume_cg(nod[0:1] + nod[2:5])
+            [v5, cg5] = self.tetra_volume_cg(nod[3:5] + nod[6:8])
+            [v6, cg6] = self.tetra_volume_cg(nod[2:5] + nod[6:7])
+            volume_elm[en] = float(v1 + v2 + v3 + v4 + v5 + v6)
+            cg[en] = [[], [], []]
+            for k in [0, 1, 2]:  # denote x, y, z dimensions
+                cg[en][k] = (v1 * cg1[k] + v2 * cg2[k] + v3 * cg3[k] + v4 * cg4[k] + v5 * cg5[k] + v6 * cg6[k]
+                            ) / volume_elm[en]
 
-    for en, nod in Elements.penta6.items():
-        [v1, cg1] = tetra_volume_cg(nod[0:4])
-        [v2, cg2] = tetra_volume_cg(nod[1:5])
-        [v3, cg3] = tetra_volume_cg(nod[2:6])
-        volume_elm[en] = float(v1 + v2 + v3)
-        cg[en] = [[], [], []]
-        for k in [0, 1, 2]:  # denote x, y, z dimensions
-            cg[en][k] = (v1 * cg1[k] + v2 * cg2[k] + v3 * cg3[k]) / volume_elm[en]
+        for en, nod in Elements.penta6.items():
+            [v1, cg1] = self.tetra_volume_cg(nod[0:4])
+            [v2, cg2] = self.tetra_volume_cg(nod[1:5])
+            [v3, cg3] = self.tetra_volume_cg(nod[2:6])
+            volume_elm[en] = float(v1 + v2 + v3)
+            cg[en] = [[], [], []]
+            for k in [0, 1, 2]:  # denote x, y, z dimensions
+                cg[en][k] = (v1 * cg1[k] + v2 * cg2[k] + v3 * cg3[k]) / volume_elm[en]
 
-    if Elements.penta15:
-        second_order_info("penta15")  # copy from penta6
-    for en, nod in Elements.penta15.items():
-        [v1, cg1] = tetra_volume_cg(nod[0:4])
-        [v2, cg2] = tetra_volume_cg(nod[1:5])
-        [v3, cg3] = tetra_volume_cg(nod[2:6])
-        volume_elm[en] = float(v1 + v2 + v3)
-        cg[en] = [[], [], []]
-        for k in [0, 1, 2]:  # denote x, y, z dimensions
-            cg[en][k] = (v1 * cg1[k] + v2 * cg2[k] + v3 * cg3[k]) / volume_elm[en]
+        if Elements.penta15:
+            self.second_order_info("penta15")  # copy from penta6
+        for en, nod in Elements.penta15.items():
+            [v1, cg1] = self.tetra_volume_cg(nod[0:4])
+            [v2, cg2] = self.tetra_volume_cg(nod[1:5])
+            [v3, cg3] = self.tetra_volume_cg(nod[2:6])
+            volume_elm[en] = float(v1 + v2 + v3)
+            cg[en] = [[], [], []]
+            for k in [0, 1, 2]:  # denote x, y, z dimensions
+                cg[en][k] = (v1 * cg1[k] + v2 * cg2[k] + v3 * cg3[k]) / volume_elm[en]
 
-    # finding the minimum and maximum cg position
-    x_cg = []
-    y_cg = []
-    z_cg = []
-    for xyz in cg.values():
-        x_cg.append(xyz[0])
-        y_cg.append(xyz[1])
-        z_cg.append(xyz[2])
-    cg_min = [min(x_cg), min(y_cg), min(z_cg)]
-    cg_max = [max(x_cg), max(y_cg), max(z_cg)]
+        # finding the minimum and maximum cg position
+        x_cg = []
+        y_cg = []
+        z_cg = []
+        for xyz in cg.values():
+            x_cg.append(xyz[0])
+            y_cg.append(xyz[1])
+            z_cg.append(xyz[2])
+        cg_min = [min(x_cg), min(y_cg), min(z_cg)]
+        cg_max = [max(x_cg), max(y_cg), max(z_cg)]
 
-    return cg, cg_min, cg_max, volume_elm, area_elm
+        return cg, cg_min, cg_max, volume_elm, area_elm
+
 
 
 # function for copying .inp file with additional elsets, materials, solid and shell sections, different output request
