@@ -227,7 +227,7 @@ class BesoMain:
                     elm_states[en] = len(self.domain_density[dn]) - 1  # set to highest state
 
         # computing volume or area, and centre of gravity of each element
-        [cg, cg_min, cg_max, volume_elm, area_elm] = self.beso_lib.elm_volume_cg(self.file_name, nodes, Elements)
+        [cg, cg_min, cg_max, volume_elm, area_elm] = self.beso_lib.elm_volume_cg(self.file_name, nodes, Elements).elm_volume_cg()
         mass = [0.0]
         print(cg)
         mass_full = 0  # sum from initial states TODO make it independent on starting elm_states?

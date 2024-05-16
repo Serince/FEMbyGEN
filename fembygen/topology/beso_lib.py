@@ -347,7 +347,7 @@ class elm_volume_cg:
         for i in range(3):
             self.u[i] = self.nodes[nod[2]][i] - self.nodes[nod[1]][i]
             self.v[i] = self.nodes[nod[0]][i] - self.nodes[nod[1]][i]
-        area_tria = np.linalg.norm(np.cross(u, v)) / 2.0
+        area_tria = np.linalg.norm(np.cross(self.u, self.v)) / 2.0
         # Compute centre of gravity
         x_cg = sum(self.nodes[n][0] for n in nod) / 3.0
         y_cg = sum(self.nodes[n][1] for n in nod) / 3.0
@@ -361,7 +361,7 @@ class elm_volume_cg:
             self.u[i] = self.nodes[nod[2]][i] - self.nodes[nod[1]][i]
             self.v[i] = self.nodes[nod[3]][i] - self.nodes[nod[1]][i]
             self.w[i] = self.nodes[nod[0]][i] - self.nodes[nod[1]][i]
-        volume_tetra = abs(np.dot(np.cross(u, v), w)) / 6.0
+        volume_tetra = abs(np.dot(np.cross(self.self.u, self.v), self.w)) / 6.0
         # Compute centre of gravity
         x_cg = sum(self.nodes[n][0] for n in nod) / 4.0
         y_cg = sum(self.nodes[n][1] for n in nod) / 4.0
@@ -372,22 +372,23 @@ class elm_volume_cg:
     def second_order_info(self,elm_type):
         msg = "\nINFO: areas and centres of gravity of " + elm_type.upper() + " elements ignore mid-nodes' positions\n"
         print(msg)
-        BesoLib_types.write_to_log(self.file_name, msg)
+        
+    def elm_volume_cg(self):
 
         # defining volume and centre of gravity for all element types
         volume_elm = {}
         area_elm = {}
         cg = {}
 
-        for en, nod in Elements.tria3.items():
+        for en, nod in self.Elements.tria3.items():
             [area_elm[en], cg[en]] = self.tria_area_cg(nod)
 
-        if Elements.tria6:
+        if self.Elements.tria6:
             self.second_order_info("tria6")
-        for en, nod in Elements.tria6.items():  # copy from tria3
+        for en, nod in self.Elements.tria6.items():  # copy from tria3
             [area_elm[en], cg[en]] = self.tria_area_cg(nod)
 
-        for en, nod in Elements.quad4.items():
+        for en, nod in self.Elements.quad4.items():
             [a1, cg1] = self.tria_area_cg(nod[0:3])
             [a2, cg2] = self.tria_area_cg(nod[0:1] + nod[2:4])
             area_elm[en] = float(a1 + a2)
@@ -395,9 +396,9 @@ class elm_volume_cg:
             for k in [0, 1, 2]:  # denote x, y, z dimensions
                 cg[en][k] = (a1 * cg1[k] + a2 * cg2[k]) / area_elm[en]
 
-        if Elements.quad8:
+        if self.Elements.quad8:
             self.second_order_info("quad8")
-        for en, nod in Elements.quad8.items():  # copy from quad4
+        for en, nod in self.Elements.quad8.items():  # copy from quad4
             [a1, cg1] = self.tria_area_cg(nod[0:3])
             [a2, cg2] = self.tria_area_cg(nod[0:1] + nod[2:4])
             area_elm[en] = float(a1 + a2)
@@ -405,15 +406,15 @@ class elm_volume_cg:
             for k in [0, 1, 2]:  # denote x, y, z dimensions
                 cg[en][k] = (a1 * cg1[k] + a2 * cg2[k]) / area_elm[en]
 
-        for en, nod in Elements.tetra4.items():
+        for en, nod in self.Elements.tetra4.items():
             [volume_elm[en], cg[en]] = self.tetra_volume_cg(nod)
 
-        if Elements.tetra10:
+        if self.Elements.tetra10:
             self.second_order_info("tetra10")
-        for en, nod in Elements.tetra10.items():  # copy from tetra4
+        for en, nod in self.Elements.tetra10.items():  # copy from tetra4
             [volume_elm[en], cg[en]] = self.tetra_volume_cg(nod)
 
-        for en, nod in Elements.hexa8.items():
+        for en, nod in self.Elements.hexa8.items():
             [v1, cg1] = self.tetra_volume_cg(nod[0:3] + nod[5:6])
             [v2, cg2] = self.tetra_volume_cg(nod[0:1] + nod[2:3] + nod[4:6])
             [v3, cg3] = self.tetra_volume_cg(nod[2:3] + nod[4:7])
@@ -426,9 +427,9 @@ class elm_volume_cg:
                 cg[en][k] = (v1 * cg1[k] + v2 * cg2[k] + v3 * cg3[k] + v4 * cg4[k] + v5 * cg5[k] + v6 * cg6[k]
                             ) / volume_elm[en]
 
-        if Elements.hexa20:
+        if self.Elements.hexa20:
             self.second_order_info("hexa20")
-        for en, nod in Elements.hexa20.items():  # copy from hexa8
+        for en, nod in self.Elements.hexa20.items():  # copy from hexa8
             [v1, cg1] = self.tetra_volume_cg(nod[0:3] + nod[5:6])
             [v2, cg2] = self.tetra_volume_cg(nod[0:1] + nod[2:3] + nod[4:6])
             [v3, cg3] = self.tetra_volume_cg(nod[2:3] + nod[4:7])
@@ -441,7 +442,7 @@ class elm_volume_cg:
                 cg[en][k] = (v1 * cg1[k] + v2 * cg2[k] + v3 * cg3[k] + v4 * cg4[k] + v5 * cg5[k] + v6 * cg6[k]
                             ) / volume_elm[en]
 
-        for en, nod in Elements.penta6.items():
+        for en, nod in self.Elements.penta6.items():
             [v1, cg1] = self.tetra_volume_cg(nod[0:4])
             [v2, cg2] = self.tetra_volume_cg(nod[1:5])
             [v3, cg3] = self.tetra_volume_cg(nod[2:6])
@@ -450,9 +451,9 @@ class elm_volume_cg:
             for k in [0, 1, 2]:  # denote x, y, z dimensions
                 cg[en][k] = (v1 * cg1[k] + v2 * cg2[k] + v3 * cg3[k]) / volume_elm[en]
 
-        if Elements.penta15:
+        if self.Elements.penta15:
             self.second_order_info("penta15")  # copy from penta6
-        for en, nod in Elements.penta15.items():
+        for en, nod in self.Elements.penta15.items():
             [v1, cg1] = self.tetra_volume_cg(nod[0:4])
             [v2, cg2] = self.tetra_volume_cg(nod[1:5])
             [v3, cg3] = self.tetra_volume_cg(nod[2:6])
