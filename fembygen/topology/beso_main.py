@@ -119,7 +119,7 @@ class BesoMain:
             self.shutil.rmtree(self.os.path.join(path, "topology_iterations"))
             msg = "Earlier topology simulations deleted"
             self.FreeCAD.Console.PrintMessage(msg)
-            self.beso_lib.write_to_log(file_name, msg)
+            self.beso_lib.BesoLib_types.write_to_log(file_name, msg)
             self.os.mkdir(self.os.path.join(path, "topology_iterations"))
 
     def deleteFiles(self, file_nameW, save_solver_files, reference_points):
@@ -186,10 +186,10 @@ class BesoMain:
         msg += ("save_resulting_format   = %s\n" % self.save_resulting_format)
         msg += "\n"
         self.file_name = self.os.path.join(self.path, self.file_name)
-        self.beso_lib.write_to_log(self.file_name, msg)
+        self.beso_lib.BesoLib_types.write_to_log(self.file_name, msg)
 
         # mesh and domains importing
-        [nodes, Elements, domains, opt_domains, en_all, plane_strain, plane_stress, axisymmetry] = self.beso_lib.import_inp(
+        [nodes, Elements, domains, opt_domains, en_all, plane_strain, plane_stress, axisymmetry] = self.beso_lib.BesoLib_types.import_inp(
             self.file_name, self.domains_from_config, self.domain_optimized, self.shells_as_composite)
         domain_shells = {}
         domain_volumes = {}
@@ -207,7 +207,7 @@ class BesoMain:
                 if (len(self.domain_density[dn]) - 1) < self.continue_from:
                     sn = len(self.domain_density[dn]) - 1
                     msg = "\nINFO: elements from the domain " + dn + " were set to the highest state.\n"
-                    self.beso_lib.write_to_log(self.file_name, msg)
+                    self.beso_lib.BesoLib_types.write_to_log(self.file_name, msg)
                     print(msg)
                 else:
                     sn = self.continue_from
@@ -265,7 +265,7 @@ class BesoMain:
                 iterations_limit = it + 25
             print(translate("FEMbyGEN","\niterations_limit set automatically to %s" % iterations_limit))
             msg = ("\niterations_limit        = %s\n" % iterations_limit)
-            self.beso_lib.write_to_log(self.file_name, msg)
+            self.beso_lib.BesoLib_types.write_to_log(self.file_name, msg)
 
         # preparing parameters for filtering sensitivity numbers
         """weight_factor2 = {}
@@ -311,7 +311,7 @@ class BesoMain:
                         msg = "Filtered average element size is {}, filter range set automatically to {}".format(size_avg,
                                                                                                                  f_range)
                         print(msg)
-                        self.beso_lib.write_to_log(self.file_name, msg)
+                        self.beso_lib.BesoLib_types.write_to_log(self.file_name, msg)
                     [above_elm, below_elm] = self.beso_filters.BesoFilters(Elements,nodes).prepare2s_casting(cg, f_range, domains_to_filter,
                                                                                  above_elm, below_elm, casting_vector)
                     continue  # to evaluate other filters
@@ -334,7 +334,7 @@ class BesoMain:
                     msg = "Filtered average element size is {}, filter range set automatically to {}".format(
                         size_avg, f_range)
                     print(msg)
-                    self.beso_lib.write_to_log(self.file_name, msg)
+                    self.beso_lib.BesoLib_types.write_to_log(self.file_name, msg)
                 if ft[0] == "over points":
                     self.beso_filters.BesoFilters(Elements,nodes).check_same_state(self.domain_same_state, self.domains_from_config, self.file_name)
                     [w_f3, n_e3, n_p] = self.beso_filters.BesoFilters(Elements,nodes).prepare3_tetra_grid(
@@ -394,7 +394,7 @@ class BesoMain:
             msg += "  buckling_factors"
 
         msg += "\n"
-        self.beso_lib.write_to_log(self.file_name, msg)
+        self.beso_lib.BesoLib_types.write_to_log(self.file_name, msg)
 
         # preparing for writing quick results
         file_name_resulting_states = self.os.path.join(self.path, "resulting_states")
@@ -467,7 +467,7 @@ class BesoMain:
                 missing_ccx_results = True
             if missing_ccx_results:
                 msg = "CalculiX results not found, check CalculiX for errors. Ensure you choose the right optimization base"
-                self.beso_lib.write_to_log(self.file_name, "\nERROR: " + msg + "\n")
+                self.beso_lib.BesoLib_types.write_to_log(self.file_name, "\nERROR: " + msg + "\n")
                 assert False, msg
 
             if self.domain_FI_filled:
@@ -481,12 +481,12 @@ class BesoMain:
                                 FI_max[i][dn] = max(FI_max[i][dn], max(FI_step_en))
                             except ValueError:
                                 msg = "FI_max computing failed. Check if each domain contains at least one failure criterion."
-                                self.beso_lib.write_to_log(self.file_name, "\nERROR: " + msg + "\n")
+                                self.beso_lib.BesoLib_types.write_to_log(self.file_name, "\nERROR: " + msg + "\n")
                                 raise Exception(msg)
                             except KeyError:
                                 msg = "Some result values are missing. Check available disk space or steps_superposition " \
                                     "settings"
-                                self.beso_lib.write_to_log(self.file_name, "\nERROR: " + msg + "\n")
+                                self.beso_lib.BesoLib_types.write_to_log(self.file_name, "\nERROR: " + msg + "\n")
                                 raise Exception(msg)
                 print(translate("FEMbyGEN","FI_max, number of violated elements, domain name"))
 
@@ -671,7 +671,7 @@ class BesoMain:
                     msg += " " + str(bf).rjust(17, " ")
                 buckling_factors_all.append(buckling_factors)
             msg += "\n"
-            self.beso_lib.write_to_log(self.file_name, msg)
+            self.beso_lib.BesoLib_types.write_to_log(self.file_name, msg)
 
             # export element values
             if self.save_iteration_results and self.np.mod(float(i), self.save_iteration_results) == 0:
@@ -752,7 +752,7 @@ class BesoMain:
                         mass_goal_i
                     except NameError:
                         msg = "\nWARNING: mass goal is lower than initial mass. Check mass_goal_ratio."
-                        self.beso_lib.write_to_log(self.file_name, msg + "\n")
+                        self.beso_lib.BesoLib_types.write_to_log(self.file_name, msg + "\n")
                 else:
                     mass_goal_i = self.mass_goal_ratio * mass_full
             else:  # adding to initial mass  TODO include stress limit
@@ -824,7 +824,7 @@ class BesoMain:
             # check for oscillation state
             if elm_states_before_last == elm_states:  # oscillating state
                 msg = "\nOSCILLATION: model turns back to " + str(i - 2) + "th iteration.\n"
-                self.beso_lib.write_to_log(self.file_name, msg)
+                self.beso_lib.BesoLib_types.write_to_log(self.file_name, msg)
                 print(msg)
                 oscillations = True
                 if i > 2:
@@ -871,5 +871,5 @@ class BesoMain:
         showMsg = ("Total time   " + str(total_time_h) + " h " +
                    str(total_time_min) + " min " + str(total_time_s) + " \n")
         msg += showMsg + "\n"
-        self.beso_lib.write_to_log(self.file_name, msg)
+        self.beso_lib.BesoLib_types.write_to_log(self.file_name, msg)
         print(showMsg)
