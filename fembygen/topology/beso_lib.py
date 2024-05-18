@@ -1627,7 +1627,7 @@ def export_frd(file_nameW, nodes, Elements, elm_states, number_of_states):
 # function for exporting the resulting mesh in separate files for each state of elm_states
 # only elements found by import_inp function are taken into account
 class export_inp:
-    def __init__(self,file_nameW, nodes, Elements, elm_states, number_of_states,elm_category):
+    def __init__(self,file_nameW, nodes, Elements, elm_states, number_of_states):
         self.file_nameW=file_nameW
         self.nodes=nodes
         self.Elements=Elements
