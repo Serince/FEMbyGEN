@@ -1120,182 +1120,193 @@ def import_displacement(file_nameW, displacement_graph, steps_superposition):
 
 # function for importing results from .frd file
 # Failure Indices are computed at each node and maximum or average above each element is returned
-def import_FI_node(reference_value, file_nameW, domains, criteria, domain_FI, file_name, elm_states,
-                   steps_superposition):
-    try:
-        f = open(file_nameW + ".frd", "r")
-    except IOError:
-        msg = "CalculiX result file not found, check your inputs"
-        write_to_log(file_name, "\nERROR: " + msg + "\n")
-        assert False, msg
+class import_FI_node:
+    def __init__(self,reference_value, file_nameW, domains, criteria, domain_FI, file_name, elm_states,
+                steps_superposition):
+        self.reference_value=reference_value
+        self.file_nameW=file_nameW
+        self.domains=domains
+        self.criteria=criteria
+        self.domain_FI=domain_FI
+        self.file_name=file_name
+        self.elm_states=elm_states
+        self.steps_superposition=steps_superposition
+        
+        try:
+            self.f = open(self.file_nameW + ".frd", "r")
+        except IOError:
+            msg = "CalculiX result file not found, check your inputs"
+            BesoLib_types.write_to_log(self.file_name, "\nERROR: " + msg + "\n")
+            assert False, msg
 
-    memorized_steps = set()  # steps to use in superposition
-    if steps_superposition:
-        # {sn: {en: [sxx, syy, szz, sxy, sxz, syz], next element with int. pt. stresses}, next step, ...}
-        step_stress = {}
-        for LCn in range(len(steps_superposition)):
-            for (scale, sn) in steps_superposition[LCn]:
-                sn -= 1  # step numbering in CalculiX is from 1, but we have it 0 based
-                memorized_steps.add(sn)
-                step_stress[sn] = {}
+        self.memorized_steps = set()  # steps to use in superposition
+        if self.steps_superposition:
+            # {sn: {en: [sxx, syy, szz, sxy, sxz, syz], next element with int. pt. stresses}, next step, ...}
+            self.step_stress = {}
+            for LCn in range(len(self.steps_superposition)):
+                for (scale, sn) in self.steps_superposition[LCn]:
+                    sn -= 1  # step numbering in CalculiX is from 1, but we have it 0 based
+                    self.memorized_steps.add(sn)
+                    self.step_stress[sn] = {}
 
-    # prepare ordered elements of interest and failure criteria for each element
-    criteria_elm = {}
-    for dn in domain_FI:
-        for en in domains[dn]:
-            cr = []
-            for dn_crit in domain_FI[dn][elm_states[en]]:
-                cr.append(criteria.index(dn_crit))
-            criteria_elm[en] = cr
-    sorted_elements = sorted(criteria_elm.keys())  # [en_lowest, ..., en_highest]
+        # prepare ordered elements of interest and failure criteria for each element
+        self.criteria_elm = {}
+        for self.dn in domain_FI:
+            for self.en in domains[self.dn]:
+                self.cr = []
+                for dn_crit in domain_FI[self.dn][elm_states[self.en]]:
+                    self.cr.append(criteria.index(dn_crit))
+                self.criteria_elm[self.en] = self.cr
+        self.sorted_elements = sorted(self.criteria_elm.keys())  # [en_lowest, ..., en_highest]
 
-    def compute_FI():  # for the actual node
-        if en in criteria_elm:
-            for FIn in criteria_elm[en]:
-                if criteria[FIn][0] == "stress_von_Mises":
-                    s_allowable = criteria[FIn][1]
-                    FI_node[nn][FIn] = np.sqrt(0.5 * ((sxx - syy) ** 2 + (syy - szz) ** 2 + (szz - sxx) ** 2 +
-                                                      6 * (sxy ** 2 + syz ** 2 + sxz ** 2))) / s_allowable
-                elif criteria[FIn][0] == "user_def":
-                    FI_node[nn][FIn] = eval(criteria[FIn][1])
+    def compute_FI(self):  # for the actual node
+        if self.en in self.criteria_elm:
+            for FIn in self.criteria_elm[self.en]:
+                if self.criteria[FIn][0] == "stress_von_Mises":
+                    s_allowable = self.criteria[FIn][1]
+                    self.FI_node[self.nn][FIn] = np.sqrt(0.5 * ((self.sxx - self.syy) ** 2 + (self.syy - self.szz) ** 2 + (self.szz - self.sxx) ** 2 +
+                                                    6 * (self.sxy ** 2 + self.syz ** 2 + self.sxz ** 2))) / s_allowable
+                elif self.criteria[FIn][0] == "user_def":
+                    self.FI_node[self.nn][FIn] = eval(self.criteria[FIn][1])
                 else:
-                    msg = "\nError: failure criterion " + str(criteria[FIn]) + " not recognised.\n"
-                    write_to_log(file_name, msg)
+                    msg = "\nError: failure criterion " + str(self.criteria[FIn]) + " not recognised.\n"
+                    BesoLib_types.write_to_log(self.file_name, msg)
 
-    def save_FI(sn, en):
-        FI_step[sn][en] = []
-        for FIn in range(len(criteria)):
-            FI_step[sn][en].append(None)
-            if FIn in criteria_elm[en]:
-                if reference_value == "max":
-                    FI_step[sn][en][FIn] = max(FI_elm[en][FIn])
-                elif reference_value == "average":
-                    FI_step[sn][en][FIn] = np.average(FI_elm[en][FIn])
+    def save_FI(self,sn, en):
+        self.FI_step[sn][en] = []
+        for FIn in range(len(self.criteria)):
+            self.FI_step[sn][en].append(None)
+            if FIn in self.criteria_elm[en]:
+                if self.reference_value == "max":
+                    self.FI_step[sn][en][FIn] = max(self.FI_elm[en][FIn])
+                elif self.reference_value == "average":
+                    self.FI_step[sn][en][FIn] = np.average(self.FI_elm[en][FIn])
+    def import_FI_node(self):
 
-    read_mesh = False
-    frd_nodes = {}  # en associated to given node
-    elm_nodes = {}
-    for en in sorted_elements:
-        elm_nodes[en] = []
-    read_stress = False
-    sn = -1
-    FI_step = []  # list for steps - [{en1: list for criteria FI, en2: [], ...}, {en1: [], en2: [], ...}, next step]
-    for line in f:
-        # reading mesh
-        if line[:6] == "    3C":
-            read_mesh = True
-        elif read_mesh is True:
-            if line[:3] == " -1":
-                en = int(line[3:13])
-                if en == sorted_elements[0]:
-                    sorted_elements.pop(0)
-                    read_elm_nodes = True
-                else:
-                    read_elm_nodes = False
-            elif line[:3] == " -2" and read_elm_nodes is True:
-                associated_nn = list(map(int, line.split()[1:]))
-                elm_nodes[en] += associated_nn
-                for nn in associated_nn:
-                    frd_nodes[nn] = en
+        read_mesh = False
+        frd_nodes = {}  # en associated to given node
+        elm_nodes = {}
+        for en in self.sorted_elements:
+            elm_nodes[en] = []
+        read_stress = False
+        sn = -1
+        FI_step = []  # list for steps - [{en1: list for criteria FI, en2: [], ...}, {en1: [], en2: [], ...}, next step]
+        for line in self.f:
+            # reading mesh
+            if line[:6] == "    3C":
+                read_mesh = True
+            elif read_mesh is True:
+                if line[:3] == " -1":
+                    en = int(line[3:13])
+                    if en == self.sorted_elements[0]:
+                        self.sorted_elements.pop(0)
+                        read_elm_nodes = True
+                    else:
+                        read_elm_nodes = False
+                elif line[:3] == " -2" and read_elm_nodes is True:
+                    associated_nn = list(map(int, line.split()[1:]))
+                    elm_nodes[en] += associated_nn
+                    for nn in associated_nn:
+                        frd_nodes[nn] = en
 
-        # block end
-        if line[:3] == " -3":
-            if read_mesh is True:
-                read_mesh = False
-                frd_nodes_sorted = sorted(frd_nodes.items())  # [(nn, en), ...]
+            # block end
+            if line[:3] == " -3":
+                if read_mesh is True:
+                    read_mesh = False
+                    frd_nodes_sorted = sorted(frd_nodes.items())  # [(nn, en), ...]
+                elif read_stress is True:
+                    read_stress = False
+                    FI_elm = {}
+                    for en in elm_nodes:
+                        FI_elm[en] = [[] for _ in range(len(self.criteria))]
+                        if en in self.criteria_elm:
+                            for FIn in self.criteria_elm[en]:
+                                for nn in elm_nodes[en]:
+                                    FI_elm[en][FIn].append(FI_node[nn][FIn])
+                    FI_step.append({})
+                    for en in FI_elm:
+                        self.save_FI(sn, en)
+
+            # reading stresses
+            elif line[:11] == " -4  STRESS":
+                read_stress = True
+                sn += 1
+                FI_node = {}
+                for nn in frd_nodes:
+                    FI_node[nn] = [[] for _ in range(len(self.criteria))]
+                next_node = 0
             elif read_stress is True:
-                read_stress = False
-                FI_elm = {}
-                for en in elm_nodes:
-                    FI_elm[en] = [[] for _ in range(len(criteria))]
-                    if en in criteria_elm:
-                        for FIn in criteria_elm[en]:
-                            for nn in elm_nodes[en]:
-                                FI_elm[en][FIn].append(FI_node[nn][FIn])
-                FI_step.append({})
-                for en in FI_elm:
-                    save_FI(sn, en)
-
-        # reading stresses
-        elif line[:11] == " -4  STRESS":
-            read_stress = True
-            sn += 1
-            FI_node = {}
-            for nn in frd_nodes:
-                FI_node[nn] = [[] for _ in range(len(criteria))]
-            next_node = 0
-        elif read_stress is True:
-            if line[:3] == " -1":
-                nn = int(line[3:13])
-                if nn == frd_nodes_sorted[next_node][0]:
-                    next_node += 1
-                    sxx = float(line[13:25])
-                    syy = float(line[25:37])
-                    szz = float(line[37:49])
-                    sxy = float(line[49:61])
-                    syz = float(line[61:73])
-                    szx = float(line[73:85])
-                    syx = sxy
-                    szy = syz
-                    sxz = szx
-                    en = frd_nodes[nn]
-                    compute_FI()
-                    if sn in memorized_steps:
-                        try:
-                            step_stress[sn][en]
-                        except KeyError:
-                            step_stress[sn][en] = {}
-                        step_stress[sn][en][nn] = [sxx, syy, szz, sxy, sxz, syz]
-    f.close()
+                if line[:3] == " -1":
+                    nn = int(line[3:13])
+                    if nn == frd_nodes_sorted[next_node][0]:
+                        next_node += 1
+                        self.sxx = float(line[13:25])
+                        self.syy = float(line[25:37])
+                        self.szz = float(line[37:49])
+                        self.sxy = float(line[49:61])
+                        self.syz = float(line[61:73])
+                        self.szx = float(line[73:85])
+                        self.syx = sxy
+                        self.szy = syz
+                        self.sxz = szx
+                        self.en = frd_nodes[nn]
+                        self.compute_FI()
+                        if sn in self.memorized_steps:
+                            try:
+                                self.step_stress[sn][en]
+                            except KeyError:
+                                self.step_stress[sn][en] = {}
+                            self.step_stress[sn][en][nn] = [sxx, syy, szz, sxy, sxz, syz]
+        self.f.close()
 
     # superposed steps
     # step_stress = {sn: {en: [[sxx, syy, szz, sxy, sxz, syz], next node], next element with nodal stresses}, next step, ...}
     # steps_superposition = [[(sn, scale), next scaled step to add, ...], next superposed step]
-    for LCn in range(len(steps_superposition)):
-        FI_step.append({})
+        for LCn in range(len(self.steps_superposition)):
+            FI_step.append({})
 
-        # sum scaled stress components at each integration node
-        superposition_stress = {}
-        for (scale, sn) in steps_superposition[LCn]:
-            sn -= 1  # step numbering in CalculiX is from 1, but we have it 0 based
-            for en in step_stress[sn]:
-                try:
-                    superposition_stress[en]
-                except KeyError:
-                    superposition_stress[en] = {}  # for nodes
-                for nn in elm_nodes[en]:
+            # sum scaled stress components at each integration node
+            superposition_stress = {}
+            for (scale, sn) in self.steps_superposition[LCn]:
+                sn -= 1  # step numbering in CalculiX is from 1, but we have it 0 based
+                for en in self.step_stress[sn]:
                     try:
-                        superposition_stress[en][nn]
+                        superposition_stress[en]
                     except KeyError:
-                        superposition_stress[en][nn] = [0, 0, 0, 0, 0, 0]  # components of stress
-                    for component in range(6):
-                        superposition_stress[en][nn][component] += scale * step_stress[sn][en][nn][component]
-
-        # compute FI in each element at superposed step
-        for en in superposition_stress:
-            FI_node = {}
-            for nn in elm_nodes[en]:
-                FI_node[nn] = [[] for _ in range(len(criteria))]
-                sxx = superposition_stress[en][nn][0]
-                syy = superposition_stress[en][nn][1]
-                szz = superposition_stress[en][nn][2]
-                sxy = superposition_stress[en][nn][3]
-                sxz = superposition_stress[en][nn][4]
-                syz = superposition_stress[en][nn][5]
-                syx = sxy
-                szx = sxz
-                szy = syz
-                compute_FI()  # fill FI_node
-            FI_elm[en] = [[] for _ in range(len(criteria))]
-
-            if en in criteria_elm:
-                for FIn in criteria_elm[en]:
+                        superposition_stress[en] = {}  # for nodes
                     for nn in elm_nodes[en]:
-                        FI_elm[en][FIn].append(FI_node[nn][FIn])
-            sn = -1  # last step number
-            save_FI(sn, en)  # save value to FI_step for given en
+                        try:
+                            superposition_stress[en][nn]
+                        except KeyError:
+                            superposition_stress[en][nn] = [0, 0, 0, 0, 0, 0]  # components of stress
+                        for component in range(6):
+                            superposition_stress[en][nn][component] += scale * self.step_stress[sn][en][nn][component]
 
-    return FI_step
+            # compute FI in each element at superposed step
+            for en in superposition_stress:
+                FI_node = {}
+                for nn in elm_nodes[en]:
+                    FI_node[nn] = [[] for _ in range(len(self.criteria))]
+                    self.sxx = superposition_stress[en][nn][0]
+                    self.syy = superposition_stress[en][nn][1]
+                    self.szz = superposition_stress[en][nn][2]
+                    self.sxy = superposition_stress[en][nn][3]
+                    self.sxz = superposition_stress[en][nn][4]
+                    self.syz = superposition_stress[en][nn][5]
+                    self.syx = self.sxy
+                    self.szx = self.sxz
+                    self.szy = self.syz
+                    self.compute_FI()  # fill FI_node
+                FI_elm[en] = [[] for _ in range(len(self.criteria))]
+
+                if en in self.criteria_elm:
+                    for FIn in self.criteria_elm[en]:
+                        for nn in elm_nodes[en]:
+                            FI_elm[en][FIn].append(FI_node[nn][FIn])
+                sn = -1  # last step number
+                self.save_FI(sn, en)  # save value to FI_step for given en
+
+        return FI_step
 
 
 # function for switch element states

@@ -450,7 +450,7 @@ class BesoMain:
                                                    self.domains_from_config, self.steps_superposition, self.displacement_graph)
             if self.reference_points == "nodes":  # from .frd file
                 FI_step = self.beso_lib.import_FI_node(self.reference_value, file_nameW, domains, self.criteria, self.domain_FI, self.file_name,
-                                                       elm_states, self.steps_superposition)
+                                                       elm_states, self.steps_superposition).import_FI_node()
                 disp_i = self.beso_lib.import_displacement(
                     file_nameW, self.displacement_graph, self.steps_superposition)
             disp_max.append(disp_i)
