@@ -434,7 +434,7 @@ class BesoMain:
                                     self.domain_optimized, self.domain_thickness, self.domain_offset, self.domain_orientation, self.domain_material,
                                     domain_volumes, domain_shells, plane_strain, plane_stress, axisymmetry, self.save_iteration_results,
                                     i, self.reference_points, self.shells_as_composite, self.optimization_base, self.displacement_graph,
-                                    self.domain_FI_filled)
+                                    self.domain_FI_filled).write_inp_function()
             # running CalculiX analysis
 
             if self.sys.platform.startswith('linux'):

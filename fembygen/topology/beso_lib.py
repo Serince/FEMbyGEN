@@ -479,186 +479,212 @@ class elm_volume_cg:
 
 # function for copying .inp file with additional elsets, materials, solid and shell sections, different output request
 # elm_states is a dict of the elements containing 0 for void element or 1 for full element
-def write_inp(file_name, file_nameW, elm_states, number_of_states, domains, domains_from_config, domain_optimized,
-              domain_thickness, domain_offset, domain_orientation, domain_material, domain_volumes, domain_shells,
-              plane_strain, plane_stress, axisymmetry, save_iteration_results, i, reference_points, shells_as_composite,
-              optimization_base, displacement_graph, domain_FI_filled):
-    if reference_points == "nodes":
-        fR = open(file_name[:-4] + "_separated.inp", "r")
-    else:
-        fR = open(file_name, "r")
+class write_inp:
 
-    fW = open(file_nameW + ".inp", "w", newline="\n")
-
+    def __init__(self,file_name, file_nameW, elm_states, number_of_states, domains, domains_from_config, domain_optimized,
+            domain_thickness, domain_offset, domain_orientation, domain_material, domain_volumes, domain_shells,
+            plane_strain, plane_stress, axisymmetry, save_iteration_results, i, reference_points, shells_as_composite,
+            optimization_base, displacement_graph, domain_FI_filled):
+        self.file_name=file_name
+        self.file_nameW=file_nameW
+        self.elm_states=elm_states
+        self.number_of_states=number_of_states
+        self.domains=domains
+        self.domains_from_config=domains_from_config
+        self.domain_optimized=domain_optimized
+        self.domain_thickness=domain_thickness
+        self.domain_offset=domain_offset
+        self.domain_orientation=domain_orientation
+        self.domain_material=domain_material
+        self.domain_volumes=domain_volumes
+        self.domain_shells=domain_shells
+        self.plane_strain=plane_strain
+        self.plane_stress=plane_stress
+        self.axisymmetry=axisymmetry
+        self.save_iteration_results=save_iteration_results
+        self.save_iteration_results=save_iteration_results
+        self.i=i
+        self.reference_points=reference_points
+        self.shells_as_composite=shells_as_composite
+        self.optimization_base=optimization_base
+        self.displacement_graph=displacement_graph
+        self.domain_FI_filled=domain_FI_filled
+        
+        if self.reference_points == "nodes":
+            self.fR = open(self.file_name[:-4] + "_separated.inp", "r")
+        else:
+            self.fR = open(self.file_name, "r")
+        self.fW = open(self.file_nameW + ".inp", "w", newline="\n")
+        
     # function for writing ELSETs of each state
 
-    def write_elset():
-        fW.write(" \n")
-        fW.write("** Added ELSETs by optimization:\n")
-        for dn in domains_from_config:
-            if domain_optimized[dn] is True:
-                elsets_used[dn] = []
-                elset_new[dn] = {}
-                for sn in range(number_of_states):
-                    elset_new[dn][sn] = []
-                    for en in domains[dn]:
-                        if elm_states[en] == sn:
-                            elset_new[dn][elm_states[en]].append(en)
-                for sn, en_list in elset_new[dn].items():
+    def write_elset(self):
+        self.fW.write(" \n")
+        self.fW.write("** Added ELSETs by optimization:\n")
+        for self.dn in self.domains_from_config:
+            if self.domain_optimized[self.dn] is True:
+                self.elsets_used[self.dn] = []
+                self.elset_new[self.dn] = {}
+                for self.sn in range(self.number_of_states):
+                    self.elset_new[self.dn][self.sn] = []
+                    for en in self.domains[self.dn]:
+                        if self.elm_states[en] == self.sn:
+                            self.elset_new[self.dn][self.elm_states[en]].append(en)
+                for self.sn, en_list in self.elset_new[self.dn].items():
                     if en_list:
-                        elsets_used[dn].append(sn)
-                        fW.write("*ELSET,ELSET=" + dn + str(sn) + "\n")
+                        self.elsets_used[self.dn].append(self.sn)
+                        self.fW.write("*ELSET,ELSET=" + self.dn + str(self.sn) + "\n")
                         position = 0
                         for en in en_list:
                             if position < 8:
-                                fW.write(str(en) + ", ")
+                                self.fW.write(str(en) + ", ")
                                 position += 1
                             else:
-                                fW.write(str(en) + ",\n")
+                                self.fW.write(str(en) + ",\n")
                                 position = 0
-                        fW.write("\n")
-        fW.write(" \n")
+                        self.fW.write("\n")
+        self.fW.write(" \n")
         # all available elsets together
-        if "all_available" in domains.keys():
-            fW.write(" \n")
-            fW.write("*ELSET,ELSET=all_available\n")
+        if "all_available" in self.domains.keys():
+            self.fW.write(" \n")
+            self.fW.write("*ELSET,ELSET=all_available\n")
             position = 0
-            for en in domains["all_available"]:
+            for en in self.domains["all_available"]:
                 if position < 8:
-                    fW.write(str(en) + ", ")
+                    self.fW.write(str(en) + ", ")
                     position += 1
                 else:
-                    fW.write(str(en) + ",\n")
+                    self.fW.write(str(en) + ",\n")
                     position = 0
-            fW.write("\n")
+            self.fW.write("\n")
 
     # function to add orientation to solid or shell section
-    def add_orientation():
+    def add_orientation(self):
         try:
-            fW.write(", ORIENTATION=" + domain_orientation[dn][sn] + "\n")
+            self.fW.write(", ORIENTATION=" + self.domain_orientation[self.dn][self.sn] + "\n")
         except (KeyError, IndexError):
-            fW.write("\n")
+            self.fW.write("\n")
+    def write_inp_function(self):
 
-    elsets_done = 0
-    sections_done = 0
-    outputs_done = 1
-    commenting = False
-    elset_new = {}
-    elsets_used = {}
-    msg_error = ""
-    for line in fR:
-        if line[0] == "*":
-            commenting = False
+        elsets_done = 0
+        sections_done = 0
+        outputs_done = 1
+        commenting = False
+        self.elset_new = {}
+        self.elsets_used = {}
+        msg_error = ""
+        for line in self.fR:
+            if line[0] == "*":
+                commenting = False
 
-        # writing ELSETs
-        if (line[:6].upper() == "*ELSET" and elsets_done == 0) or (line[:5].upper() == "*STEP" and elsets_done == 0):
-            write_elset()
-            elsets_done = 1
-
-        # optimization materials, solid and shell sections
-        if line[:5].upper() == "*STEP" and sections_done == 0:
-            if elsets_done == 0:
-                write_elset()
+            # writing ELSETs
+            if (line[:6].upper() == "*ELSET" and elsets_done == 0) or (line[:5].upper() == "*STEP" and elsets_done == 0):
+                self.write_elset()
                 elsets_done = 1
 
-            fW.write(" \n")
-            fW.write("** Materials and sections in optimized domains\n")
-            fW.write("** (redefines elements properties defined above):\n")
-            for dn in domains_from_config:
-                if domain_optimized[dn]:
-                    print(elsets_used)
-                    for sn in elsets_used[dn]:
-                        print(sn)
+            # optimization materials, solid and shell sections
+            if line[:5].upper() == "*STEP" and sections_done == 0:
+                if elsets_done == 0:
+                    self.write_elset()
+                    elsets_done = 1
 
-                        fW.write("*MATERIAL, NAME=" + dn + str(sn) + "\n")
-                        fW.write(
-                            f'*ELASTIC\n{domain_material[dn][0]:.6}, {domain_material[dn][1]:.6}\n*DENSITY\n{domain_material[dn][2]:.6}\n*CONDUCTIVITY')
-                        fW.write(
-                            f'\n{domain_material[dn][3]:.6}\n*EXPANSION\n{domain_material[dn][4]:.6}\n*SPECIFIC HEAT\\n{domain_material[dn][5]:.6}\n')
+                self.fW.write(" \n")
+                self.fW.write("** Materials and sections in optimized domains\n")
+                self.fW.write("** (redefines elements properties defined above):\n")
+                for dn in self.domains_from_config:
+                    if self.domain_optimized[dn]:
+                        print(self.elsets_used)
+                        for sn in self.elsets_used[dn]:
+                            print(sn)
 
-                        if domain_volumes[dn]:
-                            fW.write("*SOLID SECTION, ELSET=" + dn + str(sn) + ", MATERIAL=" + dn + str(sn))
-                            add_orientation()
-                        elif len(plane_strain.intersection(domain_shells[dn])) == len(domain_shells[dn]):
-                            fW.write("*SOLID SECTION, ELSET=" + dn + str(sn) + ", MATERIAL=" + dn + str(sn))
-                            add_orientation()
-                            fW.write(str(domain_thickness[dn][sn]) + "\n")
-                        elif plane_strain.intersection(domain_shells[dn]):
-                            msg_error = dn + " domain does not contain only plane strain types for 2D elements"
-                        elif len(plane_stress.intersection(domain_shells[dn])) == len(domain_shells[dn]):
-                            fW.write("*SOLID SECTION, ELSET=" + dn + str(sn) + ", MATERIAL=" + dn + str(sn))
-                            add_orientation()
-                            fW.write(str(domain_thickness[dn][sn]) + "\n")
-                        elif plane_stress.intersection(domain_shells[dn]):
-                            msg_error = dn + " domain does not contain only plane stress types for 2D elements"
-                        elif len(axisymmetry.intersection(domain_shells[dn])) == len(domain_shells[dn]):
-                            fW.write("*SOLID SECTION, ELSET=" + dn + str(sn) + ", MATERIAL=" + dn + str(sn))
-                            add_orientation()
-                        elif axisymmetry.intersection(domain_shells[dn]):
-                            msg_error = dn + " domain does not contain only axisymmetry types for 2D elements"
-                        elif shells_as_composite is True:
-                            fW.write("*SHELL SECTION, ELSET=" + dn + str(sn) + ", OFFSET=" + str(domain_offset[dn]) +
-                                     ", COMPOSITE")
-                            add_orientation()
-                            # 0.1 + 0.8 + 0.1 of thickness, , material name
-                            fW.write(str(0.1 * domain_thickness[dn][sn]) + ",," + dn + str(sn) + "\n")
-                            fW.write(str(0.8 * domain_thickness[dn][sn]) + ",," + dn + str(sn) + "\n")
-                            fW.write(str(0.1 * domain_thickness[dn][sn]) + ",," + dn + str(sn) + "\n")
-                        else:
-                            fW.write("*SHELL SECTION, ELSET=" + dn + str(sn) + ", MATERIAL=" + dn + str(sn) +
-                                     ", OFFSET=" + str(domain_offset[dn]))
-                            add_orientation()
-                            fW.write(str(domain_thickness[dn][sn]) + "\n")
-                        fW.write(" \n")
-                        if msg_error:
-                            write_to_log(file_name, "\nERROR: " + msg_error + "\n")
-                            raise Exception(msg_error)
-            sections_done = 1
+                            self.fW.write("*MATERIAL, NAME=" + dn + str(sn) + "\n")
+                            self.fW.write(
+                                f'*ELASTIC\n{self.domain_material[dn][0]:.6}, {self.domain_material[dn][1]:.6}\n*DENSITY\n{self.domain_material[dn][2]:.6}\n*CONDUCTIVITY')
+                            self.fW.write(
+                                f'\n{self.domain_material[dn][3]:.6}\n*EXPANSION\n{self.domain_material[dn][4]:.6}\n*SPECIFIC HEAT\\n{self.domain_material[dn][5]:.6}\n')
 
-        if line[:5].upper() == "*STEP":
-            outputs_done -= 1
+                            if self.domain_volumes[dn]:
+                                self.fW.write("*SOLID SECTION, ELSET=" + dn + str(sn) + ", MATERIAL=" + dn + str(sn))
+                                self.add_orientation()
+                            elif len(self.plane_strain.intersection(self.domain_shells[dn])) == len(self.domain_shells[dn]):
+                                self.fW.write("*SOLID SECTION, ELSET=" + dn + str(sn) + ", MATERIAL=" + dn + str(sn))
+                                self.add_orientation()
+                                self.fW.write(str(self.domain_thickness[dn][sn]) + "\n")
+                            elif self.plane_strain.intersection(self.domain_shells[dn]):
+                                msg_error = dn + " domain does not contain only plane strain types for 2D elements"
+                            elif len(self.plane_stress.intersection(self.domain_shells[dn])) == len(self.domain_shells[dn]):
+                                self.fW.write("*SOLID SECTION, ELSET=" + dn + str(sn) + ", MATERIAL=" + dn + str(sn))
+                                self.add_orientation()
+                                self.fW.write(str(self.domain_thickness[dn][sn]) + "\n")
+                            elif self.plane_stress.intersection(self.domain_shells[dn]):
+                                msg_error = dn + " domain does not contain only plane stress types for 2D elements"
+                            elif len(self.axisymmetry.intersection(self.domain_shells[dn])) == len(self.domain_shells[dn]):
+                                self.fW.write("*SOLID SECTION, ELSET=" + dn + str(sn) + ", MATERIAL=" + dn + str(sn))
+                                self.add_orientation()
+                            elif self.axisymmetry.intersection(self.domain_shells[dn]):
+                                msg_error = dn + " domain does not contain only axisymmetry types for 2D elements"
+                            elif self.shells_as_composite is True:
+                                self.fW.write("*SHELL SECTION, ELSET=" + dn + str(sn) + ", OFFSET=" + str(self.domain_offset[dn]) +
+                                        ", COMPOSITE")
+                                self.add_orientation()
+                                # 0.1 + 0.8 + 0.1 of thickness, , material name
+                                self.fW.write(str(0.1 * self.domain_thickness[dn][sn]) + ",," + dn + str(sn) + "\n")
+                                self.fW.write(str(0.8 * self.domain_thickness[dn][sn]) + ",," + dn + str(sn) + "\n")
+                                self.fW.write(str(0.1 * self.domain_thickness[dn][sn]) + ",," + dn + str(sn) + "\n")
+                            else:
+                                self.fW.write("*SHELL SECTION, ELSET=" + dn + str(sn) + ", MATERIAL=" + dn + str(sn) +
+                                        ", OFFSET=" + str(self.domain_offset[dn]))
+                                self.add_orientation()
+                                self.fW.write(str(self.domain_thickness[dn][sn]) + "\n")
+                            self.fW.write(" \n")
+                            if msg_error:
+                                BesoLib_types.write_to_log(self.file_name, "\nERROR: " + msg_error + "\n")
+                                raise Exception(msg_error)
+                sections_done = 1
 
-        # output request only for element stresses in .dat file:
-        if line[0:10].upper() == "*NODE FILE" or line[0:8].upper() == "*EL FILE" or \
-                line[0:13].upper() == "*CONTACT FILE" or line[0:11].upper() == "*NODE PRINT" or \
-                line[0:9].upper() == "*EL PRINT" or line[0:14].upper() == "*CONTACT PRINT":
-            if outputs_done < 1:
-                fW.write(" \n")
-                if optimization_base in ["stiffness", "buckling"]:
-                    for dn in domains_from_config:
-                        fW.write("*EL PRINT, " + "ELSET=" + dn + "\n")
-                        fW.write("ENER\n")
-                if optimization_base == "heat":
-                    for dn in domains_from_config:
-                        fW.write("*EL PRINT, " + "ELSET=" + dn + ", FREQUENCY=1000" + "\n")
-                        fW.write("HFL\n")
-                if (reference_points == "integration points") and (domain_FI_filled is True):
-                    for dn in domains_from_config:
-                        fW.write("*EL PRINT, " + "ELSET=" + dn + "\n")
-                        fW.write("S\n")
-                elif reference_points == "nodes":
-                    fW.write("*EL FILE, GLOBAL=NO\n")
-                    fW.write("S\n")
-                if displacement_graph:
-                    ns_written = []
-                    for [ns, component] in displacement_graph:
-                        if ns not in ns_written:
-                            ns_written.append(ns)
-                            fW.write("*NODE PRINT, NSET=" + ns + "\n")
-                            fW.write("U\n")
-                fW.write(" \n")
-                outputs_done += 1
-            commenting = True
-            if not save_iteration_results or np.mod(float(i - 1), save_iteration_results) != 0:
-                continue
-        elif commenting is True:
-            if not save_iteration_results or np.mod(float(i - 1), save_iteration_results) != 0:
-                continue
+            if line[:5].upper() == "*STEP":
+                outputs_done -= 1
 
-        fW.write(line)
-    fR.close()
-    fW.close()
+            # output request only for element stresses in .dat file:
+            if line[0:10].upper() == "*NODE FILE" or line[0:8].upper() == "*EL FILE" or \
+                    line[0:13].upper() == "*CONTACT FILE" or line[0:11].upper() == "*NODE PRINT" or \
+                    line[0:9].upper() == "*EL PRINT" or line[0:14].upper() == "*CONTACT PRINT":
+                if outputs_done < 1:
+                    self.fW.write(" \n")
+                    if self.optimization_base in ["stiffness", "buckling"]:
+                        for dn in self.domains_from_config:
+                            self.fW.write("*EL PRINT, " + "ELSET=" + dn + "\n")
+                            self.fW.write("ENER\n")
+                    if self.optimization_base == "heat":
+                        for dn in self.domains_from_config:
+                            self.fW.write("*EL PRINT, " + "ELSET=" + dn + ", FREQUENCY=1000" + "\n")
+                            self.fW.write("HFL\n")
+                    if (self.reference_points == "integration points") and (self.domain_FI_filled is True):
+                        for dn in self.domains_from_config:
+                            self.fW.write("*EL PRINT, " + "ELSET=" + dn + "\n")
+                            self.fW.write("S\n")
+                    elif self.reference_points == "nodes":
+                        self.fW.write("*EL FILE, GLOBAL=NO\n")
+                        self.fW.write("S\n")
+                    if self.displacement_graph:
+                        ns_written = []
+                        for [ns, component] in self.displacement_graph:
+                            if ns not in ns_written:
+                                ns_written.append(ns)
+                                self.fW.write("*NODE PRINT, NSET=" + ns + "\n")
+                                self.fW.write("U\n")
+                    self.fW.write(" \n")
+                    outputs_done += 1
+                commenting = True
+                if not self.save_iteration_results or np.mod(float(self.i - 1), self.save_iteration_results) != 0:
+                    continue
+            elif commenting is True:
+                if not self.save_iteration_results or np.mod(float(self.i - 1), self.save_iteration_results) != 0:
+                    continue
 
+            self.fW.write(line)
+        self.fR.close()
+        self.fW.close()
 
 # function for importing results from .dat file
 # Failure Indices are computed at each integration point and maximum or average above each element is returned
