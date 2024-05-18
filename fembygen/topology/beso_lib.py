@@ -1310,206 +1310,234 @@ class import_FI_node:
 
 
 # function for switch element states
-def switching(elm_states, domains_from_config, domain_optimized, domains, FI_step_max, domain_density, domain_thickness,
-              domain_shells, area_elm, volume_elm, sensitivity_number, mass, mass_referential, mass_addition_ratio,
-              mass_removal_ratio, compensate_state_filter, mass_excess, decay_coefficient, FI_violated, i_violated, i,
-              mass_goal_i, domain_same_state):
+class switching:
+    def __init__(self,elm_states, domains_from_config, domain_optimized, domains, FI_step_max, domain_density, domain_thickness,
+            domain_shells, area_elm, volume_elm, sensitivity_number, mass, mass_referential, mass_addition_ratio,
+            mass_removal_ratio, compensate_state_filter, mass_excess, decay_coefficient, FI_violated, i_violated, i,
+            mass_goal_i, domain_same_state):
+        self.elm_states=elm_states
+        self.domains_from_config=domains_from_config
+        self.domain_optimized=domain_optimized
+        self.domains=domains
+        self.FI_step_max=FI_step_max
+        self.domain_density=domain_density
+        self.domain_thickness=domain_thickness
+        self.domain_shells=domain_shells
+        self.area_elm=area_elm
+        self.volume_elm=volume_elm
+        self.sensitivity_number=sensitivity_number
+        self.mass=mass
+        self.mass_referential=mass_referential
+        self.mass_addition_ratio=mass_addition_ratio
+        self.mass_removal_ratio=mass_removal_ratio
+        self.compensate_state_filter=compensate_state_filter
+        self.mass_excess=mass_excess
+        self.decay_coefficient=decay_coefficient
+        self.FI_violated=FI_violated
+        self.i_violated=i_violated
+        self.i=i
+        self.mass_goal_i=mass_goal_i
+        self.domain_same_state=domain_same_state
 
-    def compute_difference(failing=False):
-        if en in domain_shells[dn]:  # shells mass difference
-            mass[i] += area_elm[en] * domain_density[dn][elm_states_en] * domain_thickness[dn][elm_states_en]
-            if (failing is False) and (elm_states_en != 0):  # for potential switching down
-                mass_decrease[en] = area_elm[en] * (
-                    domain_density[dn][elm_states_en] * domain_thickness[dn][elm_states_en] -
-                    domain_density[dn][elm_states_en - 1] * domain_thickness[dn][elm_states_en - 1])
-            if elm_states_en < len(domain_density[dn]) - 1:  # for potential switching up
-                mass_increase[en] = area_elm[en] * (
-                    domain_density[dn][elm_states_en + 1] * domain_thickness[dn][elm_states_en + 1] -
-                    domain_density[dn][elm_states_en] * domain_thickness[dn][elm_states_en])
+
+
+
+    def compute_difference(self,failing=False):
+        if self.en in self.domain_shells[self.dn]:  # shells mass difference
+            self.mass[self.i] += self.area_elm[self.en] * self.domain_density[self.dn][self.elm_states_en] * self.domain_thickness[self.dn][self.elm_states_en]
+            if (failing is False) and (self.elm_states_en != 0):  # for potential switching down
+                self.mass_decrease[self.en] = self.area_elm[self.en] * (
+                    self.domain_density[self.dn][self.elm_states_en] * self.domain_thickness[self.dn][self.elm_states_en] -
+                    self.domain_density[self.dn][self.elm_states_en - 1] * self.domain_thickness[self.dn][self.elm_states_en - 1])
+            if self.elm_states_en < len(self.domain_density[self.dn]) - 1:  # for potential switching up
+                self.mass_increase[self.en] = self.area_elm[self.en] * (
+                    self.domain_density[self.dn][self.elm_states_en + 1] * self.domain_thickness[self.dn][self.elm_states_en + 1] -
+                    self.domain_density[self.dn][self.elm_states_en] * self.domain_thickness[self.dn][self.elm_states_en])
         else:  # volumes mass difference
-            mass[i] += volume_elm[en] * domain_density[dn][elm_states_en]
-            if (failing is False) and (elm_states_en != 0):  # for potential switching down
-                mass_decrease[en] = volume_elm[en] * (
-                    domain_density[dn][elm_states_en] - domain_density[dn][elm_states_en - 1])
-            if elm_states_en < len(domain_density[dn]) - 1:  # for potential switching up
-                mass_increase[en] = volume_elm[en] * (
-                    domain_density[dn][elm_states_en + 1] - domain_density[dn][elm_states_en])
-
-    mass_increase = {}
-    mass_decrease = {}
-    sensitivity_number_opt = {}
-    mass.append(0)
-    mass_overloaded = 0.0
-    # switch up overloaded elements
-    for dn in domains_from_config:
-        if domain_optimized[dn] is True:
-            len_domain_density_dn = len(domain_density[dn])
-            if domain_same_state[dn] in ["max", "average"]:
-                new_state = 0
-                failing = False
-                highest_state = 0
-                sensitivity_number_list = []
-                sensitivity_number_of_domain = 0
-                for en in domains[dn]:  # find highest state, sensitivity number and if failing
-                    elm_states_en = elm_states[en]
-                    if elm_states_en >= highest_state:
-                        if domain_same_state[dn] == "max":
-                            sensitivity_number_of_domain = max(sensitivity_number_of_domain, sensitivity_number[en])
-                        highest_state = elm_states_en
-                    if FI_step_max[en] >= 1:  # new state if failing
-                        failing = True
-                        if elm_states_en < len_domain_density_dn - 1:
-                            new_state = max(new_state, elm_states_en + 1)
+            self.mass[self.i] += self.volume_elm[self.en] * self.domain_density[self.dn][self.elm_states_en]
+            if (failing is False) and (self.elm_states_en != 0):  # for potential switching down
+                self.mass_decrease[self.en] = self.volume_elm[self.en] * (
+                    self.domain_density[self.dn][self.elm_states_en] - self.domain_density[self.dn][self.elm_states_en - 1])
+            if self.elm_states_en < len(self.domain_density[self.dn]) - 1:  # for potential switching up
+                self.mass_increase[self.en] = self.volume_elm[self.en] * (
+                    self.domain_density[self.dn][self.elm_states_en + 1] - self.domain_density[self.dn][self.elm_states_en])
+    def switching(self):
+        self.mass_increase = {}
+        self.mass_decrease = {}
+        sensitivity_number_opt = {}
+        self.mass.append(0)
+        mass_overloaded = 0.0
+        # switch up overloaded elements
+        for self.dn in self.domains_from_config:
+            if self.domain_optimized[self.dn] is True:
+                len_domain_density_dn = len(self.domain_density[self.dn])
+                if self.domain_same_state[self.dn] in ["max", "average"]:
+                    new_state = 0
+                    failing = False
+                    highest_state = 0
+                    sensitivity_number_list = []
+                    sensitivity_number_of_domain = 0
+                    for self.en in self.domains[self.dn]:  # find highest state, sensitivity number and if failing
+                        self.elm_states_en = self.elm_states[self.en]
+                        if self.elm_states_en >= highest_state:
+                            if self.domain_same_state[self.dn] == "max":
+                                sensitivity_number_of_domain = max(sensitivity_number_of_domain, self.sensitivity_number[self.en])
+                            highest_state = self.elm_states_en
+                        if self.FI_step_max[self.en] >= 1:  # new state if failing
+                            failing = True
+                            if self.elm_states_en < len_domain_density_dn - 1:
+                                new_state = max(new_state, self.elm_states_en + 1)
+                            else:
+                                new_state = max(new_state, self.elm_states_en)
                         else:
-                            new_state = max(new_state, elm_states_en)
-                    else:
-                        new_state = max(new_state, elm_states_en)
-                    if domain_same_state[dn] == "average":
-                        sensitivity_number_list.append(sensitivity_number[en])
+                            new_state = max(new_state, self.elm_states_en)
+                        if self.domain_same_state[self.dn] == "average":
+                            sensitivity_number_list.append(self.sensitivity_number[self.en])
 
-                if domain_same_state[dn] == "average":
-                    sensitivity_number_of_domain = np.average(sensitivity_number_list)
+                    if self.domain_same_state[self.dn] == "average":
+                        sensitivity_number_of_domain = np.average(sensitivity_number_list)
 
-                mass_increase[dn] = 0
-                mass_decrease[dn] = 0
-                for en in domains[dn]:  # evaluate mass, prepare to sorting and switching
-                    elm_states[en] = highest_state
-                    elm_states_en = elm_states[en]
-                    compute_difference(failing)
-                    if (failing is True) and (new_state != highest_state):
-                        elm_states[en] = new_state
-                        elm_states_en = elm_states[en]
-                        mass[i] += mass_increase[en]
-                        mass_overloaded += mass_increase[en]
-                        mass_goal_i += mass_increase[en]
-                    elif failing is False:  # use domain name dn instead of element number for future switching
-                        sensitivity_number_opt[dn] = sensitivity_number_of_domain
-                        try:
-                            mass_increase[dn] += mass_increase[en]
-                        except KeyError:
-                            pass
-                        try:
-                            mass_decrease[dn] += mass_decrease[en]
-                        except KeyError:
-                            pass
+                    self.mass_increase[self.dn] = 0
+                    self.mass_decrease[self.dn] = 0
+                    for en in self.domains[self.dn]:  # evaluate mass, prepare to sorting and switching
+                        self.elm_states[self.en] = highest_state
+                        self.elm_states_en = self.elm_states[self.en]
+                        self.compute_difference(failing)
+                        if (failing is True) and (new_state != highest_state):
+                            self.elm_states[self.en] = new_state
+                            self.elm_states_en = self.elm_states[self.en]
+                            self.mass[self.i] += self.mass_increase[self.en]
+                            mass_overloaded += self.mass_increase[self.en]
+                            mass_goal_i += self.mass_increase[self.en]
+                        elif failing is False:  # use domain name dn instead of element number for future switching
+                            sensitivity_number_opt[self.dn] = sensitivity_number_of_domain
+                            try:
+                                self.mass_increase[self.dn] += self.mass_increase[self.en]
+                            except KeyError:
+                                pass
+                            try:
+                                self.mass_decrease[self.dn] += self.mass_decrease[self.en]
+                            except KeyError:
+                                pass
 
-            else:  # domain_same_state is False
-                for en in domains[dn]:
-                    if FI_step_max[en] >= 1:  # increase state if it is not the highest
-                        en_added = False
-                        if elm_states[en] < len_domain_density_dn - 1:
-                            elm_states[en] += 1
-                            en_added = True
-                        elm_states_en = elm_states[en]
-                        if en in domain_shells[dn]:  # shells
-                            mass[i] += area_elm[en] * domain_density[dn][elm_states_en] * domain_thickness[
-                                dn][elm_states_en]
-                            if en_added is True:
-                                mass_difference = area_elm[en] * (
-                                    domain_density[dn][elm_states_en] * domain_thickness[dn][elm_states_en] -
-                                    domain_density[dn][elm_states_en - 1] * domain_thickness[dn][elm_states_en - 1])
-                                mass_overloaded += mass_difference
-                                mass_goal_i += mass_difference
-                        else:  # volumes
-                            mass[i] += volume_elm[en] * domain_density[dn][elm_states_en]
-                            if en_added is True:
-                                mass_difference = volume_elm[en] * (
-                                    domain_density[dn][elm_states_en] - domain_density[dn][elm_states_en - 1])
-                                mass_overloaded += mass_difference
-                                mass_goal_i += mass_difference
-                    else:  # rest of elements prepare to sorting and switching
-                        elm_states_en = elm_states[en]
-                        compute_difference()  # mass to add or remove
-                        sensitivity_number_opt[en] = sensitivity_number[en]
-    # sorting
-    sensitivity_number_sorted = sorted(sensitivity_number_opt.items(), key=operator.itemgetter(1))
-    sensitivity_number_sorted2 = list(sensitivity_number_sorted)
-    if i_violated:
-        if mass_removal_ratio - mass_addition_ratio > 0:  # removing from initial mass
-            mass_to_add = mass_addition_ratio * mass_referential * np.exp(decay_coefficient * (i - i_violated))
-            if sum(FI_violated[i - 1]):
-                mass_to_remove = mass_addition_ratio * mass_referential * np.exp(decay_coefficient * (i - i_violated)) \
-                    - mass_overloaded
-            else:
-                mass_to_remove = mass_removal_ratio * mass_referential * np.exp(decay_coefficient * (i - i_violated)) \
-                    - mass_overloaded
-        else:  # adding to initial mass  TODO include stress limit
-            mass_to_add = mass_removal_ratio * mass_referential * np.exp(decay_coefficient * (i - i_violated))
-            mass_to_remove = mass_to_add
-    else:
-        mass_to_add = mass_addition_ratio * mass_referential
-        mass_to_remove = mass_removal_ratio * mass_referential
-    if compensate_state_filter is True:
-        if mass_excess > 0:
-            mass_to_remove += mass_excess
-        else:  # compensate by adding more mass
-            mass_to_add -= mass_excess
-    mass_added = mass_overloaded
-    mass_removed = 0.0
-    # if mass_goal_i < mass[i - 1]:  # going from bigger mass to lower
-    added_elm = set()
-    while mass_added < mass_to_add:
-        if sensitivity_number_sorted:
-            en = sensitivity_number_sorted.pop(-1)[0]  # highest sensitivity number
-            try:
-                mass[i] += mass_increase[en]
-                mass_added += mass_increase[en]
-                if isinstance(en, int):
-                    elm_states[en] += 1
-                else:  # same state domain en
-                    if mass_increase[en] == 0:
-                        raise KeyError
-                    for en2 in domains[en]:
-                        elm_states[en2] += 1
-                added_elm.add(en)
-            except KeyError:  # there is no mass_increase due to highest element state
-                pass
+                else:  # domain_same_state is False
+                    for self.en in self.domains[self.dn]:
+                        if self.FI_step_max[self.en] >= 1:  # increase state if it is not the highest
+                            en_added = False
+                            if self.elm_states[self.en] < len_domain_density_dn - 1:
+                                self.elm_states[self.en] += 1
+                                en_added = True
+                            self.elm_states_en = self.elm_states[self.en]
+                            if en in self.domain_shells[self.dn]:  # shells
+                                self.mass[self.i] += self.area_elm[self.en] * self.domain_density[self.dn][self.elm_states_en] * self.domain_thickness[
+                                    self.dn][self.elm_states_en]
+                                if en_added is True:
+                                    mass_difference = self.area_elm[self.en] * (
+                                        self.domain_density[self.dn][self.elm_states_en] * self.domain_thickness[self.dn][self.elm_states_en] -
+                                        self.domain_density[self.dn][self.elm_states_en - 1] * self.domain_thickness[self.dn][self.elm_states_en - 1])
+                                    mass_overloaded += mass_difference
+                                    mass_goal_i += mass_difference
+                            else:  # volumes
+                                self.mass[self.i] += self.volume_elm[self.en] * self.domain_density[self.dn][self.elm_states_en]
+                                if en_added is True:
+                                    mass_difference = self.volume_elm[self.en] * (
+                                        self.domain_density[self.dn][self.elm_states_en] - self.domain_density[self.dn][self.elm_states_en - 1])
+                                    mass_overloaded += mass_difference
+                                    mass_goal_i += mass_difference
+                        else:  # rest of elements prepare to sorting and switching
+                            self.elm_states_en = self.elm_states[self.en]
+                            self.compute_difference()  # mass to add or remove
+                            sensitivity_number_opt[self.en] = self.sensitivity_number[self.en]
+        # sorting
+        sensitivity_number_sorted = sorted(sensitivity_number_opt.items(), key=operator.itemgetter(1))
+        sensitivity_number_sorted2 = list(sensitivity_number_sorted)
+        if self.i_violated:
+            if self.mass_removal_ratio - self.mass_addition_ratio > 0:  # removing from initial mass
+                mass_to_add = self.mass_addition_ratio * self.mass_referential * np.exp(self.decay_coefficient * (self.i - self.i_violated))
+                if sum(self.FI_violated[self.i - 1]):
+                    mass_to_remove = self.mass_addition_ratio * self.mass_referential * np.exp(self.decay_coefficient * (self.i - self.i_violated)) \
+                        - mass_overloaded
+                else:
+                    mass_to_remove = self.mass_removal_ratio * self.mass_referential * np.exp(self.decay_coefficient * (self.i - self.i_violated)) \
+                        - mass_overloaded
+            else:  # adding to initial mass  TODO include stress limit
+                mass_to_add = self.mass_removal_ratio * self.mass_referential * np.exp(self.decay_coefficient * (self.i - self.i_violated))
+                mass_to_remove = mass_to_add
         else:
-            break
-    popped = 0
-    while mass_removed < mass_to_remove:
-        if mass[i] <= mass_goal_i:
-            break
-        if sensitivity_number_sorted:
-            en = sensitivity_number_sorted.pop(0)[0]  # lowest sensitivity number
-            popped += 1
-            if isinstance(en, int):
-                if elm_states[en] != 0:
-                    mass[i] -= mass_decrease[en]
-                    mass_removed += mass_decrease[en]
-                    elm_states[en] -= 1
-            else:  # same state domain en
-                if mass_decrease[en] != 0:
-                    mass[i] -= mass_decrease[en]
-                    mass_removed += mass_decrease[en]
-                    for en2 in domains[en]:
-                        elm_states[en2] -= 1
-        else:  # switch down elements just switched up or tried to be switched up (already in the highest state)
-            try:
-                en = sensitivity_number_sorted2[popped][0]
-                popped += 1
-            except IndexError:
+            mass_to_add = self.mass_addition_ratio * self.mass_referential
+            mass_to_remove = self.mass_removal_ratio * self.mass_referential
+        if self.compensate_state_filter is True:
+            if self.mass_excess > 0:
+                mass_to_remove += self.mass_excess
+            else:  # compensate by adding more mass
+                mass_to_add -= self.mass_excess
+        mass_added = mass_overloaded
+        mass_removed = 0.0
+        # if mass_goal_i < mass[i - 1]:  # going from bigger mass to lower
+        added_elm = set()
+        while mass_added < mass_to_add:
+            if sensitivity_number_sorted:
+                self.en = sensitivity_number_sorted.pop(-1)[0]  # highest sensitivity number
+                try:
+                    self.mass[self.i] += self.mass_increase[self.en]
+                    mass_added += self.mass_increase[self.en]
+                    if isinstance(self.en, int):
+                        self.elm_states[self.en] += 1
+                    else:  # same state domain en
+                        if self.mass_increase[self.en] == 0:
+                            raise KeyError
+                        for en2 in self.domains[self.en]:
+                            self.elm_states[en2] += 1
+                    added_elm.add(self.en)
+                except KeyError:  # there is no mass_increase due to highest element state
+                    pass
+            else:
                 break
-            if isinstance(en, int):
-                if elm_states[en] != 0:
-                    elm_states[en] -= 1
-                    if en in added_elm:
-                        mass[i] -= mass_increase[en]
-                        mass_removed += mass_increase[en]
-                    else:
-                        mass[i] -= mass_decrease[en]
-                        mass_removed += mass_decrease[en]
-            else:  # same state domain en
-                if mass_decrease[en] != 0:
-                    for en2 in domains[en]:
-                        elm_states[en2] -= 1
-                    if en in added_elm:
-                        mass[i] -= mass_increase[en]
-                        mass_removed += mass_increase[en]
-                    else:
-                        mass[i] -= mass_decrease[en]
-                        mass_removed += mass_decrease[en]
-    return elm_states, mass
+        popped = 0
+        while mass_removed < mass_to_remove:
+            if self.mass[self.i] <= self.mass_goal_i:
+                break
+            if sensitivity_number_sorted:
+                self.en = sensitivity_number_sorted.pop(0)[0]  # lowest sensitivity number
+                popped += 1
+                if isinstance(self.en, int):
+                    if self.elm_states[self.en] != 0:
+                        self.mass[self.i] -= self.mass_decrease[self.en]
+                        mass_removed += self.mass_decrease[self.en]
+                        self.elm_states[self.en] -= 1
+                else:  # same state domain en
+                    if self.mass_decrease[self.en] != 0:
+                        self.mass[self.i] -= self.mass_decrease[self.en]
+                        mass_removed += self.mass_decrease[self.en]
+                        for en2 in self.domains[self.en]:
+                            self.elm_states[en2] -= 1
+            else:  # switch down elements just switched up or tried to be switched up (already in the highest state)
+                try:
+                    self.en = sensitivity_number_sorted2[popped][0]
+                    popped += 1
+                except IndexError:
+                    break
+                if isinstance(self.en, int):
+                    if self.elm_states[self.en] != 0:
+                        self.elm_states[self.en] -= 1
+                        if self.en in added_elm:
+                            self.mass[self.i] -= self.mass_increase[self.en]
+                            mass_removed += self.mass_increase[self.en]
+                        else:
+                            self.mass[self.i] -= self.mass_decrease[self.en]
+                            mass_removed += self.mass_decrease[self.en]
+                else:  # same state domain en
+                    if self.mass_decrease[self.en] != 0:
+                        for en2 in self.domains[self.en]:
+                            self.elm_states[en2] -= 1
+                        if self.en in added_elm:
+                            self.mass[self.i] -= self.mass_increase[self.en]
+                            mass_removed += self.mass_increase[self.en]
+                        else:
+                            self.mass[self.i] -= self.mass_decrease[self.en]
+                            mass_removed += self.mass_decrease[self.en]
+        return self.elm_states, self.mass
+
 
 
 # function for exporting the resulting mesh in separate files for each state of elm_states

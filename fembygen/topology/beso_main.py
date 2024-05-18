@@ -773,7 +773,7 @@ class BesoMain:
                                                          self.domain_density, self.domain_thickness, domain_shells, area_elm, volume_elm,
                                                          sensitivity_number, mass, mass_referential, self.mass_addition_ratio,
                                                          self.mass_removal_ratio, self.compensate_state_filter, mass_excess, self.decay_coefficient,
-                                                         FI_violated, i_violated, i, mass_goal_i, self.domain_same_state)
+                                                         FI_violated, i_violated, i, mass_goal_i, self.domain_same_state).switching()
 
             # filtering state
             mass_not_filtered = mass[i]  # use variable to store the "right" mass
