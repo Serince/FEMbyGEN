@@ -214,13 +214,13 @@ class BesoMain:
                 for en in domains[dn]:
                     elm_states[en] = sn
         elif self.continue_from[-4:] == ".frd":
-            elm_states = self.beso_lib.import_frd_state(
+            elm_states = self.beso_lib.beso_lib_3.import_frd_state(
                 self.continue_from, elm_states, self.number_of_states, self.file_name)
         elif self.continue_from[-4:] == ".inp":
-            elm_states = self.beso_lib.import_inp_state(
+            elm_states = self.beso_lib.beso_lib_3.import_inp_state(
                 self.continue_from, elm_states, self.number_of_states, self.file_name)
         elif self.continue_from[-4:] == ".csv":
-            elm_states = self.beso_lib.import_csv_state(self.continue_from, elm_states, self.file_name)
+            elm_states = self.beso_lib.beso_lib_3.import_csv_state(self.continue_from, elm_states, self.file_name)
         else:
             for dn in self.domains_from_config:
                 for en in domains[dn]:
@@ -676,7 +676,7 @@ class BesoMain:
             # export element values
             if self.save_iteration_results and self.np.mod(float(i), self.save_iteration_results) == 0:
                 if "csv" in self.save_resulting_format:
-                    self.beso_lib.export_csv(self.domains_from_config, domains, self.criteria, FI_step, FI_step_max, file_nameW, cg,
+                    self.beso_lib.beso_lib_3.export_csv(self.domains_from_config, domains, self.criteria, FI_step, FI_step_max, file_nameW, cg,
                                              elm_states, sensitivity_number)
                 if "vtk" in self.save_resulting_format:
                     self.beso_lib.export_vtk(file_nameW, nodes, Elements, elm_states, sensitivity_number, self.criteria, FI_step,
@@ -719,7 +719,7 @@ class BesoMain:
             if continue_iterations is False or i >= iterations_limit:
                 if not(self.save_iteration_results and self.np.mod(float(i), self.save_iteration_results) == 0):
                     if "csv" in self.save_resulting_format:
-                        self.beso_lib.export_csv(self.domains_from_config, domains, self.criteria, FI_step, FI_step_max, file_nameW, cg,
+                        self.beso_lib.beso_lib_3.export_csv(self.domains_from_config, domains, self.criteria, FI_step, FI_step_max, file_nameW, cg,
                                                  elm_states, sensitivity_number)
                     if "vtk" in self.save_resulting_format:
                         self.beso_lib.export_vtk(file_nameW, nodes, Elements, elm_states, sensitivity_number, self.criteria, FI_step,
