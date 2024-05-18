@@ -1633,17 +1633,16 @@ class export_inp:
         self.Elements=Elements
         self.elm_states=elm_states
         self.number_of_states=number_of_states
-        self.elm_category=elm_category
-
-    def get_associated_nodes(self):
-        for en in self.elm_category:
+        
+    def get_associated_nodes(self,elm_category):
+        for en in elm_category:
             if self.elm_states[en] == self.state:
-                self.associated_nodes.extend(self.elm_category[en])
+                self.associated_nodes.extend(elm_category[en])
 
-    def write_elements_of_type(self, elm_type_inp):
-        if self.elm_type:
+    def write_elements_of_type(self,elm_type, elm_type_inp):
+        if elm_type:
             self.f.write("*ELEMENT, TYPE=" + elm_type_inp + ", ELSET=state" + str(self.state) + "\n")
-            for en, nod in self.elm_type.items():
+            for en, nod in elm_type.items():
                 if self.elm_states[en] == self.state:
                     self.f.write(str(en))
                     for nn in nod:
@@ -1661,7 +1660,7 @@ class export_inp:
             self.get_associated_nodes(self.Elements.tria6)
             self.get_associated_nodes(self.Elements.quad4)
             self.get_associated_nodes(self.Elements.quad8)
-            self. get_associated_nodes(self.Elements.tetra4)
+            self.get_associated_nodes(self.Elements.tetra4)
             self.get_associated_nodes(self.Elements.tetra10)
             self.get_associated_nodes(self.Elements.penta6)
             self.get_associated_nodes(self.Elements.penta15)
@@ -1687,7 +1686,7 @@ class export_inp:
             self.write_elements_of_type(self.Elements.hexa8, "C3D8")
             if self.Elements.hexa20:
                 self.f.write("*ELEMENT, TYPE=C3D20\n")
-                for en, nod in Elements.hexa20.items():
+                for en, nod in self.Elements.hexa20.items():
                     self.f.write(str(en))
                     for nn in nod[:15]:
                         self.f.write(", " + str(nn))

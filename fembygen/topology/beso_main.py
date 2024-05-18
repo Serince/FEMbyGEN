@@ -819,7 +819,7 @@ class BesoMain:
                 if "frd" in self.save_resulting_format:
                     self.beso_lib.export_frd(file_nameW2, nodes, Elements, elm_states, self.number_of_states)
                 if "inp" in self.save_resulting_format:
-                    self.beso_lib.export_inp(file_nameW2, nodes, Elements, elm_states, self.number_of_states)
+                    self.beso_lib.export_inp(file_nameW2, nodes, Elements, elm_states, self.number_of_states).export_inp()
 
             # check for oscillation state
             if elm_states_before_last == elm_states:  # oscillating state
@@ -852,7 +852,7 @@ class BesoMain:
             if "frd" in self.save_resulting_format:
                 self.beso_lib.export_frd(file_nameW, nodes, Elements, elm_states, self.number_of_states)
             if "inp" in self.save_resulting_format:
-                self.beso_lib.export_inp(file_nameW, nodes, Elements, elm_states, self.number_of_states)
+                self.beso_lib.export_inp(file_nameW, nodes, Elements, elm_states, self.number_of_states).export_inp()
 
         # removing solver files
         self.deleteFiles(file_nameW, self.save_solver_files, self.reference_points)
