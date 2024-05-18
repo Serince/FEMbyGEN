@@ -695,7 +695,7 @@ def import_FI_int_pt(reference_value, file_nameW, domains, criteria, domain_FI, 
         f = open(file_nameW + ".dat", "r")
     except IOError:
         msg = "CalculiX result file not found, check your inputs"
-        write_to_log(file_name, "\nERROR: " + msg + "\n")
+        BesoLib_types.write_to_log(file_name, "\nERROR: " + msg + "\n")
         assert False, msg
     last_time = "initial"  # TODO solve how to read a new step which differs in time
     step_number = -1
@@ -742,7 +742,7 @@ def import_FI_int_pt(reference_value, file_nameW, domains, criteria, domain_FI, 
                         FI_int_pt[FIn].append(eval(criterion_value))
                     else:
                         msg = f"\nError: failure criterion {criteria[FIn]} not recognized.\n"
-                        write_to_log(file_name, msg)
+                        BesoLib_types.write_to_log(file_name, msg)
     def save_FI(sn, en):
         FI_step[sn][en] = []
         for FIn in range(len(criteria)):
@@ -1962,7 +1962,7 @@ def import_frd_state(continue_from, elm_states, number_of_states, file_name):
             f = open(continue_from[:-5] + str(state) + ".frd", "r")
         except IOError:
             msg = continue_from[:-5] + str(state) + ".frd" + " file not found. Check your inputs."
-            write_to_log(file_name, "\nERROR: " + msg + "\n")
+            BesoLib_types.write_to_log(file_name, "\nERROR: " + msg + "\n")
             assert False, msg
 
         read_elm = False
@@ -1986,7 +1986,7 @@ def import_inp_state(continue_from, elm_states, number_of_states, file_name):
             f = open(continue_from[:-5] + str(state) + ".inp", "r")
         except IOError:
             msg = continue_from[:-5] + str(state) + ".inp" + " file not found. Check your inputs."
-            write_to_log(file_name, "\nERROR: " + msg + "\n")
+            BesoLib_types.write_to_log(file_name, "\nERROR: " + msg + "\n")
             assert False, msg
 
         read_elm = False
@@ -2011,7 +2011,7 @@ def import_csv_state(continue_from, elm_states, file_name):
         f = open(continue_from, "r")
     except IOError:
         msg = continue_from + " file not found. Check your inputs."
-        write_to_log(file_name, "\nERROR: " + msg + "\n")
+        BesoLib_types.write_to_log(file_name, "\nERROR: " + msg + "\n")
         assert False, msg
 
     headers = f.readline().split(",")
