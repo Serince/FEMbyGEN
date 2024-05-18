@@ -1667,9 +1667,9 @@ class export_inp:
             self.get_associated_nodes(self.Elements.hexa8)
             self.get_associated_nodes(self.Elements.hexa20)
 
-            associated_nodes = sorted(list(set(associated_nodes)))
+            self.associated_nodes = sorted(list(set(self.associated_nodes)))
             self.f.write("*NODE\n")
-            for nn in associated_nodes:
+            for nn in self.associated_nodes:
                 self.f.write(str(nn) + ", % .5E, % .5E, % .5E\n" % (self.nodes[nn][0], self.nodes[nn][1], self.nodes[nn][2]))
             self.f.write("\n")
 
