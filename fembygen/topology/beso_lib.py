@@ -1626,68 +1626,76 @@ def export_frd(file_nameW, nodes, Elements, elm_states, number_of_states):
 
 # function for exporting the resulting mesh in separate files for each state of elm_states
 # only elements found by import_inp function are taken into account
-def export_inp(file_nameW, nodes, Elements, elm_states, number_of_states):
+class export_inp:
+    def __init__(self,file_nameW, nodes, Elements, elm_states, number_of_states,elm_category):
+        self.file_nameW=file_nameW
+        self.nodes=nodes
+        self.Elements=Elements
+        self.elm_states=elm_states
+        self.number_of_states=number_of_states
+        self.elm_category=elm_category
 
-    def get_associated_nodes(elm_category):
-        for en in elm_category:
-            if elm_states[en] == state:
-                associated_nodes.extend(elm_category[en])
+    def get_associated_nodes(self):
+        for en in self.elm_category:
+            if self.elm_states[en] == self.state:
+                self.associated_nodes.extend(self.elm_category[en])
 
-    def write_elements_of_type(elm_type, elm_type_inp):
-        if elm_type:
-            f.write("*ELEMENT, TYPE=" + elm_type_inp + ", ELSET=state" + str(state) + "\n")
-            for en, nod in elm_type.items():
-                if elm_states[en] == state:
-                    f.write(str(en))
+    def write_elements_of_type(self, elm_type_inp):
+        if self.elm_type:
+            self.f.write("*ELEMENT, TYPE=" + elm_type_inp + ", ELSET=state" + str(self.state) + "\n")
+            for en, nod in self.elm_type.items():
+                if self.elm_states[en] == self.state:
+                    self.f.write(str(en))
                     for nn in nod:
-                        f.write(", " + str(nn))
-                    f.write("\n")
+                        self.f.write(", " + str(nn))
+                    self.f.write("\n")
 
     # find all possible states in elm_states and run separately for each of them
-    for state in range(number_of_states):
-        f = open(file_nameW + "_state" + str(state) + ".inp", "w")
+    def export_inp(self):
+        for self.state in range(self.number_of_states):
+            self.f = open(self.file_nameW + "_state" + str(self.state) + ".inp", "w")
 
-        # print nodes
-        associated_nodes = []
-        get_associated_nodes(Elements.tria3)
-        get_associated_nodes(Elements.tria6)
-        get_associated_nodes(Elements.quad4)
-        get_associated_nodes(Elements.quad8)
-        get_associated_nodes(Elements.tetra4)
-        get_associated_nodes(Elements.tetra10)
-        get_associated_nodes(Elements.penta6)
-        get_associated_nodes(Elements.penta15)
-        get_associated_nodes(Elements.hexa8)
-        get_associated_nodes(Elements.hexa20)
+            # print nodes
+            self.associated_nodes = []
+            self.get_associated_nodes(self.Elements.tria3)
+            self.get_associated_nodes(self.Elements.tria6)
+            self.get_associated_nodes(self.Elements.quad4)
+            self.get_associated_nodes(self.Elements.quad8)
+            self. get_associated_nodes(self.Elements.tetra4)
+            self.get_associated_nodes(self.Elements.tetra10)
+            self.get_associated_nodes(self.Elements.penta6)
+            self.get_associated_nodes(self.Elements.penta15)
+            self.get_associated_nodes(self.Elements.hexa8)
+            self.get_associated_nodes(self.Elements.hexa20)
 
-        associated_nodes = sorted(list(set(associated_nodes)))
-        f.write("*NODE\n")
-        for nn in associated_nodes:
-            f.write(str(nn) + ", % .5E, % .5E, % .5E\n" % (nodes[nn][0], nodes[nn][1], nodes[nn][2]))
-        f.write("\n")
+            associated_nodes = sorted(list(set(associated_nodes)))
+            self.f.write("*NODE\n")
+            for nn in associated_nodes:
+                self.f.write(str(nn) + ", % .5E, % .5E, % .5E\n" % (self.nodes[nn][0], self.nodes[nn][1], self.nodes[nn][2]))
+            self.f.write("\n")
 
-        # print elements
-        # prints only basic element types
-        write_elements_of_type(Elements.tria3, "S3")
-        write_elements_of_type(Elements.tria6, "S6")
-        write_elements_of_type(Elements.quad4, "S4")
-        write_elements_of_type(Elements.quad8, "S8")
-        write_elements_of_type(Elements.tetra4, "C3D4")
-        write_elements_of_type(Elements.tetra10, "C3D10")
-        write_elements_of_type(Elements.penta6, "C3D6")
-        write_elements_of_type(Elements.penta15, "C3D15")
-        write_elements_of_type(Elements.hexa8, "C3D8")
-        if Elements.hexa20:
-            f.write("*ELEMENT, TYPE=C3D20\n")
-            for en, nod in Elements.hexa20.items():
-                f.write(str(en))
-                for nn in nod[:15]:
-                    f.write(", " + str(nn))
-                f.write("\n")
-                for nn in nod[15:]:
-                    f.write(", " + str(nn))
-                f.write("\n")
-        f.close()
+            # print elements
+            # prints only basic element types
+            self.write_elements_of_type(self.Elements.tria3, "S3")
+            self.write_elements_of_type(self.Elements.tria6, "S6")
+            self.write_elements_of_type(self.Elements.quad4, "S4")
+            self.write_elements_of_type(self.Elements.quad8, "S8")
+            self.write_elements_of_type(self.Elements.tetra4, "C3D4")
+            self.write_elements_of_type(self.Elements.tetra10, "C3D10")
+            self.write_elements_of_type(self.Elements.penta6, "C3D6")
+            self.write_elements_of_type(self.Elements.penta15, "C3D15")
+            self.write_elements_of_type(self.Elements.hexa8, "C3D8")
+            if self.Elements.hexa20:
+                self.f.write("*ELEMENT, TYPE=C3D20\n")
+                for en, nod in Elements.hexa20.items():
+                    self.f.write(str(en))
+                    for nn in nod[:15]:
+                        self.f.write(", " + str(nn))
+                    self.f.write("\n")
+                    for nn in nod[15:]:
+                        self.f.write(", " + str(nn))
+                    self.f.write("\n")
+            self.f.close()
 
 
 # sub-function to write vtk mesh
