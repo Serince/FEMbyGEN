@@ -398,7 +398,7 @@ class BesoMain:
 
         # preparing for writing quick results
         file_name_resulting_states = self.os.path.join(self.path, "resulting_states")
-        [en_all_vtk, associated_nodes] = self.beso_lib.vtk_mesh(file_name_resulting_states, nodes, Elements)
+        [en_all_vtk, associated_nodes] = self.beso_lib.beso_lib_2.vtk_mesh(file_name_resulting_states, nodes, Elements)
         # prepare for plotting
         # beso_plots.plotshow(domain_FI_filled, optimization_base, displacement_graph)
 
@@ -680,7 +680,7 @@ class BesoMain:
                                              elm_states, sensitivity_number)
                 if "vtk" in self.save_resulting_format:
                     self.beso_lib.export_vtk(file_nameW, nodes, Elements, elm_states, sensitivity_number, self.criteria, FI_step,
-                                             FI_step_max)
+                                             FI_step_max).export_vtk()
 
             # relative difference in a mean stress for the last 5 iterations must be < tolerance
             if len(FI_mean) > 5:
@@ -723,7 +723,7 @@ class BesoMain:
                                                  elm_states, sensitivity_number)
                     if "vtk" in self.save_resulting_format:
                         self.beso_lib.export_vtk(file_nameW, nodes, Elements, elm_states, sensitivity_number, self.criteria, FI_step,
-                                                 FI_step_max)
+                                                 FI_step_max).export_vtk()
                 self.doc.Topology.LastState = i
                 break
             # plot and save figures
@@ -812,7 +812,7 @@ class BesoMain:
             mass_excess = mass[i] - mass_not_filtered
 
             # export the present mesh
-            self.beso_lib.append_vtk_states(file_name_resulting_states, i, en_all_vtk, elm_states)
+            self.beso_lib.beso_lib_2.append_vtk_states(file_name_resulting_states, i, en_all_vtk, elm_states)
 
             file_nameW2 = self.os.path.join(self.path, "topology_iterations", "file" + str(i).zfill(3))
             if self.save_iteration_results and self.np.mod(float(i), self.save_iteration_results) == 0:

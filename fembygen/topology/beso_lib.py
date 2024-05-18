@@ -1696,331 +1696,342 @@ class export_inp:
                     self.f.write("\n")
             self.f.close()
 
-
+class beso_lib_2:
 # sub-function to write vtk mesh
-def vtk_mesh(file_nameW, nodes, Elements):
-    f = open(file_nameW + ".vtk", "w")
-    f.write("# vtk DataFile Version 3.0\n")
-    f.write("Results from optimization\n")
-    f.write("ASCII\n")
-    f.write("DATASET UNSTRUCTURED_GRID\n")
+    def vtk_mesh(file_nameW, nodes, Elements):
+        f = open(file_nameW + ".vtk", "w")
+        f.write("# vtk DataFile Version 3.0\n")
+        f.write("Results from optimization\n")
+        f.write("ASCII\n")
+        f.write("DATASET UNSTRUCTURED_GRID\n")
 
-    # nodes
-    associated_nodes = set()
-    for nn_lists in list(Elements.tria3.values()) + list(Elements.tria6.values()) + list(Elements.quad4.values()) + \
-            list(Elements.quad8.values()) + list(Elements.tetra4.values()) + list(Elements.tetra10.values()) + \
-            list(Elements.penta6.values()) + list(Elements.penta15.values()) + list(Elements.hexa8.values()) + \
-            list(Elements.hexa20.values()):
-        associated_nodes.update(nn_lists)
-    associated_nodes = sorted(associated_nodes)
-    # node renumbering table for vtk format which does not jump over node numbers and contains only associated nodes
-    nodes_vtk = [None for _ in range(max(nodes.keys()) + 1)]
-    nn_vtk = 0
-    for nn in associated_nodes:
-        nodes_vtk[nn] = nn_vtk
-        nn_vtk += 1
+        # nodes
+        associated_nodes = set()
+        for nn_lists in list(Elements.tria3.values()) + list(Elements.tria6.values()) + list(Elements.quad4.values()) + \
+                list(Elements.quad8.values()) + list(Elements.tetra4.values()) + list(Elements.tetra10.values()) + \
+                list(Elements.penta6.values()) + list(Elements.penta15.values()) + list(Elements.hexa8.values()) + \
+                list(Elements.hexa20.values()):
+            associated_nodes.update(nn_lists)
+        associated_nodes = sorted(associated_nodes)
+        # node renumbering table for vtk format which does not jump over node numbers and contains only associated nodes
+        nodes_vtk = [None for _ in range(max(nodes.keys()) + 1)]
+        nn_vtk = 0
+        for nn in associated_nodes:
+            nodes_vtk[nn] = nn_vtk
+            nn_vtk += 1
 
-    f.write("\nPOINTS " + str(len(associated_nodes)) + " float\n")
-    line_count = 0
-    for nn in associated_nodes:
-        f.write("{} {} {} ".format(nodes[nn][0], nodes[nn][1], nodes[nn][2]))
-        line_count += 1
-        if line_count % 2 == 0:
-            f.write("\n")
-    f.write("\n")
-
-    # elements
-    number_of_elements = len(Elements.tria3) + len(Elements.tria6) + len(Elements.quad4) + len(Elements.quad8) + \
-        len(Elements.tetra4) + len(Elements.tetra10) + len(Elements.penta6) + len(Elements.penta15) + \
-        len(Elements.hexa8) + len(Elements.hexa20)
-    en_all = list(Elements.tria3.keys()) + list(Elements.tria6.keys()) + list(Elements.quad4.keys()) + \
-        list(Elements.quad8.keys()) + list(Elements.tetra4.keys()) + list(Elements.tetra10.keys()) + \
-        list(Elements.penta6.keys()) + list(Elements.penta15.keys()) + list(Elements.hexa8.keys()) + \
-        list(Elements.hexa20.keys())  # defines vtk element numbering from 0
-
-    size_of_cells = 4 * len(Elements.tria3) + 7 * len(Elements.tria6) + 5 * len(Elements.quad4) + \
-        9 * len(Elements.quad8) + 5 * len(Elements.tetra4) + 11 * len(Elements.tetra10) + \
-        7 * len(Elements.penta6) + 16 * len(Elements.penta15) + 9 * len(Elements.hexa8) + \
-        21 * len(Elements.hexa20)
-    f.write("\nCELLS " + str(number_of_elements) + " " + str(size_of_cells) + "\n")
-
-    def write_elm(elm_category, node_length):
-        for en in elm_category:
-            f.write(node_length)
-            for nn in elm_category[en]:
-                f.write(" " + str(nodes_vtk[nn]) + " ")
-            f.write("\n")
-
-    write_elm(Elements.tria3, "3")
-    write_elm(Elements.tria6, "6")
-    write_elm(Elements.quad4, "4")
-    write_elm(Elements.quad8, "8")
-    write_elm(Elements.tetra4, "4")
-    write_elm(Elements.tetra10, "10")
-    write_elm(Elements.penta6, "6")
-    write_elm(Elements.penta15, "15")
-    write_elm(Elements.hexa8, "8")
-    write_elm(Elements.hexa20, "20")
-
-    f.write("\nCELL_TYPES " + str(number_of_elements) + "\n")
-    cell_types = "5 " * len(Elements.tria3) + "22 " * len(Elements.tria6) + "9 " * len(Elements.quad4) + \
-                 "23 " * len(Elements.quad8) + "10 " * len(Elements.tetra4) + "24 " * len(Elements.tetra10) + \
-                 "13 " * len(Elements.penta6) + "26 " * len(Elements.penta15) + "12 " * len(Elements.hexa8) + \
-                 "25 " * len(Elements.hexa20)
-    line_count = 0
-    for char in cell_types:
-        f.write(char)
-        if char == " ":
-            line_count += 1
-            if line_count % 30 == 0:
-                f.write("\n")
-    f.write("\n")
-
-    f.write("\nCELL_DATA " + str(number_of_elements) + "\n")
-
-    f.close()
-    return en_all, associated_nodes
-
-
-def append_vtk_states(file_nameW, i, en_all, elm_states):
-    f = open(file_nameW + ".vtk", "a")
-
-    # element state
-    f.write("\nSCALARS element_states" + str(i).zfill(3) + " float\n")
-    f.write("LOOKUP_TABLE default\n")
-    line_count = 0
-    for en in en_all:
-        f.write(str(elm_states[en]) + " ")
-        line_count += 1
-        if line_count % 30 == 0:
-            f.write("\n")
-    f.write("\n")
-    f.close()
-
-# function for exporting result in the legacy vtk format
-# nodes and elements are renumbered from 0 not to jump over values
-
-
-def export_vtk(file_nameW, nodes, Elements, elm_states, sensitivity_number, criteria, FI_step, FI_step_max):
-    [en_all, associated_nodes] = vtk_mesh(file_nameW, nodes, Elements)
-    f = open(file_nameW + ".vtk", "a")
-
-    # element state
-    f.write("\nSCALARS element_states float\n")
-    f.write("LOOKUP_TABLE default\n")
-    line_count = 0
-    for en in en_all:
-        f.write(str(elm_states[en]) + " ")
-        line_count += 1
-        if line_count % 30 == 0:
-            f.write("\n")
-    f.write("\n")
-
-    # sensitivity number
-    f.write("\nSCALARS sensitivity_number float\n")
-    f.write("LOOKUP_TABLE default\n")
-    line_count = 0
-    for en in en_all:
-        f.write(str(sensitivity_number[en]) + " ")
-        line_count += 1
-        if line_count % 6 == 0:
-            f.write("\n")
-    f.write("\n")
-
-    # FI
-    FI_criteria = {}  # list of FI on each element
-    for en in en_all:
-        FI_criteria[en] = [None for _ in range(len(criteria))]
-        for sn in range(len(FI_step)):
-            for FIn in range(len(criteria)):
-                if FI_step[sn][en][FIn]:
-                    if FI_criteria[en][FIn]:
-                        FI_criteria[en][FIn] = max(FI_criteria[en][FIn], FI_step[sn][en][FIn])
-                    else:
-                        FI_criteria[en][FIn] = FI_step[sn][en][FIn]
-
-    for FIn in range(len(criteria)):
-        if criteria[FIn][0] == "stress_von_Mises":
-            f.write("\nSCALARS FI=stress_von_Mises/" + str(criteria[FIn][1]).strip() + " float\n")
-        elif criteria[FIn][0] == "user_def":
-            f.write("SCALARS FI=" + criteria[FIn][1].replace(" ", "") + " float\n")
-        f.write("LOOKUP_TABLE default\n")
+        f.write("\nPOINTS " + str(len(associated_nodes)) + " float\n")
         line_count = 0
-        for en in en_all:
-            if FI_criteria[en][FIn]:
-                f.write(str(FI_criteria[en][FIn]) + " ")
-            else:
-                f.write("0 ")  # since Paraview do not recognise None value
+        for nn in associated_nodes:
+            f.write("{} {} {} ".format(nodes[nn][0], nodes[nn][1], nodes[nn][2]))
             line_count += 1
-            if line_count % 6 == 0:
+            if line_count % 2 == 0:
                 f.write("\n")
         f.write("\n")
 
-    # FI_max
-    f.write("\nSCALARS FI_max float\n")
-    f.write("LOOKUP_TABLE default\n")
-    line_count = 0
-    for en in en_all:
-        f.write(str(FI_step_max[en]) + " ")
-        line_count += 1
-        if line_count % 6 == 0:
-            f.write("\n")
-    f.write("\n")
+        # elements
+        number_of_elements = len(Elements.tria3) + len(Elements.tria6) + len(Elements.quad4) + len(Elements.quad8) + \
+            len(Elements.tetra4) + len(Elements.tetra10) + len(Elements.penta6) + len(Elements.penta15) + \
+            len(Elements.hexa8) + len(Elements.hexa20)
+        en_all = list(Elements.tria3.keys()) + list(Elements.tria6.keys()) + list(Elements.quad4.keys()) + \
+            list(Elements.quad8.keys()) + list(Elements.tetra4.keys()) + list(Elements.tetra10.keys()) + \
+            list(Elements.penta6.keys()) + list(Elements.penta15.keys()) + list(Elements.hexa8.keys()) + \
+            list(Elements.hexa20.keys())  # defines vtk element numbering from 0
 
-    # element state averaged at nodes
-    def append_nodal_state(en, elm_type):
+        size_of_cells = 4 * len(Elements.tria3) + 7 * len(Elements.tria6) + 5 * len(Elements.quad4) + \
+            9 * len(Elements.quad8) + 5 * len(Elements.tetra4) + 11 * len(Elements.tetra10) + \
+            7 * len(Elements.penta6) + 16 * len(Elements.penta15) + 9 * len(Elements.hexa8) + \
+            21 * len(Elements.hexa20)
+        f.write("\nCELLS " + str(number_of_elements) + " " + str(size_of_cells) + "\n")
+
+        def write_elm(elm_category, node_length):
+            for en in elm_category:
+                f.write(node_length)
+                for nn in elm_category[en]:
+                    f.write(" " + str(nodes_vtk[nn]) + " ")
+                f.write("\n")
+
+        write_elm(Elements.tria3, "3")
+        write_elm(Elements.tria6, "6")
+        write_elm(Elements.quad4, "4")
+        write_elm(Elements.quad8, "8")
+        write_elm(Elements.tetra4, "4")
+        write_elm(Elements.tetra10, "10")
+        write_elm(Elements.penta6, "6")
+        write_elm(Elements.penta15, "15")
+        write_elm(Elements.hexa8, "8")
+        write_elm(Elements.hexa20, "20")
+
+        f.write("\nCELL_TYPES " + str(number_of_elements) + "\n")
+        cell_types = "5 " * len(Elements.tria3) + "22 " * len(Elements.tria6) + "9 " * len(Elements.quad4) + \
+                    "23 " * len(Elements.quad8) + "10 " * len(Elements.tetra4) + "24 " * len(Elements.tetra10) + \
+                    "13 " * len(Elements.penta6) + "26 " * len(Elements.penta15) + "12 " * len(Elements.hexa8) + \
+                    "25 " * len(Elements.hexa20)
+        line_count = 0
+        for char in cell_types:
+            f.write(char)
+            if char == " ":
+                line_count += 1
+                if line_count % 30 == 0:
+                    f.write("\n")
+        f.write("\n")
+
+        f.write("\nCELL_DATA " + str(number_of_elements) + "\n")
+
+        f.close()
+        return en_all, associated_nodes
+
+
+    def append_vtk_states(file_nameW, i, en_all, elm_states):
+        f = open(file_nameW + ".vtk", "a")
+
+        # element state
+        f.write("\nSCALARS element_states" + str(i).zfill(3) + " float\n")
+        f.write("LOOKUP_TABLE default\n")
+        line_count = 0
+        for en in en_all:
+            f.write(str(elm_states[en]) + " ")
+            line_count += 1
+            if line_count % 30 == 0:
+                f.write("\n")
+        f.write("\n")
+        f.close()
+
+    # function for exporting result in the legacy vtk format
+    # nodes and elements are renumbered from 0 not to jump over values
+
+
+class export_vtk:
+    def __init__(self,file_nameW, nodes, Elements, elm_states, sensitivity_number, criteria, FI_step, FI_step_max):
+        self.file_nameW=file_nameW
+        self.nodes=nodes
+        self.Elements=Elements
+        self.elm_states=elm_states
+        self.sensitivity_number=sensitivity_number
+        self.criteria=criteria
+        self.FI_step=FI_step
+        self.FI_step_max=FI_step_max
+        self.f = open(self.file_nameW + ".vtk", "a")
+
+    def append_nodal_state(self, en, elm_type):
         for nn in elm_type[en]:
             try:
-                nodal_state[nn].append(elm_states[en])
+                self.nodal_state[nn].append(self.elm_states[en])
             except KeyError:
-                nodal_state[nn] = [elm_states[en]]
+                self.nodal_state[nn] = [self.elm_states[en]]
 
-    nodal_state = {}
-    for en in Elements.tria3:
-        append_nodal_state(en, Elements.tria3)
-    for en in Elements.tria6:
-        append_nodal_state(en, Elements.tria6)
-    for en in Elements.quad4:
-        append_nodal_state(en, Elements.quad4)
-    for en in Elements.quad8:
-        append_nodal_state(en, Elements.quad8)
-    for en in Elements.tetra4:
-        append_nodal_state(en, Elements.tetra4)
-    for en in Elements.tetra10:
-        append_nodal_state(en, Elements.tetra10)
-    for en in Elements.penta6:
-        append_nodal_state(en, Elements.penta6)
-    for en in Elements.penta15:
-        append_nodal_state(en, Elements.penta15)
-    for en in Elements.hexa8:
-        append_nodal_state(en, Elements.hexa8)
-    for en in Elements.hexa20:
-        append_nodal_state(en, Elements.hexa20)
+    def export_vtk(self):
+        [en_all, associated_nodes] = beso_lib_2.vtk_mesh(self.file_nameW, self.nodes, self.Elements)
+        # element state
+        self.f.write("\nSCALARS element_states float\n")
+        self.f.write("LOOKUP_TABLE default\n")
+        line_count = 0
+        for en in en_all:
+            self.f.write(str(self.elm_states[en]) + " ")
+            line_count += 1
+            if line_count % 30 == 0:
+                self.f.write("\n")
+        self.f.write("\n")
 
-    f.write("\nPOINT_DATA " + str(len(associated_nodes)) + "\n")
-    f.write("FIELD field_data 1\n")
-    f.write("\nelement_states_averaged_at_nodes 1 " + str(len(associated_nodes)) + " float\n")
-    line_count = 0
-    for nn in associated_nodes:
-        f.write(str(np.average(nodal_state[nn])) + " ")
-        line_count += 1
-        if line_count % 10 == 0:
-            f.write("\n")
-    f.write("\n")
+        # sensitivity number
+        self.f.write("\nSCALARS sensitivity_number float\n")
+        self.f.write("LOOKUP_TABLE default\n")
+        line_count = 0
+        for en in en_all:
+            self.f.write(str(self.sensitivity_number[en]) + " ")
+            line_count += 1
+            if line_count % 6 == 0:
+                self.f.write("\n")
+        self.f.write("\n")
 
-    f.close()
-
-
-# function for exporting element values to csv file for displaying in Paraview, output format:
-# element_number, cg_x, cg_y, cg_z, element_state, sensitivity_number, failure indices 1, 2,..., maximal failure index
-# only elements found by import_inp function are taken into account
-def export_csv(domains_from_config, domains, criteria, FI_step, FI_step_max, file_nameW, cg, elm_states,
-               sensitivity_number):
-    # associate FI to each element and get maximums
-    FI_criteria = {}  # list of FI on each element
-    for dn in domains_from_config:
-        for en in domains[dn]:
-            FI_criteria[en] = [None for _ in range(len(criteria))]
-            for sn in range(len(FI_step)):
-                for FIn in range(len(criteria)):
-                    if FI_step[sn][en][FIn]:
+        # FI
+        FI_criteria = {}  # list of FI on each element
+        for en in en_all:
+            FI_criteria[en] = [None for _ in range(len(self.criteria))]
+            for sn in range(len(self.FI_step)):
+                for FIn in range(len(self.criteria)):
+                    if self.FI_step[sn][en][FIn]:
                         if FI_criteria[en][FIn]:
-                            FI_criteria[en][FIn] = max(FI_criteria[en][FIn], FI_step[sn][en][FIn])
+                            FI_criteria[en][FIn] = max(FI_criteria[en][FIn], self.FI_step[sn][en][FIn])
                         else:
-                            FI_criteria[en][FIn] = FI_step[sn][en][FIn]
+                            FI_criteria[en][FIn] = self.FI_step[sn][en][FIn]
 
-    # write element values to the csv file
-    f = open(file_nameW + ".csv", "w")
-    line = "element_number, cg_x, cg_y, cg_z, element_state, sensitivity_number, "
-    for cr in criteria:
-        if cr[0] == "stress_von_Mises":
-            line += "FI=stress_von_Mises/" + str(cr[1]).strip() + ", "
-        else:
-            line += "FI=" + cr[1].replace(" ", "") + ", "
-    line += "FI_max\n"
-    f.write(line)
-    for dn in domains_from_config:
-        for en in domains[dn]:
-            line = str(en) + ", " + str(cg[en][0]) + ", " + str(cg[en][1]) + ", " + str(cg[en][2]) + ", " + \
-                str(elm_states[en]) + ", " + str(sensitivity_number[en]) + ", "
-            for FIn in range(len(criteria)):
+        for FIn in range(len(self.criteria)):
+            if self.criteria[FIn][0] == "stress_von_Mises":
+                self.f.write("\nSCALARS FI=stress_von_Mises/" + str(self.criteria[FIn][1]).strip() + " float\n")
+            elif self.criteria[FIn][0] == "user_def":
+                self.f.write("SCALARS FI=" + self.criteria[FIn][1].replace(" ", "") + " float\n")
+            self.f.write("LOOKUP_TABLE default\n")
+            line_count = 0
+            for en in en_all:
                 if FI_criteria[en][FIn]:
-                    value = FI_criteria[en][FIn]
+                    self.f.write(str(FI_criteria[en][FIn]) + " ")
                 else:
-                    value = 0  # since Paraview do not recognise None value
-                line += str(value) + ", "
-            line += str(FI_step_max[en]) + "\n"
-            f.write(line)
-    f.close()
+                    self.f.write("0 ")  # since Paraview do not recognise None value
+                line_count += 1
+                if line_count % 6 == 0:
+                    self.f.write("\n")
+            self.f.write("\n")
 
+        # FI_max
+        self.f.write("\nSCALARS FI_max float\n")
+        self.f.write("LOOKUP_TABLE default\n")
+        line_count = 0
+        for en in en_all:
+            self.f.write(str(self.FI_step_max[en]) + " ")
+            line_count += 1
+            if line_count % 6 == 0:
+                self.f.write("\n")
+        self.f.write("\n")
 
-# function for importing elm_states state from .frd file which was previously created as a resulting mesh
-# it is done via element numbers only; in case of the wrong mesh, no error is recognised
-def import_frd_state(continue_from, elm_states, number_of_states, file_name):
-    for state in range(number_of_states):
-        try:
-            f = open(continue_from[:-5] + str(state) + ".frd", "r")
-        except IOError:
-            msg = continue_from[:-5] + str(state) + ".frd" + " file not found. Check your inputs."
-            BesoLib_types.write_to_log(file_name, "\nERROR: " + msg + "\n")
-            assert False, msg
+        # element state averaged at nodes
 
-        read_elm = False
-        for line in f:
-            if line[4:6] == "3C":  # start reading element numbers
-                read_elm = True
-            elif read_elm is True and line[1:3] == "-1":
-                en = int(line[3:13])
-                elm_states[en] = state
-            elif read_elm is True and line[1:3] == "-3":  # finish reading element numbers
-                break
+        self.nodal_state = {}
+        for en in Elements.tria3:
+            self.append_nodal_state(en, self.Elements.tria3)
+        for en in Elements.tria6:
+            self.append_nodal_state(en, self.Elements.tria6)
+        for en in Elements.quad4:
+            self.append_nodal_state(en, self.Elements.quad4)
+        for en in Elements.quad8:
+            self.append_nodal_state(en, self.Elements.quad8)
+        for en in Elements.tetra4:
+            self.append_nodal_state(en, self.Elements.tetra4)
+        for en in Elements.tetra10:
+            self.append_nodal_state(en, self.Elements.tetra10)
+        for en in Elements.penta6:
+            self.append_nodal_state(en, self.Elements.penta6)
+        for en in Elements.penta15:
+            self.append_nodal_state(en, self.Elements.penta15)
+        for en in Elements.hexa8:
+           self. append_nodal_state(en, self.Elements.hexa8)
+        for en in Elements.hexa20:
+            self.append_nodal_state(en, self.Elements.hexa20)
+
+        self.f.write("\nPOINT_DATA " + str(len(associated_nodes)) + "\n")
+        self.f.write("FIELD field_data 1\n")
+        self.f.write("\nelement_states_averaged_at_nodes 1 " + str(len(associated_nodes)) + " float\n")
+        line_count = 0
+        for nn in associated_nodes:
+            self.f.write(str(np.average(self.nodal_state[nn])) + " ")
+            line_count += 1
+            if line_count % 10 == 0:
+                self.f.write("\n")
+        self.f.write("\n")
+
+        self.f.close()
+
+class beso_lib_3:
+    # function for exporting element values to csv file for displaying in Paraview, output format:
+    # element_number, cg_x, cg_y, cg_z, element_state, sensitivity_number, failure indices 1, 2,..., maximal failure index
+    # only elements found by import_inp function are taken into account
+    def export_csv(domains_from_config, domains, criteria, FI_step, FI_step_max, file_nameW, cg, elm_states,
+                sensitivity_number):
+        # associate FI to each element and get maximums
+        FI_criteria = {}  # list of FI on each element
+        for dn in domains_from_config:
+            for en in domains[dn]:
+                FI_criteria[en] = [None for _ in range(len(criteria))]
+                for sn in range(len(FI_step)):
+                    for FIn in range(len(criteria)):
+                        if FI_step[sn][en][FIn]:
+                            if FI_criteria[en][FIn]:
+                                FI_criteria[en][FIn] = max(FI_criteria[en][FIn], FI_step[sn][en][FIn])
+                            else:
+                                FI_criteria[en][FIn] = FI_step[sn][en][FIn]
+
+        # write element values to the csv file
+        f = open(file_nameW + ".csv", "w")
+        line = "element_number, cg_x, cg_y, cg_z, element_state, sensitivity_number, "
+        for cr in criteria:
+            if cr[0] == "stress_von_Mises":
+                line += "FI=stress_von_Mises/" + str(cr[1]).strip() + ", "
+            else:
+                line += "FI=" + cr[1].replace(" ", "") + ", "
+        line += "FI_max\n"
+        f.write(line)
+        for dn in domains_from_config:
+            for en in domains[dn]:
+                line = str(en) + ", " + str(cg[en][0]) + ", " + str(cg[en][1]) + ", " + str(cg[en][2]) + ", " + \
+                    str(elm_states[en]) + ", " + str(sensitivity_number[en]) + ", "
+                for FIn in range(len(criteria)):
+                    if FI_criteria[en][FIn]:
+                        value = FI_criteria[en][FIn]
+                    else:
+                        value = 0  # since Paraview do not recognise None value
+                    line += str(value) + ", "
+                line += str(FI_step_max[en]) + "\n"
+                f.write(line)
         f.close()
-    return elm_states
 
 
-# function for importing elm_states state from .frd file which was previously created as a resulting mesh
-# it is done via element numbers only; in case of the wrong mesh, no error is recognised
-def import_inp_state(continue_from, elm_states, number_of_states, file_name):
-    for state in range(number_of_states):
-        try:
-            f = open(continue_from[:-5] + str(state) + ".inp", "r")
-        except IOError:
-            msg = continue_from[:-5] + str(state) + ".inp" + " file not found. Check your inputs."
-            BesoLib_types.write_to_log(file_name, "\nERROR: " + msg + "\n")
-            assert False, msg
+    # function for importing elm_states state from .frd file which was previously created as a resulting mesh
+    # it is done via element numbers only; in case of the wrong mesh, no error is recognised
+    def import_frd_state(continue_from, elm_states, number_of_states, file_name):
+        for state in range(number_of_states):
+            try:
+                f = open(continue_from[:-5] + str(state) + ".frd", "r")
+            except IOError:
+                msg = continue_from[:-5] + str(state) + ".frd" + " file not found. Check your inputs."
+                BesoLib_types.write_to_log(file_name, "\nERROR: " + msg + "\n")
+                assert False, msg
 
-        read_elm = False
-        for line in f:
-            if line[0] == '*' and not line[1] == '*':
-                read_elm = False
-            if line[:8].upper() == "*ELEMENT":
-                read_elm = True
-            elif read_elm == True:
-                try:
-                    en = int(line.split(",")[0])
+            read_elm = False
+            for line in f:
+                if line[4:6] == "3C":  # start reading element numbers
+                    read_elm = True
+                elif read_elm is True and line[1:3] == "-1":
+                    en = int(line[3:13])
                     elm_states[en] = state
-                except ValueError:
-                    pass
+                elif read_elm is True and line[1:3] == "-3":  # finish reading element numbers
+                    break
+            f.close()
+        return elm_states
+
+
+    # function for importing elm_states state from .frd file which was previously created as a resulting mesh
+    # it is done via element numbers only; in case of the wrong mesh, no error is recognised
+    def import_inp_state(continue_from, elm_states, number_of_states, file_name):
+        for state in range(number_of_states):
+            try:
+                f = open(continue_from[:-5] + str(state) + ".inp", "r")
+            except IOError:
+                msg = continue_from[:-5] + str(state) + ".inp" + " file not found. Check your inputs."
+                BesoLib_types.write_to_log(file_name, "\nERROR: " + msg + "\n")
+                assert False, msg
+
+            read_elm = False
+            for line in f:
+                if line[0] == '*' and not line[1] == '*':
+                    read_elm = False
+                if line[:8].upper() == "*ELEMENT":
+                    read_elm = True
+                elif read_elm == True:
+                    try:
+                        en = int(line.split(",")[0])
+                        elm_states[en] = state
+                    except ValueError:
+                        pass
+            f.close()
+        return elm_states
+
+
+    # function for importing elm_states state from .csv file
+    def import_csv_state(continue_from, elm_states, file_name):
+        try:
+            f = open(continue_from, "r")
+        except IOError:
+            msg = continue_from + " file not found. Check your inputs."
+            BesoLib_types.write_to_log(file_name, "\nERROR: " + msg + "\n")
+            assert False, msg
+
+        headers = f.readline().split(",")
+        pos_en = [x.strip() for x in headers].index("element_number")
+        pos_state = [x.strip() for x in headers].index("element_state")
+        for line in f:
+            en = int(line.split(",")[pos_en])
+            state = int(line.split(",")[pos_state])
+            elm_states[en] = state
+
         f.close()
-    return elm_states
-
-
-# function for importing elm_states state from .csv file
-def import_csv_state(continue_from, elm_states, file_name):
-    try:
-        f = open(continue_from, "r")
-    except IOError:
-        msg = continue_from + " file not found. Check your inputs."
-        BesoLib_types.write_to_log(file_name, "\nERROR: " + msg + "\n")
-        assert False, msg
-
-    headers = f.readline().split(",")
-    pos_en = [x.strip() for x in headers].index("element_number")
-    pos_state = [x.strip() for x in headers].index("element_state")
-    for line in f:
-        en = int(line.split(",")[pos_en])
-        state = int(line.split(",")[pos_state])
-        elm_states[en] = state
-
-    f.close()
-    return elm_states
+        return elm_states
