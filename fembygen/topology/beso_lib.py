@@ -694,7 +694,7 @@ def import_FI_int_pt(reference_value, file_nameW, domains, criteria, domain_FI, 
     try:
         f = open(file_nameW + ".dat", "r")
     except IOError:
-        msg = "CalculiX result file not found, check your inputs"
+        msg = "CalculiX result file not found, check your inputs, (make sure that your folder path/name does not contains any spaces)"
         BesoLib_types.write_to_log(file_name, "\nERROR: " + msg + "\n")
         assert False, msg
     last_time = "initial"  # TODO solve how to read a new step which differs in time
