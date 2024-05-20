@@ -361,7 +361,7 @@ class elm_volume_cg:
             self.u[i] = self.nodes[nod[2]][i] - self.nodes[nod[1]][i]
             self.v[i] = self.nodes[nod[3]][i] - self.nodes[nod[1]][i]
             self.w[i] = self.nodes[nod[0]][i] - self.nodes[nod[1]][i]
-        volume_tetra = abs(np.dot(np.cross(self.self.u, self.v), self.w)) / 6.0
+        volume_tetra = abs(np.dot(np.cross(self.u, self.v), self.w)) / 6.0
         # Compute centre of gravity
         x_cg = sum(self.nodes[n][0] for n in nod) / 4.0
         y_cg = sum(self.nodes[n][1] for n in nod) / 4.0
