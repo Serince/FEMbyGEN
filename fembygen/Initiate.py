@@ -1,54 +1,21 @@
 import FreeCAD
 import FreeCADGui
-import os
+from fembygen import Common
 
-LOCATION = 'Mod/FEMbyGEN/fembygen'
 MAX_NUM_PARAMETER = 10    # maximum number of parameters
-
-def makeInitiate():
-    """Initiate group"""
-    doc = FreeCAD.ActiveDocument
-    try:
-        group = doc.GenerativeDesign
-        group.isValid()
-    except:
-        group = doc.addObject(
-            'App::DocumentObjectGroupPython', 'GenerativeDesign')
-    try:
-        parameter = doc.Parameters
-        parameter.isValid()
-    except:
-        parameter = doc.addObject('Spreadsheet::Sheet', 'Parameters')
-        group.addObject(parameter)
-    Initiate(group)
-    if FreeCAD.GuiUp:
-        ViewProviderIni(group.ViewObject)
-    return group
-
-
-class Initiate:
-    """ Initiate """
-
-    def __init__(self, obj):
-        obj.Proxy = self
-        self.Type = "Initiate"
-        self.initProperties(obj)
-
-    def initProperties(self, obj):
-        pass
 
 
 class InitiateCommand():
-    """Analyse the generated parts"""
+    """Create parameter spreadsheet"""
 
     def GetResources(self):
-        return {'Pixmap': os.path.join(FreeCAD.getUserAppDataDir(), LOCATION, 'icons/Initiate.svg'),
+        return {'Pixmap': ':/icons/Spreadsheet.svg',
                 'Accel': "Shift+N",  # a default shortcut (optional)
                 'MenuText': "Initiate",
-                'ToolTip': "Initialise and create parameter spreadsheet"}
+                'ToolTip': "Create parameter spreadsheet"}
 
     def Activated(self):
-        makeInitiate()
+        group, obj = Common.addToDocumentObjectGroup('Spreadsheet::Sheet', 'Parameters')
         return InitiatePanel()
 
     def IsActive(self):
@@ -59,7 +26,7 @@ class InitiateCommand():
 
 class InitiatePanel:
     def __init__(self):
-        """Create a group with parameter spreadsheet"""
+        """Create parameter spreadsheet"""
         doc = FreeCAD.ActiveDocument
         guidoc = FreeCADGui.ActiveDocument
         self.paramsheet = self.spreadsheetTemplate(doc.Parameters)
@@ -88,28 +55,10 @@ class InitiatePanel:
 
 
 class ViewProviderIni:
+    """Placeholder of the custom Viewprovider"""
+    
     def __init__(self, vobj):
         vobj.Proxy = self
-
-    def getIcon(self):
-        icon_path = os.path.join(FreeCAD.getUserAppDataDir(), LOCATION, 'icons/Initiate.svg')
-        return icon_path
-
-    def attach(self, vobj):
-        self.ViewObject = vobj
-        self.Object = vobj.Object
-
-    def updateData(self, obj, prop):
-        return
-
-    def onChanged(self, vobj, prop):
-        return
-
-    def __getstate__(self):
-        return None
-
-    def __setstate__(self, state):
-        return None
 
 
 FreeCADGui.addCommand('Initiate', InitiateCommand())
