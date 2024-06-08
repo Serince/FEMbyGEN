@@ -1542,17 +1542,24 @@ class switching:
 
 # function for exporting the resulting mesh in separate files for each state of elm_states
 # only elements found by import_inp function are taken into account
-def export_frd(file_nameW, nodes, Elements, elm_states, number_of_states):
+class export_frd:
+    def __init__(self,file_nameW, nodes, Elements, elm_states, number_of_states):
+        self.file_nameW=file_nameW
+        self.nodes=nodes
+        self.Elements=Elements
+        self.elm_states=elm_states
+        self.number_of_states=number_of_states
 
-    def get_associated_nodes(elm_category):
-        for en in elm_category:
-            if elm_states[en] == state:
-                associated_nodes.extend(elm_category[en])
 
-    def write_elm(elm_category, category_symbol):
+    def get_associated_nodes(self,elm_category):
         for en in elm_category:
-            if elm_states[en] == state:
-                f.write(" -1" + str(en).rjust(10, " ") + category_symbol.rjust(5, " ") + "\n")
+            if self.elm_states[en] == self.state:
+                self.associated_nodes.extend(elm_category[en])
+
+    def write_elm(self,elm_category, category_symbol):
+        for en in elm_category:
+            if self.elm_states[en] == self.state:
+                self.f.write(" -1" + str(en).rjust(10, " ") + category_symbol.rjust(5, " ") + "\n")
                 line = ""
                 nodes_done = 0
                 if category_symbol == "4":  # hexa20 different node numbering in inp and frd file
@@ -1561,7 +1568,7 @@ def export_frd(file_nameW, nodes, Elements, elm_states, number_of_states):
                         nn = elm_category[en][np]
                         line += str(nn).rjust(10, " ")
                         if np in [9, 15]:
-                            f.write(" -2" + line + "\n")
+                            self.f.write(" -2" + line + "\n")
                             line = ""
                 elif category_symbol == "5":  # penta15 has different node numbering in inp and frd file
                     for np in [0, 1, 2, 3, 4, 5, 6, 7, 8, 12,
@@ -1569,59 +1576,60 @@ def export_frd(file_nameW, nodes, Elements, elm_states, number_of_states):
                         nn = elm_category[en][np]
                         line += str(nn).rjust(10, " ")
                         if np in [12, 11]:
-                            f.write(" -2" + line + "\n")
+                            self.f.write(" -2" + line + "\n")
                             line = ""
                 else:
                     for nn in elm_category[en]:
                         line += str(nn).rjust(10, " ")
                         nodes_done += 1
                         if nodes_done == 10 and elm_category != Elements.tetra10:
-                            f.write(" -2" + line + "\n")
+                            self.f.write(" -2" + line + "\n")
                             line = ""
-                    f.write(" -2" + line + "\n")
+                    self.f.write(" -2" + line + "\n")
 
     # find all possible states in elm_states and run separately for each of them
-    for state in range(number_of_states):
-        f = open(file_nameW + "_state" + str(state) + ".frd", "w")
+    def export_frd(self):
+        for self.state in range(self.number_of_states):
+            self.f = open(self.file_nameW + "_state" + str(self.state) + ".frd", "w")
 
-        # print nodes
-        associated_nodes = []
-        get_associated_nodes(Elements.tria3)
-        get_associated_nodes(Elements.tria6)
-        get_associated_nodes(Elements.quad4)
-        get_associated_nodes(Elements.quad8)
-        get_associated_nodes(Elements.tetra4)
-        get_associated_nodes(Elements.tetra10)
-        get_associated_nodes(Elements.penta6)
-        get_associated_nodes(Elements.penta15)
-        get_associated_nodes(Elements.hexa8)
-        get_associated_nodes(Elements.hexa20)
+            # print nodes
+            associated_nodes = []
+            self.get_associated_nodes(self.Elements.tria3)
+            self.get_associated_nodes(self.Elements.tria6)
+            self.get_associated_nodes(self.Elements.quad4)
+            self.get_associated_nodes(self.Elements.quad8)
+            self.get_associated_nodes(self.Elements.tetra4)
+            self.get_associated_nodes(self.Elements.tetra10)
+            self.get_associated_nodes(self.Elements.penta6)
+            self.get_associated_nodes(self.Elements.penta15)
+            self.get_associated_nodes(self.Elements.hexa8)
+            self.get_associated_nodes(self.Elements.hexa20)
 
-        associated_nodes = sorted(list(set(associated_nodes)))
-        f.write("    1C\n")
-        f.write("    2C" + str(len(associated_nodes)).rjust(30, " ") + 37 * " " + "1\n")
-        for nn in associated_nodes:
-            f.write(" -1" + str(nn).rjust(10, " ") + "% .5E% .5E% .5E\n" % (nodes[nn][0], nodes[nn][1], nodes[nn][2]))
-        f.write(" -3\n")
+            associated_nodes = sorted(list(set(associated_nodes)))
+            self.f.write("    1C\n")
+            self.f.write("    2C" + str(len(associated_nodes)).rjust(30, " ") + 37 * " " + "1\n")
+            for nn in associated_nodes:
+                self.f.write(" -1" + str(nn).rjust(10, " ") + "% .5E% .5E% .5E\n" % (self.nodes[nn][0], self.nodes[nn][1], self.nodes[nn][2]))
+            self.f.write(" -3\n")
 
-        # print elements
-        elm_sum = 0
-        for en in elm_states:
-            if elm_states[en] == state:
-                elm_sum += 1
-        f.write("    3C" + str(elm_sum).rjust(30, " ") + 37 * " " + "1\n")
-        write_elm(Elements.tria3, "7")
-        write_elm(Elements.tria6, "8")
-        write_elm(Elements.quad4, "9")
-        write_elm(Elements.quad8, "10")
-        write_elm(Elements.tetra4, "3")
-        write_elm(Elements.tetra10, "6")
-        write_elm(Elements.penta6, "2")
-        write_elm(Elements.penta15, "5")
-        write_elm(Elements.hexa8, "1")
-        write_elm(Elements.hexa20, "4")
-        f.write(" -3\n")
-        f.close()
+            # print elements
+            self.elm_sum = 0
+            for en in self.elm_states:
+                if self.elm_states[en] == self.state:
+                    self.elm_sum += 1
+            self.f.write("    3C" + str(self.elm_sum).rjust(30, " ") + 37 * " " + "1\n")
+            self.write_elm(self.Elements.tria3, "7")
+            self.write_elm(self.Elements.tria6, "8")
+            self.write_elm(self.Elements.quad4, "9")
+            self.write_elm(self.Elements.quad8, "10")
+            self.write_elm(self.Elements.tetra4, "3")
+            self.write_elm(self.Elements.tetra10, "6")
+            self.write_elm(self.Elements.penta6, "2")
+            self.write_elm(self.Elements.penta15, "5")
+            self.write_elm(self.Elements.hexa8, "1")
+            self.write_elm(self.Elements.hexa20, "4")
+            self.f.write(" -3\n")
+            self.f.close()
 
 
 # function for exporting the resulting mesh in separate files for each state of elm_states

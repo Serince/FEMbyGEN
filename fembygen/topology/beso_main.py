@@ -817,7 +817,7 @@ class BesoMain:
             file_nameW2 = self.os.path.join(self.path, "topology_iterations", "file" + str(i).zfill(3))
             if self.save_iteration_results and self.np.mod(float(i), self.save_iteration_results) == 0:
                 if "frd" in self.save_resulting_format:
-                    self.beso_lib.export_frd(file_nameW2, nodes, Elements, elm_states, self.number_of_states)
+                    self.beso_lib.export_frd(file_nameW2, nodes, Elements, elm_states, self.number_of_states).export_frd()
                 if "inp" in self.save_resulting_format:
                     self.beso_lib.export_inp(file_nameW2, nodes, Elements, elm_states, self.number_of_states).export_inp()
 
@@ -850,7 +850,7 @@ class BesoMain:
         # export the resulting mesh
         if not (self.save_iteration_results and self.np.mod(float(i), self.save_iteration_results) == 0):
             if "frd" in self.save_resulting_format:
-                self.beso_lib.export_frd(file_nameW, nodes, Elements, elm_states, self.number_of_states)
+                self.beso_lib.export_frd(file_nameW, nodes, Elements, elm_states, self.number_of_states).export_frd()
             if "inp" in self.save_resulting_format:
                 self.beso_lib.export_inp(file_nameW, nodes, Elements, elm_states, self.number_of_states).export_inp()
 
