@@ -12,7 +12,7 @@ Scilab:
 Much thanks goes to these individuals. It has been converted to Python by 
 Abraham Lee.
 """
-
+import FreeCAD
 import numpy as np
 from fembygen.design.pydoe2.doe_factorial import ff2n
 from fembygen.design.pydoe2.doe_star import star

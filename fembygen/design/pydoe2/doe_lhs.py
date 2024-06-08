@@ -23,7 +23,6 @@ Scilab:
 Much thanks goes to these individuals. It has been converted to Python by 
 Abraham Lee.
 """
-
 import numpy as np
 from numpy import ma, linalg
 
