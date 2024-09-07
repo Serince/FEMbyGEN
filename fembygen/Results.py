@@ -8,7 +8,7 @@ import numpy as np
 from fembygen import Common
 import glob
 import functools
-from scipy.stats import pearsonr
+from scipy.stats import pearsonr , f_oneway
 from femresult.resulttools import fill_femresult_stats
 from FreeCAD.Plot import Plot
 
@@ -91,9 +91,9 @@ class ResultsPanel:
             FreeCAD.Console.PrintMessage("Calculating metrics...\n")
             self.calcAndSaveFEAMetrics()
         self.form.arrange.clicked.connect(self.ranking)
+        self.form.comboBox_3.currentIndexChanged.connect(self.update_anova_table)
         self.form.comboBox_2.currentIndexChanged.connect(self.plotParetoGraph)
-        self.form.comboBox.currentIndexChanged.connect(self.update_table) 
-        self.update_table(0) 
+        self.form.comboBox.currentIndexChanged.connect(self.update_table)   
         self.updateResultsTableAll()
         self.updateResultsTableSum()
         self.doc.save()
@@ -427,7 +427,7 @@ class ResultsPanel:
             normTable = np.zeros((row, column))
             for i in range(column):
                 normTable[:, i] = 1-self.normalize(table[:, i])
-
+                
             # Calculating score by using weight and normalized results
             score = volume*normTable[:, 0] + maxs*normTable[:, 1] + maxd*normTable[:, 2] + \
                 means*normTable[:, 3] + intEn * \
@@ -435,7 +435,8 @@ class ResultsPanel:
             self.updateResultsTableSum(score)
         except:
             FreeCAD.Console.PrintError('Total weignt needs to be 100\n')
-        
+
+
     def corelation(self):
         master = self.doc
         results = np.array(
@@ -467,6 +468,52 @@ class ResultsPanel:
             self.form.tableWidget.setItem(i, 0, item_param)
             self.form.tableWidget.setItem(i, 1, item_coef)
             item_coef.setToolTip("As this value approaches -1 or 1, the strength of the effect increases - negative effect, + means positive effect.")
+
+    def anova(self):
+        master = self.doc
+        results = np.array(
+            master.Results.FEAMetricsSum[1:], dtype=np.dtype("float"))
+        parameters1 = np.array(
+            master.Generate.GeneratedParameters, dtype=np.dtype("float"))
+        parameterValues = np.transpose(parameters1)
+        parameters = master.Generate.ParametersName
+
+        anova_table = []
+        for index, param in enumerate(parameters):
+            row = [param]    
+            unique_values = np.unique(parameterValues[index])
+            
+            for j in range(len(results[0])):
+                # Create groups for ANOVA test
+                groups = [results[:, j][parameterValues[index] == value] for value in unique_values]
+                FreeCAD.Console.PrintMessage(f"Parameter: {param}, Unique Values: {unique_values}, Groups: {groups}\n")
+
+                # Check if any group is empty
+                if any(len(group) == 0 for group in groups):
+                    row.append(None)  # Append None or any placeholder for invalid ANOVA result
+                
+                else:
+                    # Perform ANOVA test
+                    f_val, _ = f_oneway(*groups)
+                    row.append(round(f_val, 4))  # Round the F-value for consistency
+
+            anova_table.append(row)
+        
+        return anova_table
+
+
+    def update_anova_table(self, index):
+            anova_table= self.anova()
+            self.form.tableWidget_2.setColumnCount(2)
+            self.form.tableWidget_2.setRowCount(len(anova_table))
+            self.form.tableWidget_2.setHorizontalHeaderLabels(["Parameters", "F values"])
+            
+            for i, row in enumerate(anova_table):
+                item_param = QTableWidgetItem(row[0]) 
+                item_coef = QTableWidgetItem(str(row[index + 1]))  
+                self.form.tableWidget_2.setItem(i, 0, item_param)
+                self.form.tableWidget_2.setItem(i, 1, item_coef)       
+    
 
     def calculate_pareto_data(self):
         cor_table = self.corelation()

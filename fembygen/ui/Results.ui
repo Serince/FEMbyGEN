@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>512</width>
-    <height>477</height>
+    <width>618</width>
+    <height>776</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -71,7 +71,7 @@
           <item>
            <widget class="QTabWidget" name="tabWidget_2">
             <property name="currentIndex">
-             <number>2</number>
+             <number>3</number>
             </property>
             <widget class="QWidget" name="Ranking">
              <attribute name="title">
@@ -330,7 +330,7 @@
             </widget>
             <widget class="QWidget" name="Coleration">
              <attribute name="title">
-              <string>Coleration </string>
+              <string>Correlation </string>
              </attribute>
              <layout class="QHBoxLayout" name="horizontalLayout_3">
               <item>
@@ -431,6 +431,50 @@
                  </spacer>
                 </item>
                </layout>
+              </item>
+             </layout>
+            </widget>
+            <widget class="QWidget" name="Anova">
+             <attribute name="title">
+              <string>Anova</string>
+             </attribute>
+             <layout class="QVBoxLayout" name="verticalLayout_10">
+              <item>
+               <widget class="QComboBox" name="comboBox_3">
+                <item>
+                 <property name="text">
+                  <string>Volume</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>Max Stress</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>Max Displacment</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>Mean Stress</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>Internal Energy</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>Standart Dev. of En. Den.</string>
+                 </property>
+                </item>
+               </widget>
+              </item>
+              <item>
+               <widget class="QTableWidget" name="tableWidget_2"/>
               </item>
              </layout>
             </widget>
