@@ -237,7 +237,7 @@ class ResultsPanel:
                         FreeCAD.Console.PrintMessage(f"Generation {i+1} Analysis {j+1} result values imported\n")
                     except:
                         FreeCAD.Console.PrintError(
-                            f"During getting result values of Generation {i+1} Analysis {j+1} problem occured. Please check the generation results by opening Gen{i+1} folder in master file directory.\n")
+                            f"During getting result values of Generation {i+1} Analysis {j+1} problem occurred. Please check the generation results by opening Gen{i+1} folder in master file directory.\n")
                         result.append([None]*6)
                 else:
                     FreeCAD.Console.PrintError(f"Generation {i+1} Loadcase {j+1} couldn't imported\n")
@@ -432,7 +432,7 @@ class ResultsPanel:
             FreeCAD.Console.PrintError('Total weignt needs to be 100\n')
 
     def normalize(self, vals):
-        """Resuls range can be different. So, the function make results between 0~1 to calculate ranking score.
+        """Results range can be different. So, the function make results between 0~1 to calculate ranking score.
         """
         minVal = np.min(vals)
         maxVal = np.max(vals)

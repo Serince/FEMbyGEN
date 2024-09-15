@@ -373,7 +373,7 @@ def fracfact_opt(n_factors, n_erased, max_attempts=0) :
         The design is searched by exhaustive search, with the most "promising"
         combinations attempted first. For large designs it might be unfeasible
         to attempt all combinations.
-        Posite values give the number of models to attemps. Zero or negative
+        Posite values give the number of models to attempts. Zero or negative
         values indicate all combinations should be attempted.
 
     Returns
