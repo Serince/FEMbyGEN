@@ -9,6 +9,7 @@ from fembygen import Common
 import glob
 import functools
 from scipy.stats import pearsonr , f_oneway
+
 from femresult.resulttools import fill_femresult_stats
 from FreeCAD.Plot import Plot
 
@@ -94,6 +95,7 @@ class ResultsPanel:
         self.form.comboBox_3.currentIndexChanged.connect(self.update_anova_table)
         self.form.comboBox_2.currentIndexChanged.connect(self.plotParetoGraph)
         self.form.comboBox.currentIndexChanged.connect(self.update_table)   
+
         self.updateResultsTableAll()
         self.updateResultsTableSum()
         self.doc.save()
@@ -435,6 +437,78 @@ class ResultsPanel:
             self.updateResultsTableSum(score)
         except:
             FreeCAD.Console.PrintError('Total weignt needs to be 100\n')
+        
+    def corelation(self):
+        master = self.doc
+        results = np.array(
+            master.Results.FEAMetricsSum[1:], dtype=np.dtype("float"))
+        parameters1 =   np.array(
+            master.Generate.GeneratedParameters, dtype=np.dtype("float"))
+        parameterValues = np.transpose(parameters1)
+        parameters = master.Generate.ParametersName
+
+        cor_table = [] 
+        for index, param in enumerate(parameters):
+            row = [param]    
+            for j in range(len(results[0])):
+                corr, _ = pearsonr(parameterValues[index], [item[j] for item in results])
+                row.append(round(corr, 4))
+            cor_table.append(row)
+
+        return cor_table
+
+    def update_table(self, index):
+        cor_table = self.corelation()
+        self.form.tableWidget.setColumnCount(2)
+        self.form.tableWidget.setRowCount(len(cor_table))
+        self.form.tableWidget.setHorizontalHeaderLabels(["Parameters", "Correlation Coef."])
+        
+        for i, row in enumerate(cor_table):
+            item_param = QTableWidgetItem(row[0]) 
+            item_coef = QTableWidgetItem(str(row[index + 1]))  
+            self.form.tableWidget.setItem(i, 0, item_param)
+            self.form.tableWidget.setItem(i, 1, item_coef)
+            item_coef.setToolTip("As this value approaches -1 or 1, the strength of the effect increases - negative effect, + means positive effect.")
+
+    def calculate_pareto_data(self):
+        cor_table = self.corelation()
+        Responses_names = ["Volume", "Max Stress", "Max Displacement", "Mean Stress", "Internal Energy", "Standard Dev. of En. Den."]
+        Responses = {}
+        parameters = [row[0] for row in cor_table]
+    
+        for i, response_name in enumerate(Responses_names):
+            response_values = [abs(row[i + 1]) for row in cor_table]
+            Responses[response_name] = np.abs(response_values)
+
+        return Responses, parameters 
+
+
+    def plotParetoGraph(self, index):
+        Responses, parameters = self.calculate_pareto_data()
+        response_name = self.form.comboBox_2.itemText(index) if index != 0 else self.form.comboBox_2.currentText()
+
+        response_matrix = Responses[response_name]
+        tot_cor = np.sum(response_matrix)
+        percentage_effects= [(miktar / tot_cor) * 100 for miktar in response_matrix.flatten()]
+        effects_of_parameters= zip(parameters, percentage_effects)
+        percentage_rank= sorted(effects_of_parameters, key=lambda x: x[1], reverse=True)
+        cumulative_percentage= [sum([x[1] for x in percentage_rank[:i + 1]]) for i in range(len(percentage_rank))]
+
+        fig = Plot.figure(winTitle=f'Pareto Graph - {response_name}')
+        ax1 = Plot.axesList()[0]
+
+        ax1.bar([x[0] for x in percentage_rank], [x[1] for x in percentage_rank], color='skyblue')
+        ax2 = ax1.twinx()
+        ax2.plot([x[0] for x in percentage_rank], cumulative_percentage, color='r', marker='o')
+
+        ax1.set_xlabel('Parameters')
+        ax1.set_ylabel('Percentage Effect')
+        ax2.set_ylabel('Cumulative Percentage')
+        ax2.set_ylim(0, 100)
+        ax1.set_ylim(0, 100)
+        Plot.plt.show()
+        fig.canvas.flush_events()
+
 
 
     def corelation(self):
