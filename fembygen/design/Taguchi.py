@@ -1,6 +1,6 @@
 import numpy as np    
 import os
-
+import FreeCAD
 
 def QT_TRANSLATE_NOOP(context, text):
     return text
