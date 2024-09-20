@@ -7,6 +7,7 @@ import operator
 import glob
 import Fem
 
+
 translate = FreeCAD.Qt.translate
 def QT_TRANSLATE_NOOP(context, text):
     return text

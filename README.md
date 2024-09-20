@@ -2,7 +2,7 @@
 A FreeCAD module that uses Generative Design to calculate and show structural analysis results
 
 ### Background 
-This project was devoloped based on [Rahul](https://github.com/MightyBucket/) Master's thesis and [Ogeday Yavuz](https://github.com/OgedaYY/) Graduation Thesis.  
+This project was developed based on [Rahul](https://github.com/MightyBucket/) Master's thesis and [Ogeday Yavuz](https://github.com/OgedaYY/) Graduation Thesis.  
 [František Löffelmann](https://github.com/fandaL)'s [calculix/beso](https://github.com/calculix/beso) topology optimization script was added as a feature recently.  
 The following process image is taken from [Master Thesis Poster of Rahul Jhuree](https://mightybucket.github.io/misc/FYP_poster.pdf):
 

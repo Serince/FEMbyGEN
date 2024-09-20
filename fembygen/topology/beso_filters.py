@@ -1,5 +1,6 @@
 import numpy as np
 from fembygen.topology import beso_lib
+
 import os
 
 def QT_TRANSLATE_NOOP(context, text):
@@ -124,6 +125,7 @@ class BesoFilters:
         https://stackoverflow.com/a/58491045/9582881 fastest way"""
         result=np.format_float_positional(x, precision=s, unique=False, fractional=False, trim='k')
         return float(result)
+
 
 
 # function to check if filtering is to be used on domains with prescribed same state

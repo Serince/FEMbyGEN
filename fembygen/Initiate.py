@@ -5,20 +5,25 @@ import os
 
 MAX_NUM_PARAMETER = 10    # maximum number of parameters
 
+LOCATION = os.path.normpath('Mod/FEMbyGEN/fembygen')
+
+
 def QT_TRANSLATE_NOOP(context, text):
     return text
 
-FreeCADGui.addLanguagePath(os.path.join(FreeCAD.getUserAppDataDir(),"\Mod\FEMbyGEN\fembygen\translations"))
+FreeCADGui.addLanguagePath(os.path.join(FreeCAD.getUserAppDataDir(),LOCATION,"translations"))
 FreeCADGui.updateLocale()
+
 
 class InitiateCommand():
     """Create parameter spreadsheet"""
 
     def GetResources(self):
-        return {'Pixmap': ':/icons/initiate.svg',
+
+        return {'Pixmap':os.path.join(FreeCAD.getUserAppDataDir(), LOCATION, 'icons/Initiate.svg'),
                 'Accel': "Shift+N",  # a default shortcut (optional)
-                'MenuText': QT_TRANSLATE_NOOP("CommandName","Initiate"),
-                'ToolTip': QT_TRANSLATE_NOOP("CommandName","Initialise and create parameter spreadsheet")}
+                'MenuText': "Initiate",
+                'ToolTip': "Create parameter spreadsheet"}
 
 
     def Activated(self):

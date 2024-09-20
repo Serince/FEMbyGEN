@@ -1,12 +1,19 @@
 import FreeCAD
 import FreeCADGui
 import PySide
+from PySide2.QtWidgets import  QTableWidgetItem
+import matplotlib.pyplot as plt
 import os.path
 import numpy as np
 from fembygen import Common
 import glob
 import functools
+try:
+   from scipy.stats import pearsonr , f_oneway
+ except:
+    print("Please install scipy library to use desision making in Results"
 from femresult.resulttools import fill_femresult_stats
+from FreeCAD.Plot import Plot
 translate = FreeCAD.Qt.translate
 
 def QT_TRANSLATE_NOOP(context, text):
@@ -15,6 +22,7 @@ import FreeCADGui
 import os
 FreeCADGui.addLanguagePath(os.path.join(FreeCAD.getUserAppDataDir(),"\Mod\FEMbyGEN\fembygen\translations"))
 FreeCADGui.updateLocale()
+
 
 def makeResult():
     try:
@@ -95,11 +103,14 @@ class ResultsPanel:
             FreeCAD.Console.PrintMessage(translate("FEMbyGEN","Calculating metrics...")+"\n")
             self.calcAndSaveFEAMetrics()
         self.form.arrange.clicked.connect(self.ranking)
+        self.form.comboBox_3.currentIndexChanged.connect(self.update_anova_table)
+        self.form.comboBox_2.currentIndexChanged.connect(self.plotParetoGraph)
+        self.form.comboBox.currentIndexChanged.connect(self.update_table)   
 
         self.updateResultsTableAll()
         self.updateResultsTableSum()
         self.doc.save()
-
+          
     def updateResultsTableAll(self):
         header = self.doc.Results.FEAMetricsAll[0]
         items = self.doc.Results.FEAMetricsAll[1:]
@@ -243,8 +254,10 @@ class ResultsPanel:
                                        f"{mean:.2e}", f"{totalInt:.2e}", f"{energyDenStd:.2e}"])
                         FreeCAD.Console.PrintMessage(translate("FEMbyGEN",f"Generation {i+1} Analysis {j+1} result values imported")+"\n")
                     except:
+
                         FreeCAD.Console.PrintError(translate("FEMbyGEN",
                             f"During getting result values of Generation {i+1} Analysis {j+1} problem occured. Please check the generation results by opening Gen{i+1} folder in master file directory.")+"\n")
+
                         result.append([None]*6)
                 else:
                     FreeCAD.Console.PrintError(translate("FEMbyGEN",f"Generation {i+1} Loadcase {j+1} couldn't imported")+"\n")
@@ -429,7 +442,7 @@ class ResultsPanel:
             normTable = np.zeros((row, column))
             for i in range(column):
                 normTable[:, i] = 1-self.normalize(table[:, i])
-
+                
             # Calculating score by using weight and normalized results
             score = volume*normTable[:, 0] + maxs*normTable[:, 1] + maxd*normTable[:, 2] + \
                 means*normTable[:, 3] + intEn * \
@@ -437,9 +450,201 @@ class ResultsPanel:
             self.updateResultsTableSum(score)
         except:
             FreeCAD.Console.PrintError(translate("FEMbyGEN",'Total weignt needs to be 100')+"\n")
+        
+    def corelation(self):
+        master = self.doc
+        results = np.array(
+            master.Results.FEAMetricsSum[1:], dtype=np.dtype("float"))
+        parameters1 =   np.array(
+            master.Generate.GeneratedParameters, dtype=np.dtype("float"))
+        parameterValues = np.transpose(parameters1)
+        parameters = master.Generate.ParametersName
+
+        cor_table = [] 
+        for index, param in enumerate(parameters):
+            row = [param]    
+            for j in range(len(results[0])):
+                corr, _ = pearsonr(parameterValues[index], [item[j] for item in results])
+                row.append(round(corr, 4))
+            cor_table.append(row)
+
+        return cor_table
+
+    def update_table(self, index):
+        cor_table = self.corelation()
+        self.form.tableWidget.setColumnCount(2)
+        self.form.tableWidget.setRowCount(len(cor_table))
+        self.form.tableWidget.setHorizontalHeaderLabels(["Parameters", "Correlation Coef."])
+        
+        for i, row in enumerate(cor_table):
+            item_param = QTableWidgetItem(row[0]) 
+            item_coef = QTableWidgetItem(str(row[index + 1]))  
+            self.form.tableWidget.setItem(i, 0, item_param)
+            self.form.tableWidget.setItem(i, 1, item_coef)
+            item_coef.setToolTip("As this value approaches -1 or 1, the strength of the effect increases - negative effect, + means positive effect.")
+
+    def calculate_pareto_data(self):
+        cor_table = self.corelation()
+        Responses_names = ["Volume", "Max Stress", "Max Displacement", "Mean Stress", "Internal Energy", "Standard Dev. of En. Den."]
+        Responses = {}
+        parameters = [row[0] for row in cor_table]
+    
+        for i, response_name in enumerate(Responses_names):
+            response_values = [abs(row[i + 1]) for row in cor_table]
+            Responses[response_name] = np.abs(response_values)
+
+        return Responses, parameters 
+
+
+    def plotParetoGraph(self, index):
+        Responses, parameters = self.calculate_pareto_data()
+        response_name = self.form.comboBox_2.itemText(index) if index != 0 else self.form.comboBox_2.currentText()
+
+        response_matrix = Responses[response_name]
+        tot_cor = np.sum(response_matrix)
+        percentage_effects= [(miktar / tot_cor) * 100 for miktar in response_matrix.flatten()]
+        effects_of_parameters= zip(parameters, percentage_effects)
+        percentage_rank= sorted(effects_of_parameters, key=lambda x: x[1], reverse=True)
+        cumulative_percentage= [sum([x[1] for x in percentage_rank[:i + 1]]) for i in range(len(percentage_rank))]
+
+        fig = Plot.figure(winTitle=f'Pareto Graph - {response_name}')
+        ax1 = Plot.axesList()[0]
+
+        ax1.bar([x[0] for x in percentage_rank], [x[1] for x in percentage_rank], color='skyblue')
+        ax2 = ax1.twinx()
+        ax2.plot([x[0] for x in percentage_rank], cumulative_percentage, color='r', marker='o')
+
+        ax1.set_xlabel('Parameters')
+        ax1.set_ylabel('Percentage Effect')
+        ax2.set_ylabel('Cumulative Percentage')
+        ax2.set_ylim(0, 100)
+        ax1.set_ylim(0, 100)
+        Plot.plt.show()
+        fig.canvas.flush_events()
+
+
+
+    def corelation(self):
+        master = self.doc
+        results = np.array(
+            master.Results.FEAMetricsSum[1:], dtype=np.dtype("float"))
+        parameters1 =   np.array(
+            master.Generate.GeneratedParameters, dtype=np.dtype("float"))
+        parameterValues = np.transpose(parameters1)
+        parameters = master.Generate.ParametersName
+
+        cor_table = [] 
+        for index, param in enumerate(parameters):
+            row = [param]    
+            for j in range(len(results[0])):
+                corr, _ = pearsonr(parameterValues[index], [item[j] for item in results])
+                row.append(round(corr, 4))
+            cor_table.append(row)
+
+        return cor_table
+
+    def update_table(self, index):
+        cor_table = self.corelation()
+        self.form.tableWidget.setColumnCount(2)
+        self.form.tableWidget.setRowCount(len(cor_table))
+        self.form.tableWidget.setHorizontalHeaderLabels(["Parameters", "Correlation Coef."])
+        
+        for i, row in enumerate(cor_table):
+            item_param = QTableWidgetItem(row[0]) 
+            item_coef = QTableWidgetItem(str(row[index + 1]))  
+            self.form.tableWidget.setItem(i, 0, item_param)
+            self.form.tableWidget.setItem(i, 1, item_coef)
+            item_coef.setToolTip("As this value approaches -1 or 1, the strength of the effect increases - negative effect, + means positive effect.")
+
+    def anova(self):
+        master = self.doc
+        results = np.array(
+            master.Results.FEAMetricsSum[1:], dtype=np.dtype("float"))
+        parameters1 = np.array(
+            master.Generate.GeneratedParameters, dtype=np.dtype("float"))
+        parameterValues = np.transpose(parameters1)
+        parameters = master.Generate.ParametersName
+
+        anova_table = []
+        for index, param in enumerate(parameters):
+            row = [param]    
+            unique_values = np.unique(parameterValues[index])
+            
+            for j in range(len(results[0])):
+                # Create groups for ANOVA test
+                groups = [results[:, j][parameterValues[index] == value] for value in unique_values]
+                FreeCAD.Console.PrintMessage(f"Parameter: {param}, Unique Values: {unique_values}, Groups: {groups}\n")
+
+                # Check if any group is empty
+                if any(len(group) == 0 for group in groups):
+                    row.append(None)  # Append None or any placeholder for invalid ANOVA result
+                
+                else:
+                    # Perform ANOVA test
+                    f_val, _ = f_oneway(*groups)
+                    row.append(round(f_val, 4))  # Round the F-value for consistency
+
+            anova_table.append(row)
+        
+        return anova_table
+
+
+    def update_anova_table(self, index):
+            anova_table= self.anova()
+            self.form.tableWidget_2.setColumnCount(2)
+            self.form.tableWidget_2.setRowCount(len(anova_table))
+            self.form.tableWidget_2.setHorizontalHeaderLabels(["Parameters", "F values"])
+            
+            for i, row in enumerate(anova_table):
+                item_param = QTableWidgetItem(row[0]) 
+                item_coef = QTableWidgetItem(str(row[index + 1]))  
+                self.form.tableWidget_2.setItem(i, 0, item_param)
+                self.form.tableWidget_2.setItem(i, 1, item_coef)       
+    
+
+    def calculate_pareto_data(self):
+        cor_table = self.corelation()
+        Responses_names = ["Volume", "Max Stress", "Max Displacement", "Mean Stress", "Internal Energy", "Standard Dev. of En. Den."]
+        Responses = {}
+        parameters = [row[0] for row in cor_table]
+    
+        for i, response_name in enumerate(Responses_names):
+            response_values = [abs(row[i + 1]) for row in cor_table]
+            Responses[response_name] = np.abs(response_values)
+
+        return Responses, parameters 
+
+
+    def plotParetoGraph(self, index):
+        Responses, parameters = self.calculate_pareto_data()
+        response_name = self.form.comboBox_2.itemText(index) if index != 0 else self.form.comboBox_2.currentText()
+
+        response_matrix = Responses[response_name]
+        tot_cor = np.sum(response_matrix)
+        percentage_effects= [(miktar / tot_cor) * 100 for miktar in response_matrix.flatten()]
+        effects_of_parameters= zip(parameters, percentage_effects)
+        percentage_rank= sorted(effects_of_parameters, key=lambda x: x[1], reverse=True)
+        cumulative_percentage= [sum([x[1] for x in percentage_rank[:i + 1]]) for i in range(len(percentage_rank))]
+
+        fig = Plot.figure(winTitle=f'Pareto Graph - {response_name}')
+        ax1 = Plot.axesList()[0]
+
+        ax1.bar([x[0] for x in percentage_rank], [x[1] for x in percentage_rank], color='skyblue')
+        ax2 = ax1.twinx()
+        ax2.plot([x[0] for x in percentage_rank], cumulative_percentage, color='r', marker='o')
+
+        ax1.set_xlabel('Parameters')
+        ax1.set_ylabel('Percentage Effect')
+        ax2.set_ylabel('Cumulative Percentage')
+        ax2.set_ylim(0, 100)
+        ax1.set_ylim(0, 100)
+        Plot.plt.show()
+        fig.canvas.flush_events()
+
+
 
     def normalize(self, vals):
-        """Resuls range can be different. So, the function make results between 0~1 to calculate ranking score.
+        """Results range can be different. So, the function make results between 0~1 to calculate ranking score.
         """
         minVal = np.min(vals)
         maxVal = np.max(vals)
