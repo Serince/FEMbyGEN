@@ -1,9 +1,17 @@
 # plotting graphs
 import os
+import FreeCAD
 try:
     from FreeCAD.Plot import Plot
 except ImportError:
     from freecad.plot import Plot
+
+def QT_TRANSLATE_NOOP(context, text):
+    return text
+import FreeCADGui
+
+FreeCADGui.addLanguagePath(os.path.join(FreeCAD.getUserAppDataDir(),"\Mod\FEMbyGEN\fembygen\translations"))
+FreeCADGui.updateLocale()
 
 fig = Plot.figure(winTitle = "Topology Optimization")
 axes = Plot.axesList()

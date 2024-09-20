@@ -1,3 +1,14 @@
+import FreeCAD
+
+def QT_TRANSLATE_NOOP(context, text):
+    return text
+translate = FreeCAD.Qt.translate
+import FreeCADGui
+import os
+
+FreeCADGui.addLanguagePath(os.path.join(FreeCAD.getUserAppDataDir(),"\Mod\FEMbyGEN\fembygen\translations"))
+FreeCADGui.updateLocale()
+
 """
 This code was originally published by the following individuals for use with
 Scilab:
@@ -12,7 +23,6 @@ Scilab:
 Much thanks goes to these individuals. It has been converted to Python by 
 Abraham Lee.
 """
-
 import numpy as np
 from numpy import ma, linalg
 
@@ -200,7 +210,7 @@ def _lhsmaximin(n, samples, iterations, lhstype, randomstate):
         
         return H
     except:
-        print("You need to install scipy to use it")
+        print(translate("FEMbyGEN","You need to install scipy to use it"))
         return None
 
 ################################################################################
@@ -280,5 +290,5 @@ def _lhsmu(N, samples=None, corr=None, random_state=None, M=5):
                 H[l_pos] = random_state.uniform(low, high, size=N)
         return H
     except:
-        print("You need to install scipy to use it")
+        print(translate("FEMbyGEN","You need to install scipy to use it"))
         return None

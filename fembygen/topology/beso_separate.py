@@ -1,6 +1,15 @@
 # The aim of this script is to read .inp file and separate adjacend elements, so that every element has its own nodes,
 # thus nodal results from CalculiX are not averaged between neighbouring elements.
 from fembygen.topology import beso_lib
+import FreeCAD
+
+def QT_TRANSLATE_NOOP(context, text):
+    return text
+import FreeCADGui
+import os
+
+FreeCADGui.addLanguagePath(os.path.join(FreeCAD.getUserAppDataDir(),"\Mod\FEMbyGEN\fembygen\translations"))
+FreeCADGui.updateLocale()
 
 def separating(file_name, nodes={}):
 

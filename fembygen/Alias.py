@@ -2,6 +2,13 @@ import FreeCAD
 import FreeCADGui
 import os
 
+translate = FreeCAD.Qt.translate
+def QT_TRANSLATE_NOOP(context, text):
+    return text
+import FreeCADGui
+FreeCADGui.addLanguagePath(os.path.join(FreeCAD.getUserAppDataDir(),"\Mod\FEMbyGEN\fembygen\translations"))
+FreeCADGui.updateLocale()
+
 LOCATION = 'Mod/FEMbyGEN/fembygen'
 MAX_NUM_PARAMETER = 10    # maximum number of parameters
 
@@ -11,8 +18,8 @@ class AliasCommand():
     def GetResources(self):
         return {'Pixmap': os.path.join(FreeCAD.getUserAppDataDir(), LOCATION, 'icons/Alias.svg'),
                 'Accel': "Shift+A",  # a default shortcut (optional)
-                'MenuText': "Set alias",
-                'ToolTip': "Set the alias from Parameters Name cells"}
+                'MenuText': QT_TRANSLATE_NOOP("CommandName","Set alias"),
+                'ToolTip': QT_TRANSLATE_NOOP("CommandName","Set the alias from Parameters Name cells")}
 
     def Activated(self):
         return AliasPanel()
@@ -36,8 +43,8 @@ class AliasPanel:
             else:
                 aliasedNum += 1
         doc.Parameters.recompute()
-        FreeCAD.Console.PrintMessage(
-            f"{aliasedNum} parameters are aliased and can be used in expressions.\n")
+        FreeCAD.Console.PrintMessage(translate("FEMbyGEN",
+            f"{aliasedNum} parameters are aliased and can be used in expressions.")+"\n")
 
 
 FreeCADGui.addCommand('Alias', AliasCommand())
