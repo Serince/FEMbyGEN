@@ -9,7 +9,7 @@ FreeCADMinimumVersion=0.20
 description=Parametric Finite Element Analysis(FEM)
 about=It is simplify to create parametric structural analysis. 
 It supports multi analyses (Loadcases) and shows all results in a table to choose structural best case
-version=2.04
+version=2.05
 tracker=https://forum.freecadweb.org/viewtopic.php?f=18&t=71905
 repository=https://github.com/Serince/FEMbyGEN
 license=LGPL
