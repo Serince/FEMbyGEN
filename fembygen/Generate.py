@@ -317,8 +317,8 @@ class GeneratePanel():
             # Progress bars
             progress_bar = FreeCAD.Base.ProgressIndicator()    # FreeCAD's progress bar
             progress_bar.start('Generate parts ...', iterationnumber)
-            self.form.progressBar.setValue(1)
-
+            self.form.progressBar.setValue(0)
+            """ Güvensiz çok çekirdekli. Bazen çöküyor
             func = partial(self.copy_mesh, numgenerations)
             p = mp.Pool(self.doc.Generate.NumberOfCPU)
             for i, _ in enumerate(p.imap_unordered(func, range(iterationnumber))):
@@ -327,8 +327,14 @@ class GeneratePanel():
                 progress = ((i+1)/iterationnumber) * 100
                 self.form.progressBar.setValue(progress)
             p.close()
-            p.join()
-
+            p.join()"""
+            for i in range(iterationnumber):
+                self.copy_mesh(numgenerations,i)
+                # Update progress bar
+                progress_bar.next()
+                progress = ((i+1)/iterationnumber) * 100
+                self.form.progressBar.setValue(progress)
+       
             # ReActivate document again once finished
             FreeCAD.setActiveDocument(master.Name)
             master.Generate.GeneratedParameters = numgenerations
