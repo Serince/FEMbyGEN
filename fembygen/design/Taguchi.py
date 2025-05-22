@@ -1,30 +1,48 @@
-import numpy as np    
+import numpy as np  
+import FreeCAD  
+from PySide import QtGui  
+from fembygen import Common
 
 class Taguchipy():
-    def __init__(self,param,numberofgen):
-        self.variables=param
-        self.numberofgen=numberofgen
+    def __init__(self, param, numberofgen):
+        self.variables = param
+        self.numberofgen = numberofgen
+
     def selection(self):
         self.FACTORS = len(self.variables)
-        self.LEVELS=self.numberofgen
+        self.LEVELS = self.numberofgen
+
         if self.FACTORS == 3 and self.LEVELS == 2:
-                    print('Taguchi_L4 is applicable.')
-                    return self.design_L4() 
+            print('Taguchi_L4 is applicable.')
+            return self.design_L4() 
         elif self.FACTORS == 4 and self.LEVELS == 3:
-                    print('Taguchi_L9 is applicable.')
-                    return self.design_L9()      
+            print('Taguchi_L9 is applicable.')
+            return self.design_L9()      
         elif self.FACTORS == 7 and self.LEVELS == 2:
-                    print('Taguchi_L8 is applicable.')
-                    return self.design_L8()
+            print('Taguchi_L8 is applicable.')
+            return self.design_L8()
         elif self.FACTORS == 11 and self.LEVELS == 2:
-                    print('Taguchi_L12 is applicable.')
-                    return self.design_L12()
+            print('Taguchi_L12 is applicable.')
+            return self.design_L12()
         elif self.FACTORS == 16 and self.LEVELS == 5:
-                    print('Taguchi_L16b is applicable.')
-                    return self.design_L16()
+            print('Taguchi_L16b is applicable.')
+            return self.design_L16()
         else:
-            raise Exception("Taguchi design not available.")
-    
+            qm = QtGui.QMessageBox
+            ret = qm.critical(None, 'Attention',
+                            "There are no suitable parameters for Taguchi.\n",
+                            qm.Ok)
+
+            qm.information(None, 'Information',
+                        "You can explore suitable parameters for Taguchi at the following link:\n"
+                        "https://www.york.ac.uk/depts/maths/tables/orthogonal.htm\n\n"
+                        "Alternatively, you may consider using another experimental design method.",
+                        qm.Ok)
+
+            
+            FreeCAD.Console.PrintWarning(f"There are no suitable parameters for Taguchi.\n")
+
+        
     def design_L4(self):
             # L4: https://www.itl.nist.gov/div898/software/dataplot/dex/L4.DATşğ
             self.matrix = np.zeros((4,3))

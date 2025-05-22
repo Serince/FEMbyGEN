@@ -307,39 +307,42 @@ class GeneratePanel():
         self.doc.Generate.GenerationMethod = selectedModule
 
         numgenerations = self.design(selectedModule, param, numberofgen)
-        iterationnumber = len(numgenerations)
+        try:
+            iterationnumber = len(numgenerations)
 
-        # delete earlier generations files before
-        if Common.checkGenerations() > 0:
-            self.deleteGenerations()
+            # delete earlier generations files before
+            if Common.checkGenerations() > 0:
+                self.deleteGenerations()
 
-        # Progress bars
-        progress_bar = FreeCAD.Base.ProgressIndicator()    # FreeCAD's progress bar
-        progress_bar.start('Generate parts ...', iterationnumber)
-        self.form.progressBar.setValue(1)
+            # Progress bars
+            progress_bar = FreeCAD.Base.ProgressIndicator()    # FreeCAD's progress bar
+            progress_bar.start('Generate parts ...', iterationnumber)
+            self.form.progressBar.setValue(1)
 
-        func = partial(self.copy_mesh, numgenerations)
-        p = mp.Pool(self.doc.Generate.NumberOfCPU)
-        for i, _ in enumerate(p.imap_unordered(func, range(iterationnumber))):
-            # Update progress bar
-            progress_bar.next()
-            progress = ((i+1)/iterationnumber) * 100
-            self.form.progressBar.setValue(progress)
-        p.close()
-        p.join()
+            func = partial(self.copy_mesh, numgenerations)
+            p = mp.Pool(self.doc.Generate.NumberOfCPU)
+            for i, _ in enumerate(p.imap_unordered(func, range(iterationnumber))):
+                # Update progress bar
+                progress_bar.next()
+                progress = ((i+1)/iterationnumber) * 100
+                self.form.progressBar.setValue(progress)
+            p.close()
+            p.join()
 
-        # ReActivate document again once finished
-        FreeCAD.setActiveDocument(master.Name)
-        master.Generate.GeneratedParameters = numgenerations
-        master.Generate.ParametersName = paramNames
+            # ReActivate document again once finished
+            FreeCAD.setActiveDocument(master.Name)
+            master.Generate.GeneratedParameters = numgenerations
+            master.Generate.ParametersName = paramNames
 
-        # Update number of generations produced in window
-        self.resetViewControls()
-        self.updateParametersTable()
-        progress_bar.stop()
+            # Update number of generations produced in window
+            self.resetViewControls()
+            self.updateParametersTable()
+            progress_bar.stop()
 
-        master.save()  # too store generated values in generate object
-        FreeCAD.Console.PrintMessage("Generation done successfully!\n")
+            master.save()  # too store generated values in generate object
+            FreeCAD.Console.PrintMessage("Generation done successfully!\n")
+        except:
+            pass
         
 
     def deleteGenerations(self):
@@ -472,7 +475,8 @@ class GeneratePanel():
         elif method == "Taguchi Optimization Design":
             result = Taguchi.Taguchipy(parameters, numberofgen)
             res = result.selection()
-            return list(res)
+            if res is not None:
+                return list(res)
 
 
 class ViewProviderGen:

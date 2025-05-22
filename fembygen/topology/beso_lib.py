@@ -470,11 +470,11 @@ def write_inp(file_name, file_nameW, elm_states, number_of_states, domains, doma
               plane_strain, plane_stress, axisymmetry, save_iteration_results, i, reference_points, shells_as_composite,
               optimization_base, displacement_graph, domain_FI_filled):
     if reference_points == "nodes":
-        fR = open(file_name[:-4] + "_separated.inp", "r")
+        fR = open(os.path.join(file_name[:-4] + "_separated.inp"), "r")
     else:
-        fR = open(file_name, "r")
+        fR = open(os.path.join(file_name), "r")
 
-    fW = open(file_nameW + ".inp", "w", newline="\n")
+    fW = open(os.path.join(file_nameW + ".inp"), "w", newline="\n")
 
     # function for writing ELSETs of each state
 
