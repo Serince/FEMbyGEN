@@ -612,7 +612,7 @@ class TopologyPanel(QtGui.QWidget):
                                     [elset_id].Material["YoungsModulus"].split()[0].replace(",",".")) # MPa
                 
                 
-                if self.doc.Topology.combobox[case][2][elset_id].Material["YoungsModulus"].split()[1] == "kg/(mm*s^2)":
+                if self.doc.Topology.combobox[case][2][elset_id].Material["YoungsModulus"].split()[1] in ("MPa","kg/(mm*s^2)"):
                     pass  # already it is eqaul MPa
                 elif self.doc.Topology.combobox[case][2][elset_id].Material["YoungsModulus"].split()[1] == "GPa":
                     modulus *= 1000  # GPa'yı MPa'ya çevirmek için 1000 ile çarp
