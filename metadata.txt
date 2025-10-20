@@ -12,7 +12,7 @@ It supports multi analyses (Loadcases) and shows all results in a table to choos
 version=2.5.1
 tracker=https://forum.freecadweb.org/viewtopic.php?f=18&t=71905
 repository=https://github.com/Serince/FEMbyGEN
-license=LGPL
+license=LGPL-2.1-only
 icon="fembygen/icons/icon.svg"
 
 [dependencies]
