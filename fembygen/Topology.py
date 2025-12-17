@@ -625,11 +625,15 @@ class TopologyPanel(QtGui.QWidget):
                 poisson = float(self.doc.Topology.combobox[case][2][elset_id].Material["PoissonRatio"].split()[0].replace(",","."))
 
                 try:
-                    density = float(self.doc.Topology.combobox[case][2][elset_id].Material["Density"].split()[
-                        0].replace(",",".")) * 1e-12  # kg/m3 -> t/mm3
-                    self.doc.Topology.domain_density[analysis] = {elset_name: [density*1e-6, density]}
-                    if self.doc.Topology.combobox[case][2][elset_id].Material["Density"].split()[1] not in ["kg/m^3", "kg/m3"]:
-                        raise Exception(" units not recognised in " + self.doc.Topology.combobox[elset_id][2])
+                    #it should return t/mm3
+                    density = float(self.doc.Topology.combobox[case][2][elset_id].Material["Density"].split()[0].replace(",", "."))
+                    density_units = self.doc.Topology.combobox[case][2][elset_id].Material["Density"].split()[1]      
+                    if density_units in ["kg/mm^3", "kg/mm3"]:
+                        self.doc.Topology.domain_density[analysis] = {elset_name: [density, density * 1e-3]}
+                    elif density_units in ["kg/m^3", "kg/m3"]:
+                        self.doc.Topology.domain_density[analysis] = {elset_name: [density * 1e-12, density]}
+                    else:
+                        raise Exception(f"Units not recognised in {self.doc.Topology.combobox[case][2][elset_id][0].Name}")
                 except KeyError:
                     self.doc.Topology.domain_density[analysis] = {elset_name: [0, 0]}
                 try:
@@ -1166,3 +1170,4 @@ class ViewProviderLink:
 
 
 FreeCADGui.addCommand('Topology', TopologyCommand())
+
