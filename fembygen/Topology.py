@@ -663,7 +663,7 @@ class TopologyPanel(QtGui.QWidget):
                     else:
                         raise Exception(" units not recognised in " +
                                         self.doc.Topology.combobox[case][2][elset_id].Name)
-                except KeyError:
+                except Exception:
                     expansion = 0.
                 try:
                     specific_heat = float(self.doc.Topology.combobox[case][2][elset_id].Material["SpecificHeat"].split()[
