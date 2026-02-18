@@ -1,5 +1,5 @@
 import numpy as np
-from fembygen.design.pydoe2 import doe_lhs, doe_box_behnken, doe_composite, doe_plackett_burman
+from fembygen.design.pyDOE3 import doe_lhs, doe_box_behnken, doe_composite, doe_plackett_burman
 import itertools
 
 

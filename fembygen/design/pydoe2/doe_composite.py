@@ -14,9 +14,9 @@ Abraham Lee.
 """
 
 import numpy as np
-from fembygen.design.pydoe2.doe_factorial import ff2n
-from fembygen.design.pydoe2.doe_star import star
-from fembygen.design.pydoe2.doe_union import union
+from pyDOE3.d.doe_factorial import ff2n
+from pyDOE3.doe_star import star
+from pyDOE3.doe_union import union
 
 __all__ = ['ccdesign']
 

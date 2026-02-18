@@ -14,7 +14,7 @@ Abraham Lee.
 """
 
 import numpy as np
-from fembygen.design.pydoe2.doe_factorial import ff2n
+from pyDOE3.doe_factorial import ff2n
 
 
 __all__ = ['bbdesign']
