@@ -300,8 +300,8 @@ class BesoMain:
                                                                                                                  f_range)
                         print(msg)
                         self.beso_lib.write_to_log(self.file_name, msg)
-                    [above_elm, below_elm] = self.beso_filters.prepare2s_casting(cg, f_range, domains_to_filter,
-                                                                                 above_elm, below_elm, casting_vector)
+                    [self.above_elm, self.below_elm] = self.beso_filters.prepare2s_casting(cg, f_range, domains_to_filter,
+                                                                                 self.above_elm, self.below_elm, casting_vector)
                     continue  # to evaluate other filters
                 if len(ft) == 2:
                     domains_to_filter = list(opt_domains)
@@ -546,7 +546,7 @@ class BesoMain:
                             domains_to_filter = []
                             for dn in ft[3:]:
                                 domains_to_filter += domains[dn]
-                        sensitivity_number = self.beso_filters.run2_casting(sensitivity_number, above_elm, below_elm,
+                        sensitivity_number = self.beso_filters.run2_casting(sensitivity_number, self.above_elm, self.below_elm,
                                                                             domains_to_filter)
                         continue  # to evaluate other filters
                     if len(ft) == 2:
