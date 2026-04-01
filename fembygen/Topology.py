@@ -1,5 +1,6 @@
 import FreeCAD
 import FreeCADGui
+from FreeCAD import Units
 import os
 from PySide import QtGui, QtCore
 from femtools import ccxtools
@@ -193,6 +194,7 @@ class TopologyCommand():
 
 class TopologyMasterPanel(QtGui.QWidget):
     def __init__(self, object):
+        super().__init__()
         self.obj = object
         guiPath = FreeCAD.getUserAppDataDir() + "Mod/FEMbyGEN/fembygen/ui/Beso_GenSelect.ui"
         self.form = FreeCADGui.PySideUic.loadUi(guiPath)
@@ -245,6 +247,7 @@ class TopologyMasterPanel(QtGui.QWidget):
 
 class TopologyPanel(QtGui.QWidget):
     def __init__(self, object):
+        super().__init__()
         self.obj = object
         guiPath = FreeCAD.getUserAppDataDir() + "Mod/FEMbyGEN/fembygen/ui/Beso.ui"
         self.form = FreeCADGui.PySideUic.loadUi(guiPath)
@@ -499,51 +502,33 @@ class TopologyPanel(QtGui.QWidget):
         lc = 0
         print(self.doc.Name)
         for obj in self.doc.Objects:
-            try:
-                if obj.TypeId == "Fem::FemAnalysis":  # to choose analysis objects
-                    lc += 1
-                    FemGui.setActiveAnalysis(obj)
-                    analysisfolder = os.path.join(
-                        self.workingDir + f"/TopologyCase_{lc}")
+            if obj.TypeId == "Fem::FemAnalysis":
+                lc += 1
+                FemGui.setActiveAnalysis(obj)
+                analysisfolder = os.path.join(self.workingDir + f"/TopologyCase_{lc}")
+
+                if not os.path.exists(analysisfolder):
+                    os.mkdir(analysisfolder)
                     try:
-                        os.mkdir(analysisfolder)
-                        try:
-                            fea = ccxtools.FemToolsCcx(analysis=obj)
-                        except:
-
-                            import ObjectsFem
-                            obj.addObject(ObjectsFem.makeSolverCalculixCcxTools(self.doc))
-                            fea = ccxtools.FemToolsCcx(analysis=obj)
-
-                        fea.setup_working_dir(analysisfolder)
-                        fea.update_objects()
-                        fea.setup_ccx()
-
-                        fea.purge_results()
-                        fea.write_inp_file()
-                        material, thickness = self.getAnalysisObjects(obj)
-                        inppath = glob.glob(analysisfolder+"/*.inp")[0]
-                        comboBoxItems.append([obj.Name, inppath, material, thickness])
-                        self.form.selectLC.addItem(obj.Name)
+                        fea = ccxtools.FemToolsCcx(analysis=obj)
                     except:
-                        try:
-                            for i in self.doc.Topology.combobox:
-                                self.form.selectLC.addItem(i[0])
-                            self.selectFile()
-                            return
-                        except:
-                            FreeCAD.Console.PrintMessage("Target path has previous files. Old files are deleted.")
-                            folders = glob.glob(self.workingDir + "/TopologyCase*")
+                        import ObjectsFem
+                        obj.addObject(ObjectsFem.makeSolverCalculixCcxTools(self.doc))
+                        fea = ccxtools.FemToolsCcx(analysis=obj)
+                    fea.setup_working_dir(analysisfolder)
+                    fea.update_objects()
+                    fea.setup_ccx()
+                    fea.purge_results()
+                    fea.write_inp_file()
 
-                            for i in folders:
-                                shutil.rmtree(i)
-
-                            self.getAnalysis()
-
-                            return
-            except:
-                # it counts deleted objects and gives error.
-                pass
+                material, thickness = self.getAnalysisObjects(obj)
+                inp_files = glob.glob(analysisfolder + "/*.inp")
+                if not inp_files:
+                    FreeCAD.Console.PrintError(f"No .inp file found in {analysisfolder}\n")
+                    continue
+                inppath = inp_files[0]
+                comboBoxItems.append([obj.Name, inppath, material, thickness])
+                self.form.selectLC.addItem(obj.Name)
 
         self.doc.Topology.combobox = comboBoxItems
         self.selectFile()
@@ -607,84 +592,68 @@ class TopologyPanel(QtGui.QWidget):
                         self.doc.Topology.combobox[case][3][thickness_id].Name
                 else:  # 0 means None thickness selected
                     elset_name = self.doc.Topology.combobox[case][2][elset_id].Name + "Solid"
-
-                modulus = float(self.doc.Topology.combobox[case][2]
-                                    [elset_id].Material["YoungsModulus"].split()[0].replace(",",".")) # MPa
+                qty = Units.Quantity(self.doc.Topology.combobox[case][2][elset_id].Material["YoungsModulus"])
+                modulus = float(qty.getValueAs("MPa"))
                 
-                
-                if self.doc.Topology.combobox[case][2][elset_id].Material["YoungsModulus"].split()[1] in ("MPa","kg/(mm*s^2)"):
+                """if self.doc.Topology.combobox[case][2][elset_id].Material["YoungsModulus"].split()[1] in ("MPa","kg/(mm*s^2)"):
                     pass  # already it is eqaul MPa
                 elif self.doc.Topology.combobox[case][2][elset_id].Material["YoungsModulus"].split()[1] == "GPa":
                     modulus *= 1000  # GPa'yı MPa'ya çevirmek için 1000 ile çarp
                 elif self.doc.Topology.combobox[case][2][elset_id].Material["YoungsModulus"].split()[1] == "Pa":
                     modulus /= 1e6  # Pa'yı MPa'ya çevirmek için 1e6 ile böl
                 else:
-                    raise Exception(f"Units not recognised in: {self.doc.Topology.combobox[elset_id][2][0].Name}")
+                    raise Exception(f"Units not recognised in: {self.doc.Topology.combobox[elset_id][2][0].Name}")"""
                     
 
                 poisson = float(self.doc.Topology.combobox[case][2][elset_id].Material["PoissonRatio"].split()[0].replace(",","."))
-
+                # DENSITY
                 try:
-                    #it should return t/mm3
-                    density = float(self.doc.Topology.combobox[case][2][elset_id].Material["Density"].split()[0].replace(",", "."))
-                    density_units = self.doc.Topology.combobox[case][2][elset_id].Material["Density"].split()[1]      
-                    if density_units in ["kg/mm^3", "kg/mm3"]:
-                        self.doc.Topology.domain_density[analysis] = {elset_name: [density, density * 1e-3]}
-                    elif density_units in ["kg/m^3", "kg/m3"]:
-                        self.doc.Topology.domain_density[analysis] = {elset_name: [density * 1e-12, density]}
-                    else:
-                        raise Exception(f"Units not recognised in {self.doc.Topology.combobox[case][2][elset_id][0].Name}")
+                    qty = Units.Quantity(self.doc.Topology.combobox[case][2][elset_id].Material["Density"])
+                    density_kg_mm3 = float(qty.getValueAs("kg/mm^3"))
+                    density_t_mm3 = density_kg_mm3 * 1e-3   # 1 kg = 0.001 t
+                    density = density_t_mm3                  # BESO'nun kullandığı değer
+                    self.doc.Topology.domain_density[analysis] = {elset_name: [density_t_mm3, density_kg_mm3]}
                 except KeyError:
-                    self.doc.Topology.domain_density[analysis] = {elset_name: [0, 0]}
+                    density = 0.
+                    self.doc.Topology.domain_density[analysis] = {elset_name: [0., 0.]}
+
+                # THERMAL CONDUCTIVITY
                 try:
-                    conductivity = float(
-                        self.doc.Topology.combobox[case][2][elset_id].Material["ThermalConductivity"].split()[0].replace(",","."))  # W/m/K
-                    if self.doc.Topology.combobox[case][2][elset_id].Material["ThermalConductivity"].split()[1] != "W/m/K":
-                        raise Exception(" units not recognised in " +
-                                        self.doc.Topology.combobox[case][2][elset_id].Name)
+                    qty = Units.Quantity(self.doc.Topology.combobox[case][2][elset_id].Material["ThermalConductivity"])
+                    conductivity = float(qty.getValueAs("W/m/K"))
                 except KeyError:
                     conductivity = 0.
-                try:
-                    try:
-                        unit = self.doc.Topology.combobox[case][2][elset_id].Material["ThermalExpansionCoefficient"].split()[1]
-                        print(f"Thermal Expansion Coefficient Unit: {unit}")
-                        
-                        # Eğer birim "µm/m/K" ise "um/m/K" olarak değiştir
-                        unit = unit.replace("µ", "u")
-                    except KeyError:
-                        print("ThermalExpansionCoefficient bilgisi bulunamadi.")
 
-                    if unit == "um/m/K":
-                        expansion = float(self.doc.Topology.combobox[case][2][elset_id].Material["ThermalExpansionCoefficient"].split()[
-                            0].replace(",", ".")) * 1e-6  # um/m/K -> mm/mm/K
-                    elif unit == "m/m/K":
-                        expansion = float(self.doc.Topology.combobox[case][2][elset_id].Material["ThermalExpansionCoefficient"].split()[
-                            0].replace(",", "."))  # m/m/K -> mm/mm/K
-                    else:
-                        raise Exception(" units not recognised in " +
-                                        self.doc.Topology.combobox[case][2][elset_id].Name)
+                # THERMAL EXPANSION COEFFICIENT
+                try:
+                    qty = Units.Quantity(self.doc.Topology.combobox[case][2][elset_id].Material["ThermalExpansionCoefficient"])
+                    expansion = float(qty.getValueAs("1/K"))
                 except KeyError:
                     expansion = 0.
+
+                # SPECIFIC HEAT
                 try:
-                    specific_heat = float(self.doc.Topology.combobox[case][2][elset_id].Material["SpecificHeat"].split()[
-                        0].replace(",",".")) * 1e6  # J/kg/K -> mm^2/s^2/K
-                    if self.doc.Topology.combobox[case][2][elset_id].Material["SpecificHeat"].split()[1] != "J/kg/K":
-                        raise Exception(" units not recognised in " +
-                                        self.doc.Topology.combobox[case][2][elset_id].Name)
+                    qty = Units.Quantity(self.doc.Topology.combobox[case][2][elset_id].Material["SpecificHeat"])
+                    specific_heat = float(qty.getValueAs("mm^2/s^2/K"))  # zaten hedef birim, çarpım yok
                 except KeyError:
                     specific_heat = 0.
-                if thickness_id > -1:
-                    thickness = float(str(self.doc.Topology.combobox[case][3][thickness_id].Thickness).split()[0].replace(",","."))  # mm
-                    if str(self.doc.Topology.combobox[case][3][thickness_id].Thickness).split()[1] != "mm":
+
+                # THICKNESS — değiştirilmedi
+                if thickness_id > -1 and len(self.doc.Topology.combobox[case][3]) > 0:
+                    try:
+                        qty = Units.Quantity(str(self.doc.Topology.combobox[case][3][thickness_id].Thickness))
+                        thickness = float(qty.getValueAs("mm"))
+                    except Exception:
                         raise Exception(" units not recognised in " +
-                                        self.doc.Topology.combobox[case][3][thickness_id].Name)
+                            self.doc.Topology.combobox[case][3][thickness_id].Name)
                 else:
                     thickness = 0
+
                 optimized = self.form.asDesign_checkbox_1.isChecked()
                 if self.form.stressLimit_1.text():
                     von_mises = float(self.form.stressLimit_1.text())
                 else:
-                    von_mises = 0.
+                     von_mises = 0.
 
         #         if self.doc.Topology.Number_of_Domains == 2:
         #             elset_id1 = self.form.selectMaterial_2.currentIndex() - 1
@@ -880,10 +849,7 @@ class TopologyPanel(QtGui.QWidget):
         topologyObject.main()
         FreeCADGui.runCommand('Std_ActivatePrevWindow')
         FreeCAD.setActiveDocument(self.doc.Name)
-        
-         
-    # Uncomment the following line if needed
-    # self.get_case("last")
+        self.get_case("last")
 
     def get_case(self, numberofcase):
         lastcase = self.doc.Topology.LastState
@@ -900,6 +866,10 @@ class TopologyPanel(QtGui.QWidget):
             pass
         from functools import partial
         get_result = partial(Common.get_results_fc, self.doc)
+        def on_value_changed(value):
+            get_result(value)
+            FreeCADGui.updateGui()  # görüntüyü zorla güncelle
+
         slider = QtGui.QSlider(QtCore.Qt.Horizontal)
         slider.setGeometry(10, mw.height()-50, mw.width()-50, 50)
         slider.setMinimum(1)
@@ -909,7 +879,7 @@ class TopologyPanel(QtGui.QWidget):
         slider.setTickInterval(1)
         slider.setWindowFlags(QtCore.Qt.FramelessWindowHint)
         slider.setAttribute(QtCore.Qt.WA_TranslucentBackground)
-        slider.sliderMoved.connect(get_result)
+        slider.valueChanged.connect(on_value_changed)  # sliderMoved yerine valueChanged
         button = QtGui.QPushButton("Animation")
         button.setGeometry(50, 100, 100, 30)
         timer = QtCore.QTimer()
@@ -922,7 +892,6 @@ class TopologyPanel(QtGui.QWidget):
 
             if current_value < max_value:
                 slider.setValue(current_value + 1)
-                get_result(slider.value())
             else:
                 timer.stop()  
                 button.setEnabled(True)  
@@ -938,7 +907,7 @@ class TopologyPanel(QtGui.QWidget):
         evaluation_bar.addWidget(closebutton)
         evaluation_bar.setObjectName("Evaluation")
         mw.addToolBar(QtCore.Qt.ToolBarArea.BottomToolBarArea, evaluation_bar)
-        get_result(lastcase)
+        on_value_changed(numberofcase)  # başlangıç görüntüsünü hemen yükle
     def openExample(self):
         webbrowser.open_new_tab("https://github.com/fandaL/beso/wiki/Example-4:-GUI-in-FreeCAD")
 
