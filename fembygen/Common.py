@@ -190,15 +190,22 @@ def get_results_fc(doc, case):
     file = os.path.join(file_path, "topology_iterations", "file" + str(case).zfill(3))
     result_state0 = f"{file}_state0"
     result_state1 = f"{file}_state1"
-    # Hide all previous mesh objects
-    meshes = doc.findObjects('Mesh::Feature') 
-    for mesh in meshes:
-        mesh.Visibility = False
+
+    # CCX_Results nesnelerini gizle
+    for obj in doc.Objects:
+        if "CCX_Results" in obj.Name:
+            obj.Visibility = False
+
+    # Önceki tüm state gruplarını gizle
     for obj in doc.Topology.Group:
         obj.Visibility = False
-    # If the file is already imported, open it
+
     if doc.getObject(os.path.split(file)[1]):
-        doc.getObject(os.path.split(file)[1]).Visibility = True
+        state = doc.getObject(os.path.split(file)[1])
+        state.Visibility = True
+        smooth_obj = doc.getObject(f"Smooth{case:03}")
+        if smooth_obj is not None:
+            smooth_obj.Visibility = False
     else:
         state = FreeCAD.ActiveDocument.addObject(
             "App::DocumentObjectGroupPython", os.path.split(file)[1])
@@ -210,22 +217,29 @@ def get_results_fc(doc, case):
         Gui.getDocument(doc).getObject(os.path.split(result_state1)[1]).ShapeColor = (0., 1., 0.)
         state.addObject(doc.getObject(os.path.split(result_state0)[1]))
         state.addObject(doc.getObject(os.path.split(result_state1)[1]))
-        femmesh_object=doc.getObject(os.path.split(result_state1)[1])
+        femmesh_object = doc.getObject(os.path.split(result_state1)[1])
         out_mesh = femmesh.femmesh2mesh.femmesh_2_mesh(femmesh_object.FemMesh)
         mesh_filename = f"Smooth{case:03}"
         Mesh.show(Mesh.Mesh(out_mesh), mesh_filename)
-        obj=doc.getObject(mesh_filename)
-        state.addObject(obj)
-        obj.Mesh.smooth("Laplace", 10, 0.6307, 0.0424)
+        smooth_obj = doc.getObject(mesh_filename)
+        smooth_obj.Mesh.smooth("Laplace", 10, 0.6307, 0.0424)
+        smooth_obj.Visibility = False
+        state.addObject(smooth_obj)
+        to_remove = [obj.Name for obj in doc.Objects if "Mesh2Fem" in obj.Name]
+        for name in to_remove:
+            doc.removeObject(name)
         doc.Topology.addObject(state)
+
     state1 = doc.getObject(os.path.split(result_state0)[1])
     state2 = doc.getObject(os.path.split(result_state1)[1])
-
     if state1 is not None:
-        state1.Visibility = False
-
+        state1.Visibility = True
     if state2 is not None:
-        state2.Visibility = False
+        state2.Visibility = True
+    try:
+        Gui.updateGui()
+    except Exception:
+        pass
 
 class GenTableModel(QtCore.QAbstractTableModel):
     def __init__(self, parent, itemList, header, colours=None, score=None, *args):
