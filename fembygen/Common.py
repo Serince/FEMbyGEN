@@ -317,7 +317,7 @@ class ViewProviderIni:
         vobj.Proxy = self
 
     def getIcon(self):
-        return os.path.join(FreeCAD.getUserAppDataDir(), LOCATION, 'icons/icon.svg')
+        return os.path.join(FreeCAD.getHomePath(), LOCATION, 'icons/icon.svg')
 
     def attach(self, vobj):
         self.ViewObject = vobj

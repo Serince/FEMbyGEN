@@ -170,7 +170,7 @@ class Topology:
 class TopologyCommand():
 
     def GetResources(self):
-        return {'Pixmap': os.path.join(FreeCAD.getUserAppDataDir() + 'Mod/FEMbyGEN/fembygen/icons/Topology.svg'),  # the name of a svg file available in the resources
+        return {'Pixmap': os.path.join(FreeCAD.getHomePath() + 'Mod/FEMbyGEN/fembygen/icons/Topology.svg'),  # the name of a svg file available in the resources
                 'Accel': "Shift+T",  # a default shortcut (optional)
                 'MenuText': "Topology",
                 'ToolTip': "Opens Topology gui"}
@@ -196,7 +196,7 @@ class TopologyMasterPanel(QtGui.QWidget):
     def __init__(self, object):
         super().__init__()
         self.obj = object
-        guiPath = FreeCAD.getUserAppDataDir() + "Mod/FEMbyGEN/fembygen/ui/Beso_GenSelect.ui"
+        guiPath = FreeCAD.getHomePath() + "Mod/FEMbyGEN/fembygen/ui/Beso_GenSelect.ui"
         self.form = FreeCADGui.PySideUic.loadUi(guiPath)
         self.workingDir = '/'.join(
             object.Document.FileName.split('/')[0:-1])
@@ -249,7 +249,7 @@ class TopologyPanel(QtGui.QWidget):
     def __init__(self, object):
         super().__init__()
         self.obj = object
-        guiPath = FreeCAD.getUserAppDataDir() + "Mod/FEMbyGEN/fembygen/ui/Beso.ui"
+        guiPath = FreeCAD.getHomePath() + "Mod/FEMbyGEN/fembygen/ui/Beso.ui"
         self.form = FreeCADGui.PySideUic.loadUi(guiPath)
         self.workingDir = '/'.join(
             object.Document.FileName.split('/')[0:-1])
@@ -1040,7 +1040,7 @@ class ViewProviderGen:
         vobj.Proxy = self
 
     def getIcon(self):
-        icon_path = os.path.join(FreeCAD.getUserAppDataDir() + 'Mod/FEMbyGEN/fembygen/icons/Topology.svg')
+        icon_path = os.path.join(FreeCAD.getHomePath() + 'Mod/FEMbyGEN/fembygen/icons/Topology.svg')
         return icon_path
 
     def attach(self, vobj):
@@ -1091,7 +1091,7 @@ class ViewProviderLink:
         vobj.Proxy = self
 
     def getIcon(self):
-        icon_path = os.path.join(FreeCAD.getUserAppDataDir() + 'Mod/FEMbyGEN/fembygen/icons/Topology.svg')
+        icon_path = os.path.join(FreeCAD.getHomePath() + 'Mod/FEMbyGEN/fembygen/icons/Topology.svg')
         return icon_path
 
     def attach(self, vobj):

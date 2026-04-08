@@ -9,7 +9,7 @@ class AliasCommand():
     """Analyse the generated parts"""
 
     def GetResources(self):
-        return {'Pixmap': os.path.join(FreeCAD.getUserAppDataDir(), LOCATION, 'icons/Alias.svg'),
+        return {'Pixmap': os.path.join(FreeCAD.getHomePath(), LOCATION, 'icons/Alias.svg'),
                 'Accel': "Shift+A",  # a default shortcut (optional)
                 'MenuText': "Set alias",
                 'ToolTip': "Set the alias from Parameters Name cells"}

@@ -10,7 +10,7 @@ class InitiateCommand():
     """Create parameter spreadsheet"""
 
     def GetResources(self):
-        return {'Pixmap':os.path.join(FreeCAD.getUserAppDataDir(), LOCATION, 'icons/Initiate.svg'),
+        return {'Pixmap':os.path.join(FreeCAD.getHomePath(), LOCATION, 'icons/Initiate.svg'),
                 'Accel': "Shift+N",  # a default shortcut (optional)
                 'MenuText': "Initiate",
                 'ToolTip': "Create parameter spreadsheet"}
