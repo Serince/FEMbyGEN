@@ -26,7 +26,8 @@ class Generate:
                             "Generation Method")
             obj.GenerationMethod = ["Full Factorial Design", "Taguchi Optimization Design",
                                     "Plackett Burman Design", "Box Behnken Design",
-                                    "Latin Hyper Cube Design", "Central Composite Design"]
+                                    "Latin Hyper Cube Design", "Central Composite Design","Sobol Sequence Design", "Morris Sampling Design",
+                                    "Optimal Design"]
             obj.addProperty("App::PropertyStringList", "ParametersName", "Base",
                             "Generated parameter matrix")
             obj.addProperty("App::PropertyPythonObject", "GeneratedParameters", "Base",
@@ -483,7 +484,23 @@ class GeneratePanel():
             res = result.selection()
             if res is not None:
                 return list(res)
-
+        elif method == "Sobol Sequence Design":
+            result = Taguchi.Sobolpy(parameters, numberofgen)
+            res = result.selection()
+            if res is not None:
+                return list(res)
+                
+        elif method == "Morris Sampling Design":
+            result = Taguchi.Morrispy(parameters, numberofgen)
+            res = result.selection()
+            if res is not None:
+                return list(res)
+                
+        elif method == "Optimal Design":
+            result = Taguchi.Optimalpy(parameters, numberofgen)
+            res = result.selection()
+            if res is not None:
+                return list(res)
 
 class ViewProviderGen:
     def __init__(self, vobj):
