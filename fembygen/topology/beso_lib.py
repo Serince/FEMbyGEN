@@ -651,7 +651,12 @@ def write_inp(file_name, file_nameW, elm_states, number_of_states, domains, doma
 def import_FI_int_pt(reference_value, file_nameW, domains, criteria, domain_FI, file_name, elm_states,
                      domains_from_config, steps_superposition, displacement_graph):
     try:
-        f = open(os.path.join(file_nameW + ".dat"), "r")
+        file_path_dat = os.path.join(file_nameW + ".dat")
+        file_path_inp = os.path.join(file_nameW + ".inp")
+        if os.path.exists(file_path_dat):
+            f = open(file_path_dat, "r")
+        elif os.path.exists(file_path_inp):
+            f = open(file_path_inp, "r")
     except IOError:
         msg = "CalculiX result file not found, check your inputs"
         write_to_log(file_name, "\nERROR: " + msg + "\n")
@@ -983,7 +988,12 @@ def import_FI_int_pt(reference_value, file_nameW, domains, criteria, domain_FI, 
 
 # function for importing displacements if import_FI_int_pt is not called to read .dat file
 def import_displacement(file_nameW, displacement_graph, steps_superposition):
-    f = open(os.path.join(file_nameW + ".dat"), "r")
+    file_path_dat = os.path.join(file_nameW + ".dat")
+    file_path_inp = os.path.join(file_nameW + ".inp")
+    if os.path.exists(file_path_dat):
+        f = open(file_path_dat, "r")
+    elif os.path.exists(file_path_inp):
+        f = open(file_path_inp, "r")
     read_displacement = 0
     disp_i = [None for _ in range(len(displacement_graph))]
     disp_condition = {}

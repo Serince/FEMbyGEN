@@ -634,7 +634,7 @@ class TopologyPanel(QtGui.QWidget):
                         self.doc.Topology.domain_density[analysis] = {elset_name: [density * 1e-12, density]}
                     else:
                         raise Exception(f"Units not recognised in {self.doc.Topology.combobox[case][2][elset_id][0].Name}")
-                except KeyError:
+                except Exception:
                     self.doc.Topology.domain_density[analysis] = {elset_name: [0, 0]}
                 try:
                     conductivity = float(
@@ -642,7 +642,7 @@ class TopologyPanel(QtGui.QWidget):
                     if self.doc.Topology.combobox[case][2][elset_id].Material["ThermalConductivity"].split()[1] != "W/m/K":
                         raise Exception(" units not recognised in " +
                                         self.doc.Topology.combobox[case][2][elset_id].Name)
-                except KeyError:
+                except Exception:
                     conductivity = 0.
                 try:
                     try:
@@ -663,7 +663,7 @@ class TopologyPanel(QtGui.QWidget):
                     else:
                         raise Exception(" units not recognised in " +
                                         self.doc.Topology.combobox[case][2][elset_id].Name)
-                except KeyError:
+                except Exception:
                     expansion = 0.
                 try:
                     specific_heat = float(self.doc.Topology.combobox[case][2][elset_id].Material["SpecificHeat"].split()[
@@ -671,7 +671,7 @@ class TopologyPanel(QtGui.QWidget):
                     if self.doc.Topology.combobox[case][2][elset_id].Material["SpecificHeat"].split()[1] != "J/kg/K":
                         raise Exception(" units not recognised in " +
                                         self.doc.Topology.combobox[case][2][elset_id].Name)
-                except KeyError:
+                except Exception:
                     specific_heat = 0.
                 if thickness_id > -1:
                     thickness = float(str(self.doc.Topology.combobox[case][3][thickness_id].Thickness).split()[0].replace(",","."))  # mm
