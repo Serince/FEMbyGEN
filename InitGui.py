@@ -6,12 +6,12 @@ class FEMbyGEN(Workbench):
     "FEMbyGEN workbench object"
 
     def __init__(self):
-        self.__class__.Icon = FreeCAD.getUserAppDataDir() + "Mod/FEMbyGEN/fembygen/icons/icon.svg"
+        self.__class__.Icon = FreeCAD.getHomePath() + "Mod/FEMbyGEN/fembygen/icons/icon.svg"
         self.__class__.MenuText = "FEMbyGEN"
         self.__class__.ToolTip = "Parametric FEM analysis"
 
         from PySide import QtCore
-        ICONS_PATH = FreeCAD.getUserAppDataDir() + "Mod/FEMbyGEN/fembygen/icons/"
+        ICONS_PATH = FreeCAD.getHomePath() + "Mod/FEMbyGEN/fembygen/icons/"
         QtCore.QDir.addSearchPath("icons", ICONS_PATH)
 
     def Initialize(self):

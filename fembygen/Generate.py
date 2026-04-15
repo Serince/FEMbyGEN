@@ -43,7 +43,7 @@ class GenerateCommand():
     """Produce part generations"""
 
     def GetResources(self):
-        return {'Pixmap': os.path.join(FreeCAD.getUserAppDataDir(), LOCATION, 'icons/Generate.svg'),
+        return {'Pixmap': os.path.join(FreeCAD.getHomePath(), LOCATION, 'icons/Generate.svg'),
                 'Accel': "Shift+G",  # a default shortcut (optional)
                 'MenuText': "Generate",
                 'ToolTip': "Produce part generations"}
@@ -67,7 +67,7 @@ class GeneratePanel():
 
         self.obj = object
         # this will create a Qt widget from our ui file
-        guiPath = os.path.join(FreeCAD.getUserAppDataDir(), LOCATION, 'ui/Generate.ui')
+        guiPath = os.path.join(FreeCAD.getHomePath(), LOCATION, 'ui/Generate.ui')
         self.form = FreeCADGui.PySideUic.loadUi(guiPath)
         self.doc = object.Object.Document
         self.workingDir = os.path.dirname(os.path.normpath(self.doc.FileName))
@@ -102,7 +102,7 @@ class GeneratePanel():
 
     def more(self):
         """Input screens for methods"""
-        path = os.path.join(FreeCAD.getUserAppDataDir(), LOCATION, 'ui')
+        path = os.path.join(FreeCAD.getHomePath(), LOCATION, 'ui')
         method = self.form.selectDesign.currentText()
         if method == "Box Behnken Design":
             def save():
@@ -490,7 +490,7 @@ class ViewProviderGen:
         vobj.Proxy = self
 
     def getIcon(self):
-        icon_path = os.path.join(FreeCAD.getUserAppDataDir(), LOCATION, 'icons/Generate.svg')
+        icon_path = os.path.join(FreeCAD.getHomePath(), LOCATION, 'icons/Generate.svg')
         return icon_path
 
     def attach(self, vobj):
