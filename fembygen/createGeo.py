@@ -219,7 +219,7 @@ class CreateGeoPanel:
                         "Error while trying to delete analysis folder for generation\n ")
 
         
-#///////////////////////////////////////////////////////////////////////////////////////////// 
+
     def TopologyAdvanced(self):
         constraint_fixed = self.doc.getObject("ConstraintFixed")
         constraint_force = self.doc.getObject("ConstraintForce")
@@ -248,6 +248,7 @@ class CreateGeoPanel:
 
         
     def displacement(self):
+        self.doc = FreeCAD.ActiveDocument
         displacement_obj = self.doc.addObject("Fem::ConstraintDisplacement", "ConstraintDisplacement")
         displacement_obj.Scale = 1
         self.doc.Analysis.addObject(displacement_obj)
@@ -262,6 +263,7 @@ class CreateGeoPanel:
                 amesh.ViewObject.Visibility = False
         self.guiDoc.setEdit(displacement_obj.Name)
     def fixed_support(self):
+        self.doc = FreeCAD.ActiveDocument
         fixed_support_obj=self.doc.addObject("Fem::ConstraintFixed","ConstraintFixed")
         fixed_support_obj.Scale = 1
         self.doc.Analysis.addObject(fixed_support_obj)
@@ -276,11 +278,13 @@ class CreateGeoPanel:
                 amesh.ViewObject.Visibility = False
         self.guiDoc.setEdit(fixed_support_obj.Name)
     def material(self):
+        self.doc = FreeCAD.ActiveDocument
         obj = ObjectsFem.makeMaterialSolid(self.doc)
         self.doc.Analysis.addObject(obj)
         self.guiDoc.setEdit(obj.Name)
 
     def force(self):
+        self.doc = FreeCAD.ActiveDocument
         force_obj = self.doc.addObject("Fem::ConstraintForce", "ConstraintForce")
         force_obj.Force = 1
         force_obj.Reversed = False
@@ -349,7 +353,8 @@ class CreateGeoPanel:
         return logger
     def createGeoGenerations(self):
         # Set up logging
-
+        self.doc = FreeCAD.ActiveDocument
+        self.guiDoc = FreeCADGui.getDocument(self.doc)
         logger=self.setup_logging()
         if self.form.obstacle_bodies.count() > 0:
                 logger.info("Starting createGeoGenerations function")
@@ -441,12 +446,15 @@ class CreateGeoPanel:
                     self.doc.createGeo.addObject(box)
                     import femmesh.gmshtools as gt
                     active_analysis = ObjectsFem.makeAnalysis(self.doc, 'Analysis')
-                    solver_obj = ObjectsFem.makeSolverCalculixCcxTools(self.doc)
+                    solver_obj = ObjectsFem.makeSolverCalculiXCcxTools(self.doc)
                     self.doc.createGeo.addObject(active_analysis)
                     self.doc.Analysis.addObject(solver_obj)
                     mesh_obj = ObjectsFem.makeMeshGmsh(self.doc, 'FEMMeshGmsh')
                     self.doc.Analysis.addObject(mesh_obj)
-                    mesh_obj.Part = obj_list[-1]  # The number of cutted objects
+                    try:
+                        mesh_obj.Part = obj_list[-1]  # FreeCAD < 1.0
+                    except AttributeError:
+                        mesh_obj.Shape = obj_list[-1]  # FreeCAD >= 1.0
                     mesher = gt.GmshTools(mesh_obj)
                     mesher.create_mesh()
 

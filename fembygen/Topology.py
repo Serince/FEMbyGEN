@@ -513,14 +513,26 @@ class TopologyPanel(QtGui.QWidget):
                         fea = ccxtools.FemToolsCcx(analysis=obj)
                     except:
                         import ObjectsFem
-                        obj.addObject(ObjectsFem.makeSolverCalculixCcxTools(self.doc))
+                        obj.addObject(ObjectsFem.makeSolverCalculiXCcxTools(self.doc))
                         fea = ccxtools.FemToolsCcx(analysis=obj)
                     fea.setup_working_dir(analysisfolder)
                     fea.update_objects()
                     fea.setup_ccx()
                     fea.purge_results()
-                    fea.write_inp_file()
-
+                    try:
+                        fea.write_inp_file()
+                    except Exception as e:
+                        FreeCAD.Console.PrintWarning(
+                            f"write_inp_file warning (mesh may not be computed yet): {e}\n"
+                        )
+                        self.doc.recompute()
+                        try:
+                            fea.update_objects()
+                            fea.write_inp_file()
+                        except Exception as e2:
+                            FreeCAD.Console.PrintError(
+                                f"write_inp_file failed: {e2}\n"
+                            )
                 material, thickness = self.getAnalysisObjects(obj)
                 inp_files = glob.glob(analysisfolder + "/*.inp")
                 if not inp_files:
