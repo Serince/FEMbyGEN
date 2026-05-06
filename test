@@ -1,0 +1,9 @@
+# Kütüphaneyi çağırıyoruz (Bak 3 oldu!)
+from pyDOE3 import lhs
+
+# Bize 2 değişkenli, 5 tane örneklem (sample) oluştur diyoruz.
+# (Gemi boyu ve Gemi genişliği gibi düşün)
+tasarim_uzayi = lhs(2, samples=5)
+
+print("İşte Latin Hypercube Tasarımımız:")
+print(tasarim_uzayi)
