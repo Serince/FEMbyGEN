@@ -1,17 +1,22 @@
 import FreeCAD
 import FreeCADGui as Gui
 from PySide import QtCore, QtGui    # FreeCAD's PySide!
+import os
 import os.path
+import inspect
 import numpy as np
 import operator
 import glob
 import Fem
 
+try:
+    _DIR = os.path.dirname(os.path.abspath(__file__))
+except NameError:
+    _DIR = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
+
 g_master = None
 g_workingDir = ''
 
-
-LOCATION = os.path.normpath('Mod/FEMbyGEN/fembygen')
 
 g_master = None
 g_workingDir = ''
@@ -317,7 +322,7 @@ class ViewProviderIni:
         vobj.Proxy = self
 
     def getIcon(self):
-        return os.path.join(FreeCAD.getHomePath(), LOCATION, 'icons/icon.svg')
+        return os.path.join(_DIR, 'icons', 'icon.svg')
 
     def attach(self, vobj):
         self.ViewObject = vobj

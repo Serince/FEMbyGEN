@@ -2,7 +2,13 @@ import FreeCAD
 import FreeCADGui
 import FemGui
 import os
+import inspect
 from fembygen import Common
+
+try:
+    _DIR = os.path.dirname(os.path.abspath(__file__))
+except NameError:
+    _DIR = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
 import shutil
 import PySide
 import glob
@@ -52,7 +58,7 @@ class FEACommand():
     """Perform FEA on generated parts"""
 
     def GetResources(self):
-        return {'Pixmap': os.path.join(FreeCAD.getHomePath(), "Mod","FEMbyGEN","fembygen","icons","FEA.svg"),  # the name of a svg file available in the resources
+        return {'Pixmap': os.path.join(_DIR, "icons", "FEA.svg"),  # the name of a svg file available in the resources
                 'Accel': "Shift+A",  # a default shortcut (optional)
                 'MenuText': "FEA Generations",
                 'ToolTip': "Perform FEA on generated parts"}
@@ -81,7 +87,7 @@ class FEAPanel:
         self.obj = object
         self.doc = object.Object.Document
         # this will create a Qt widget from our ui file
-        guiPath = os.path.join(FreeCAD.getHomePath(),"Mod","FEMbyGEN","fembygen","ui","PerformFEA.ui")
+        guiPath = os.path.join(_DIR,"ui","PerformFEA.ui")
         self.form = FreeCADGui.PySideUic.loadUi(guiPath)
         self.workingDir = '/'.join(
             object.Object.Document.FileName.split('/')[0:-1])
@@ -274,7 +280,7 @@ class ViewProviderFEA:
         vobj.Proxy = self
 
     def getIcon(self):
-        icon_path = os.path.join(FreeCAD.getHomePath(),"Mod","FEMbyGEN","fembygen","icons","FEA.svg")
+        icon_path = os.path.join(_DIR,"icons","FEA.svg")
         return icon_path
 
     def attach(self, vobj):

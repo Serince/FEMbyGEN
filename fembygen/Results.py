@@ -6,9 +6,16 @@ try:
 except:
     from PySide2.QtWidgets import  QTableWidgetItem
 import matplotlib.pyplot as plt
+import os
 import os.path
+import inspect
 import numpy as np
 from fembygen import Common
+
+try:
+    _DIR = os.path.dirname(os.path.abspath(__file__))
+except NameError:
+    _DIR = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
 import glob
 import functools
 from scipy.stats import pearsonr , f_oneway
@@ -57,7 +64,7 @@ class ResultsCommand():
     """Show results of analysed generations"""
 
     def GetResources(self):
-        return {'Pixmap': os.path.join(FreeCAD.getHomePath(),"Mod","FEMbyGEN","fembygen","icons","Results.svg"),  # the name of a svg file available in the resources
+        return {'Pixmap': os.path.join(_DIR,"icons","Results.svg"),  # the name of a svg file available in the resources
                 'Accel': "Shift+R",  # a default shortcut (optional)
                 'MenuText': "Show Results",
                 'ToolTip': "Show results of analysed generations"}
@@ -83,7 +90,7 @@ class ResultsCommand():
 class ResultsPanel:
     def __init__(self, object):
         # this will create a Qt widget from our ui file
-        guiPath = os.path.join(FreeCAD.getHomePath(),"Mod","FEMbyGEN","fembygen","ui","Results.ui")
+        guiPath = os.path.join(_DIR,"ui","Results.ui")
         self.form = FreeCADGui.PySideUic.loadUi(guiPath)
         self.workingDir = '/'.join(
             object.Object.Document.FileName.split('/')[0:-1])
@@ -660,8 +667,7 @@ class ViewProviderResult:
         vobj.Proxy = self
 
     def getIcon(self):
-        icon_path = os.path.join(
-            FreeCAD.getHomePath() + 'Mod/FEMbyGEN/fembygen/icons/Results.svg')
+        icon_path = os.path.join(_DIR, 'icons', 'Results.svg')
         return icon_path
 
     def attach(self, vobj):

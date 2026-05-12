@@ -1,16 +1,21 @@
 import FreeCAD
 import FreeCADGui
 import os
+import inspect
 from fembygen import Common
 
+try:
+    _DIR = os.path.dirname(os.path.abspath(__file__))
+except NameError:
+    _DIR = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
+
 MAX_NUM_PARAMETER = 10    # maximum number of parameters
-LOCATION = os.path.normpath(os.path.join("Mod", "FEMbyGEN", "fembygen"))
 
 class InitiateCommand():
     """Create parameter spreadsheet"""
 
     def GetResources(self):
-        return {'Pixmap':os.path.join(FreeCAD.getHomePath(), LOCATION, 'icons/Initiate.svg'),
+        return {'Pixmap':os.path.join(_DIR, 'icons', 'Initiate.svg'),
                 'Accel': "Shift+N",  # a default shortcut (optional)
                 'MenuText': "Initiate",
                 'ToolTip': "Create parameter spreadsheet"}

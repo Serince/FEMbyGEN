@@ -1,7 +1,13 @@
 import FreeCAD,Part
 import FreeCADGui
 import os
+import inspect
 import ObjectsFem
+
+try:
+    _DIR = os.path.dirname(os.path.abspath(__file__))
+except NameError:
+    _DIR = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
 from fembygen import Topology
 from PySide import QtGui, QtCore
 import shutil
@@ -51,7 +57,7 @@ class CreateGeoCommand:
         self.createGeoPanel = None
     def GetResources(self):
         return {
-            'Pixmap': os.path.join(FreeCAD.getHomePath(), "Mod","FEMbyGEN","fembygen","icons","createGeo.svg"),
+            'Pixmap': os.path.join(_DIR, "icons", "createGeo.svg"),
             'Accel': "Shift+S",
             'MenuText': "Create Geo Generations",
             'ToolTip': "Perform createGeo operations on selected objects"
@@ -479,8 +485,7 @@ class ViewProvidercreateGeo:
         vobj.Proxy = self
 
     def getIcon(self):
-        icon_path = os.path.join(
-            FreeCAD.getHomePath() + 'Mod/FEMbyGEN/fembygen/icons/createGeo.svg')
+        icon_path = os.path.join(_DIR, 'icons', 'createGeo.svg')
         return icon_path
 
     def attach(self, vobj):
@@ -523,5 +528,5 @@ class ViewProvidercreateGeo:
 
 
 # Path to your UI file
-guiPath = FreeCAD.getHomePath() + "/Mod/FEMbyGEN/fembygen/ui/createGeo.ui"
+guiPath = os.path.join(_DIR, "ui", "createGeo.ui")
 FreeCADGui.addCommand('createGeo', CreateGeoCommand())

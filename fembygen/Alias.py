@@ -1,15 +1,20 @@
 import FreeCAD
 import FreeCADGui
 import os
+import inspect
 
-LOCATION = 'Mod/FEMbyGEN/fembygen'
+try:
+    _DIR = os.path.dirname(os.path.abspath(__file__))
+except NameError:
+    _DIR = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
+
 MAX_NUM_PARAMETER = 10    # maximum number of parameters
 
 class AliasCommand():
     """Analyse the generated parts"""
 
     def GetResources(self):
-        return {'Pixmap': os.path.join(FreeCAD.getHomePath(), LOCATION, 'icons/Alias.svg'),
+        return {'Pixmap': os.path.join(_DIR, 'icons', 'Alias.svg'),
                 'Accel': "Shift+A",  # a default shortcut (optional)
                 'MenuText': "Set alias",
                 'ToolTip': "Set the alias from Parameters Name cells"}
