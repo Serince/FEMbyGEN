@@ -58,20 +58,20 @@
              <string>Click the row to open file</string>
             </property>
             <property name="verticalScrollBarPolicy">
-             <enum>Qt::ScrollBarAsNeeded</enum>
+             <enum>Qt::ScrollBarPolicy::ScrollBarAsNeeded</enum>
             </property>
             <property name="horizontalScrollBarPolicy">
-             <enum>Qt::ScrollBarAsNeeded</enum>
+             <enum>Qt::ScrollBarPolicy::ScrollBarAsNeeded</enum>
             </property>
             <property name="sizeAdjustPolicy">
-             <enum>QAbstractScrollArea::AdjustToContents</enum>
+             <enum>QAbstractScrollArea::SizeAdjustPolicy::AdjustToContents</enum>
             </property>
            </widget>
           </item>
           <item>
-           <widget class="QTabWidget" name="tabWidget_2">
+           <widget class="QTabWidget" name="Optimizasyon">
             <property name="currentIndex">
-             <number>3</number>
+             <number>4</number>
             </property>
             <widget class="QWidget" name="Ranking">
              <attribute name="title">
@@ -297,7 +297,7 @@
                     <item>
                      <spacer name="verticalSpacer">
                       <property name="orientation">
-                       <enum>Qt::Vertical</enum>
+                       <enum>Qt::Orientation::Vertical</enum>
                       </property>
                       <property name="sizeHint" stdset="0">
                        <size>
@@ -312,7 +312,7 @@
                   <item>
                    <spacer name="horizontalSpacer">
                     <property name="orientation">
-                     <enum>Qt::Horizontal</enum>
+                     <enum>Qt::Orientation::Horizontal</enum>
                     </property>
                     <property name="sizeHint" stdset="0">
                      <size>
@@ -420,7 +420,7 @@
                 <item>
                  <spacer name="verticalSpacer_2">
                   <property name="orientation">
-                   <enum>Qt::Vertical</enum>
+                   <enum>Qt::Orientation::Vertical</enum>
                   </property>
                   <property name="sizeHint" stdset="0">
                    <size>
@@ -477,6 +477,50 @@
                <widget class="QTableWidget" name="tableWidget_2"/>
               </item>
              </layout>
+            </widget>
+            <widget class="QWidget" name="tab">
+             <attribute name="title">
+              <string>Optimizasyon</string>
+             </attribute>
+             <widget class="QPushButton" name="btn_optimize_sn">
+              <property name="geometry">
+               <rect>
+                <x>220</x>
+                <y>20</y>
+                <width>161</width>
+                <height>24</height>
+               </rect>
+              </property>
+              <property name="text">
+               <string>S/N Oranı Optimizasyonu </string>
+              </property>
+             </widget>
+             <widget class="QPushButton" name="btn_calculate_effects">
+              <property name="geometry">
+               <rect>
+                <x>220</x>
+                <y>60</y>
+                <width>161</width>
+                <height>24</height>
+               </rect>
+              </property>
+              <property name="text">
+               <string>Parametre hassasiyeti</string>
+              </property>
+             </widget>
+             <widget class="QTextEdit" name="text_results">
+              <property name="geometry">
+               <rect>
+                <x>0</x>
+                <y>130</y>
+                <width>531</width>
+                <height>181</height>
+               </rect>
+              </property>
+              <property name="readOnly">
+               <bool>true</bool>
+              </property>
+             </widget>
             </widget>
            </widget>
           </item>

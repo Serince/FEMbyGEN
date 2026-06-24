@@ -1,18 +1,17 @@
 import FreeCAD
 import FreeCADGui
-import os
 
 
 class FEMbyGEN(Workbench):
     "FEMbyGEN workbench object"
 
     def __init__(self):
-        self.__class__.Icon = os.path.join(FreeCAD.getHomePath(), "Mod","FEMbyGEN","fembygen","icons","icon.svg")
+       self.__class__.Icon = FreeCAD.getUserAppDataDir().replace("\\", "/") + "Mod/FEMbyGEN/fembygen/icons/icon.svg"
         self.__class__.MenuText = "FEMbyGEN"
         self.__class__.ToolTip = "Parametric FEM analysis"
 
         from PySide import QtCore
-        ICONS_PATH = os.path.join(FreeCAD.getHomePath(),"Mod","FEMbyGEN","fembygen","icons")
+        ICONS_PATH = FreeCAD.getUserAppDataDir().replace("\\", "/") + "Mod/FEMbyGEN/fembygen/icons/"
         QtCore.QDir.addSearchPath("icons", ICONS_PATH)
 
     def Initialize(self):

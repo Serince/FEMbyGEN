@@ -6,7 +6,7 @@ try:
 except:
     from PySide2.QtWidgets import  QTableWidgetItem
 import matplotlib.pyplot as plt
-import os.path
+import os
 import numpy as np
 from fembygen import Common
 import glob
@@ -57,7 +57,7 @@ class ResultsCommand():
     """Show results of analysed generations"""
 
     def GetResources(self):
-        return {'Pixmap': os.path.join(FreeCAD.getHomePath(),"Mod","FEMbyGEN","fembygen","icons","Results.svg"),  # the name of a svg file available in the resources
+        return {'Pixmap': os.path.join(FreeCAD.getUserAppDataDir(), "Mod", "FEMbyGEN", "fembygen", "icons", "Results.svg"), 
                 'Accel': "Shift+R",  # a default shortcut (optional)
                 'MenuText': "Show Results",
                 'ToolTip': "Show results of analysed generations"}
@@ -83,10 +83,11 @@ class ResultsCommand():
 class ResultsPanel:
     def __init__(self, object):
         # this will create a Qt widget from our ui file
-        guiPath = os.path.join(FreeCAD.getHomePath(),"Mod","FEMbyGEN","fembygen","ui","Results.ui")
+        guiPath = os.path.join(FreeCAD.getUserAppDataDir(), "Mod", "FEMbyGEN", "fembygen", "ui", "Results.ui")
         self.form = FreeCADGui.PySideUic.loadUi(guiPath)
-        self.workingDir = '/'.join(
-            object.Object.Document.FileName.split('/')[0:-1])
+        self.form.btn_optimize_sn.clicked.connect(self.optimize_SN_ratio)
+        self.form.btn_calculate_effects.clicked.connect(self.calculate_main_effects)
+        self.workingDir = os.path.dirname(object.Object.Document.FileName)
         self.numGenerationsi = Common.checkGenerations(self.workingDir)
         self.obj = object
 
@@ -225,7 +226,7 @@ class ResultsPanel:
         for i, row in enumerate(statuses):
             # open the generation file
             filename = f"Gen{i+1}"
-            filePath = self.workingDir + f"/Gen{i+1}/{filename}.FCStd"
+            filePath = os.path.join(self.workingDir, f"Gen{i+1}", f"{filename}.FCStd")
             doc = FreeCAD.open(filePath, hidden=True)
 
             # for each loadcases it's read the results
@@ -233,7 +234,7 @@ class ResultsPanel:
             for j, value in enumerate(row):
                 if value == "Analysed":
                     try:
-                        resultPath = self.workingDir + f"/Gen{i+1}/loadCase_{j+1}/"
+                        resultPath = os.path.join(self.workingDir, f"Gen{i+1}", f"loadCase_{j+1}") + os.sep
                         mean = np.mean(results[j].vonMises)
                         max = np.max(results[j].vonMises)
                         maxDisp = np.max(results[j].DisplacementLengths)
@@ -660,8 +661,7 @@ class ViewProviderResult:
         vobj.Proxy = self
 
     def getIcon(self):
-        icon_path = os.path.join(
-            FreeCAD.getHomePath() + 'Mod/FEMbyGEN/fembygen/icons/Results.svg')
+        icon_path = os.path.join(FreeCAD.getUserAppDataDir(), "Mod", "FEMbyGEN", "fembygen", "icons", "Results.svg")
         return icon_path
 
     def attach(self, vobj):
