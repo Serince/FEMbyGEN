@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>composite</class>
+ <widget class="QMainWindow" name="composite">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>182</width>
+    <height>188</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Central Composite Design</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <layout class="QGridLayout" name="gridLayout">
+    <item row="0" column="0">
+     <layout class="QVBoxLayout" name="verticalLayout">
+      <item>
+       <layout class="QHBoxLayout" name="horizontalLayout">
+        <item>
+         <widget class="QLabel" name="label">
+          <property name="toolTip">
+           <string>A 1-by-2 array of integers, the number of center points in each block of the design.</string>
+          </property>
+          <property name="toolTipDuration">
+           <number>-1</number>
+          </property>
+          <property name="text">
+           <string>Center</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLineEdit" name="center">
+          <property name="toolTip">
+           <string>A 1-by-2 array of integers, the number of center points in each block  of the design.</string>
+          </property>
+          <property name="toolTipDuration">
+           <number>-1</number>
+          </property>
+          <property name="layoutDirection">
+           <enum>Qt::LeftToRight</enum>
+          </property>
+          <property name="text">
+           <string notr="true">[4, 4]</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignCenter</set>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <layout class="QHBoxLayout" name="horizontalLayout_2">
+        <item>
+         <widget class="QLabel" name="label_2">
+          <property name="toolTip">
+           <string>A string describing the effect of alpha has on the variance. ``alpha``
+        can take on the following values</string>
+          </property>
+          <property name="text">
+           <string>Alpha</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QComboBox" name="alpha">
+          <property name="toolTip">
+           <string>A string describing the effect of alpha has on the variance. ``alpha``
+        can take on the following values</string>
+          </property>
+          <item>
+           <property name="text">
+            <string>orthogonal</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>rotatable</string>
+           </property>
+          </item>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <layout class="QHBoxLayout" name="horizontalLayout_3">
+        <item>
+         <widget class="QLabel" name="label_3">
+          <property name="toolTip">
+           <string>The relation between the start points and the corner (factorial) points.
+        There are three options for this input</string>
+          </property>
+          <property name="text">
+           <string>Face</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QComboBox" name="face">
+          <property name="toolTip">
+           <string>The relation between the start points and the corner (factorial) points.
+        There are three options for this input</string>
+          </property>
+          <item>
+           <property name="text">
+            <string>circumscribed</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>inscribed</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>faced</string>
+           </property>
+          </item>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <widget class="QPushButton" name="save">
+        <property name="text">
+         <string>Save</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QMenuBar" name="menubar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>182</width>
+     <height>22</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="QStatusBar" name="statusbar"/>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
