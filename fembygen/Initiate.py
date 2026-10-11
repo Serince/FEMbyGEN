@@ -4,13 +4,13 @@ import os
 from fembygen import Common
 
 MAX_NUM_PARAMETER = 10    # maximum number of parameters
-LOCATION = os.path.normpath(os.path.join("Mod", "FEMbyGEN", "fembygen"))
+LOCATION = os.path.dirname(os.path.abspath(__file__))
 
 class InitiateCommand():
     """Create parameter spreadsheet"""
 
     def GetResources(self):
-        return {'Pixmap':os.path.join(FreeCAD.getHomePath(), LOCATION, 'icons/Initiate.svg'),
+        return {'Pixmap':os.path.join(LOCATION, 'icons', 'Initiate.svg'),
                 'Accel': "Shift+N",  # a default shortcut (optional)
                 'MenuText': "Initiate",
                 'ToolTip': "Create parameter spreadsheet"}
