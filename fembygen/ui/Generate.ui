@@ -65,6 +65,21 @@
          <string>Central Composite Design</string>
         </property>
        </item>
+       <item>
+        <property name="text">
+         <string>Sobol Sequence Design</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Morris Sampling Design</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Optimal Design</string>
+        </property>
+       </item>
       </widget>
      </item>
      <item>

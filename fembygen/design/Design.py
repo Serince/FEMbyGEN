@@ -1,5 +1,5 @@
 import numpy as np
-from fembygen.design.pydoe2 import doe_lhs, doe_box_behnken, doe_composite, doe_plackett_burman
+import pyDOE3
 import itertools
 
 
@@ -9,7 +9,7 @@ def fullfact(A):
 
 
 def designlhc(A,samples,criterion, iterations, random_state, correlation_matrix):
-    lhc = doe_lhs.lhs(len(A), samples, criterion,iterations, random_state, correlation_matrix)
+    lhc = pyDOE3.lhs(len(A), samples, criterion,iterations, random_state, correlation_matrix)
     row, column = lhc.shape
     for i, param in enumerate(A):
         diff = param[-1]-param[0]
