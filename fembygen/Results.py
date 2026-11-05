@@ -57,7 +57,7 @@ class ResultsCommand():
     """Show results of analysed generations"""
 
     def GetResources(self):
-        return {'Pixmap': os.path.join(FreeCAD.getHomePath(),"Mod","FEMbyGEN","fembygen","icons","Results.svg"),  # the name of a svg file available in the resources
+        return {'Pixmap': os.path.join(os.path.dirname(os.path.abspath(__file__)), "icons", "Results.svg"),  # the name of a svg file available in the resources
                 'Accel': "Shift+R",  # a default shortcut (optional)
                 'MenuText': "Show Results",
                 'ToolTip': "Show results of analysed generations"}
@@ -83,7 +83,8 @@ class ResultsCommand():
 class ResultsPanel:
     def __init__(self, object):
         # this will create a Qt widget from our ui file
-        guiPath = os.path.join(FreeCAD.getHomePath(),"Mod","FEMbyGEN","fembygen","ui","Results.ui")
+        guiPath = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                               "ui", "Results.ui")
         self.form = FreeCADGui.PySideUic.loadUi(guiPath)
         self.workingDir = '/'.join(
             object.Object.Document.FileName.split('/')[0:-1])
@@ -661,7 +662,7 @@ class ViewProviderResult:
 
     def getIcon(self):
         icon_path = os.path.join(
-            FreeCAD.getHomePath() + 'Mod/FEMbyGEN/fembygen/icons/Results.svg')
+            os.path.dirname(os.path.abspath(__file__)), "icons", "Results.svg")
         return icon_path
 
     def attach(self, vobj):

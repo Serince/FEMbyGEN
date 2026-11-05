@@ -51,7 +51,7 @@ class CreateGeoCommand:
         self.createGeoPanel = None
     def GetResources(self):
         return {
-            'Pixmap': os.path.join(FreeCAD.getHomePath(), "Mod","FEMbyGEN","fembygen","icons","createGeo.svg"),
+            'Pixmap': os.path.join(os.path.dirname(os.path.abspath(__file__)), "icons", "createGeo.svg"),
             'Accel': "Shift+S",
             'MenuText': "Create Geo Generations",
             'ToolTip': "Perform createGeo operations on selected objects"
@@ -480,7 +480,7 @@ class ViewProvidercreateGeo:
 
     def getIcon(self):
         icon_path = os.path.join(
-            FreeCAD.getHomePath() + 'Mod/FEMbyGEN/fembygen/icons/createGeo.svg')
+            os.path.dirname(os.path.abspath(__file__)), "icons", "createGeo.svg")
         return icon_path
 
     def attach(self, vobj):
@@ -523,5 +523,6 @@ class ViewProvidercreateGeo:
 
 
 # Path to your UI file
-guiPath = FreeCAD.getHomePath() + "/Mod/FEMbyGEN/fembygen/ui/createGeo.ui"
+guiPath = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                       "ui", "createGeo.ui")
 FreeCADGui.addCommand('createGeo', CreateGeoCommand())
