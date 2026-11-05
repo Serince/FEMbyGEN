@@ -11,6 +11,7 @@ class FEMbyGEN(Workbench):
             FreeCAD.getUserAppDataDir(), "Mod", "FEMbyGEN")
         icons_path = os.path.join(workbench_path, "fembygen", "icons")
         self.__class__.Icon = os.path.join(icons_path, "icon.svg")
+
         self.__class__.MenuText = "FEMbyGEN"
         self.__class__.ToolTip = "Parametric FEM analysis"
 
