@@ -128,8 +128,7 @@ class BesoMain:
 
     def main(self):
         from fembygen.topology import beso_plots
-
-        self.os.putenv('OMP_NUM_THREADS', str(self.doc.Topology.cpu_cores))
+        self.os.environ['OMP_NUM_THREADS'] = str(self.doc.Topology.cpu_cores)
         self.start_time = self.time.time()
         # writing log file with settings
         msg = "\n"
@@ -175,6 +174,11 @@ class BesoMain:
         msg += "\n"
         self.file_name = self.os.path.join(self.path, self.file_name)
         self.beso_lib.write_to_log(self.file_name, msg)
+        env = self.os.environ.copy()
+        env['OMP_NUM_THREADS'] = str(self.doc.Topology.cpu_cores)
+        omp_msg = f"OMP_NUM_THREADS = {env['OMP_NUM_THREADS']}\n"
+        self.beso_lib.write_to_log(self.file_name, omp_msg)
+        print(omp_msg)
 
         # mesh and domains importing
         [nodes, Elements, domains, opt_domains, en_all, plane_strain, plane_stress, axisymmetry] = self.beso_lib.import_inp(
@@ -300,8 +304,8 @@ class BesoMain:
                                                                                                                  f_range)
                         print(msg)
                         self.beso_lib.write_to_log(self.file_name, msg)
-                    [above_elm, below_elm] = self.beso_filters.prepare2s_casting(cg, f_range, domains_to_filter,
-                                                                                 above_elm, below_elm, casting_vector)
+                    [self.above_elm, self.below_elm] = self.beso_filters.prepare2s_casting(cg, f_range, domains_to_filter,
+                                                                                 self.above_elm, self.below_elm, casting_vector)
                     continue  # to evaluate other filters
                 if len(ft) == 2:
                     domains_to_filter = list(opt_domains)
@@ -409,7 +413,6 @@ class BesoMain:
         elm_states_before_last = {}
         elm_states_last = elm_states
         oscillations = False
-
         self.createFolder(self.path, self.file_name)
 
         while True:
@@ -425,11 +428,22 @@ class BesoMain:
                                     self.domain_FI_filled)
             # running CalculiX analysis
 
-            if self.sys.platform.startswith('linux'):
-                self.subprocess.call([self.os.path.normpath(self.path_calculix), file_nameW], cwd=self.path)
-            else:
-                self.subprocess.call([self.os.path.normpath(self.path_calculix), file_nameW], cwd=self.path, shell=True)
 
+            if self.sys.platform.startswith('linux') or self.sys.platform == 'darwin':
+                proc = self.subprocess.Popen(
+                [self.os.path.normpath(self.path_calculix), file_nameW],
+                cwd=self.os.path.dirname(file_nameW),
+                env=env
+                )
+            else:
+                proc = self.subprocess.Popen(
+                [self.os.path.normpath(self.path_calculix), file_nameW],
+                cwd=self.path,
+                shell=True,
+                env=env
+                )
+            while proc.poll() is None:
+                self.time.sleep(0.05)
             # reading results and computing failure indices
             if (self.reference_points == "integration points") or (self.optimization_base == "stiffness") or \
                     (self.optimization_base == "buckling") or (self.optimization_base == "heat"):  # from .dat file
@@ -546,7 +560,7 @@ class BesoMain:
                             domains_to_filter = []
                             for dn in ft[3:]:
                                 domains_to_filter += domains[dn]
-                        sensitivity_number = self.beso_filters.run2_casting(sensitivity_number, above_elm, below_elm,
+                        sensitivity_number = self.beso_filters.run2_casting(sensitivity_number, self.above_elm, self.below_elm,
                                                                             domains_to_filter)
                         continue  # to evaluate other filters
                     if len(ft) == 2:

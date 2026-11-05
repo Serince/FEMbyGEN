@@ -57,7 +57,7 @@ class ResultsCommand():
     """Show results of analysed generations"""
 
     def GetResources(self):
-        return {'Pixmap': os.path.join(FreeCAD.getUserAppDataDir() + 'Mod/FEMbyGEN/fembygen/icons/Results.svg'),  # the name of a svg file available in the resources
+        return {'Pixmap': os.path.join(os.path.dirname(os.path.abspath(__file__)), "icons", "Results.svg"),  # the name of a svg file available in the resources
                 'Accel': "Shift+R",  # a default shortcut (optional)
                 'MenuText': "Show Results",
                 'ToolTip': "Show results of analysed generations"}
@@ -83,7 +83,8 @@ class ResultsCommand():
 class ResultsPanel:
     def __init__(self, object):
         # this will create a Qt widget from our ui file
-        guiPath = FreeCAD.getUserAppDataDir() + "Mod/FEMbyGEN/fembygen/ui/Results.ui"
+        guiPath = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                               "ui", "Results.ui")
         self.form = FreeCADGui.PySideUic.loadUi(guiPath)
         self.workingDir = '/'.join(
             object.Object.Document.FileName.split('/')[0:-1])
@@ -102,6 +103,8 @@ class ResultsPanel:
         self.updateResultsTableAll()
         self.updateResultsTableSum()
         self.doc.save()
+        self.optimize_SN_ratio()
+        self.calculate_main_effects()
           
     def updateResultsTableAll(self):
         header = self.doc.Results.FEAMetricsAll[0]
@@ -640,7 +643,64 @@ class ResultsPanel:
         valRange = maxVal - minVal
         norm = (vals-minVal)/valRange
         return norm
+    def optimize_SN_ratio(self):
+        """
+        Optimizasyon: Sinyal/Gürültü (S/N) oranını hesaplayarak en optimal ve 
+        sağlam (robust) tasarımı bulur. Taguchi.py içindeki Signal sınıfını kullanır.
+        """
+        try:
+            from fembygen.design.Taguchi import Signal
+        except ImportError:
+            import sys
+            import os
+            sys.path.append(os.path.join(FreeCAD.getUserAppDataDir(), 'Mod/FEMbyGEN/fembygen/design'))
+            from Taguchi import Signal
+            
+        signal_calc = Signal()
+        results = np.array(self.doc.Results.FEAMetricsSum[1:], dtype=np.dtype("float"))
+        
+        sn_ratios = []
+        for i, row in enumerate(results):
+            max_stress_value = row[4]
+            sn = signal_calc.smaller_best([max_stress_value]) 
+            sn_ratios.append((i+1, sn))
+            
+        best_gen = max(sn_ratios, key=lambda x: x[1])
+        FreeCAD.Console.PrintMessage(f"*** DOE OPTIMIZASYON SONUCU ***\n")
+        FreeCAD.Console.PrintMessage(f"En Optimal Tasarım: Gen {best_gen[0]} (S/N Oranı: {best_gen[1]:.2f})\n\n")
+        
+        return sn_ratios
 
+    def calculate_main_effects(self):
+        """
+        Parametre Değerlendirme (Hassasiyet): Her bir parametrenin 
+        seviyelerinin sonuca olan ortalama etkisini (Main Effect) hesaplar.
+        """
+        master = self.doc
+        results = np.array(master.Results.FEAMetricsSum[1:], dtype=np.dtype("float"))
+        parameters1 = np.array(master.Generate.GeneratedParameters, dtype=np.dtype("float"))
+        parameterValues = np.transpose(parameters1)
+        parameters = master.Generate.ParametersName
+        
+        effects_table = []
+        for index, param in enumerate(parameters):
+            unique_values = np.unique(parameterValues[index])
+            level_means = []
+            
+            for value in unique_values:
+                mean_res = np.mean(results[:, 4][parameterValues[index] == value])
+                level_means.append(mean_res)
+                
+            delta = max(level_means) - min(level_means)
+            effects_table.append((param, delta))
+            
+        effects_table.sort(key=lambda x: x[1], reverse=True)
+        
+        FreeCAD.Console.PrintMessage(f"*** PARAMETRE DEĞERLENDİRME (HASSASİYET) ***\n")
+        for p, d in effects_table:
+            FreeCAD.Console.PrintMessage(f"Parametre: {p} --> Etki Miktarı (Delta): {d:.2e}\n")
+            
+        return effects_table
     def accept(self):
         doc = FreeCADGui.getDocument(self.obj.Document)
         doc.resetEdit()
@@ -661,7 +721,7 @@ class ViewProviderResult:
 
     def getIcon(self):
         icon_path = os.path.join(
-            FreeCAD.getUserAppDataDir() + 'Mod/FEMbyGEN/fembygen/icons/Results.svg')
+            os.path.dirname(os.path.abspath(__file__)), "icons", "Results.svg")
         return icon_path
 
     def attach(self, vobj):

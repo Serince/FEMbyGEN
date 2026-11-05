@@ -796,7 +796,14 @@ def prepare2s_casting(cg, r_min, opt_domains, above_elm, below_elm, casting_vect
     eyg = np.array([0., 1., 0.])
     ezg = np.array([0., 0., 1.])
     casting_vector = casting_vector / np.linalg.norm(casting_vector)  # normalized vector (as z axis)
-    ex = np.array([-casting_vector[2], 0., casting_vector[0]])  # make orthogonal vector
+    abs_cv = np.abs(casting_vector)
+    if abs_cv[0] <= abs_cv[1] and abs_cv[0] <= abs_cv[2]:
+        ref = np.array([1., 0., 0.])
+    elif abs_cv[1] <= abs_cv[0] and abs_cv[1] <= abs_cv[2]:
+        ref = np.array([0., 1., 0.])
+    else:
+        ref = np.array([0., 0., 1.])
+    ex = np.cross(casting_vector, ref)
     ex /= np.linalg.norm(ex)  # unit vector
     ey = np.cross(ex, casting_vector)
     T = np.zeros((3,3))  # transformation matrix

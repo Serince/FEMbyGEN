@@ -4,7 +4,6 @@ import FemGui
 import os
 from fembygen import Common
 import shutil
-import os
 import PySide
 import glob
 from femtools import ccxtools
@@ -53,7 +52,7 @@ class FEACommand():
     """Perform FEA on generated parts"""
 
     def GetResources(self):
-        return {'Pixmap': os.path.join(FreeCAD.getUserAppDataDir() + 'Mod/FEMbyGEN/fembygen/icons/FEA.svg'),  # the name of a svg file available in the resources
+        return {'Pixmap': os.path.join(os.path.dirname(os.path.abspath(__file__)), "icons", "FEA.svg"),  # the name of a svg file available in the resources
                 'Accel': "Shift+A",  # a default shortcut (optional)
                 'MenuText': "FEA Generations",
                 'ToolTip': "Perform FEA on generated parts"}
@@ -82,7 +81,8 @@ class FEAPanel:
         self.obj = object
         self.doc = object.Object.Document
         # this will create a Qt widget from our ui file
-        guiPath = FreeCAD.getUserAppDataDir() + "Mod/FEMbyGEN/fembygen/ui/PerformFEA.ui"
+        guiPath = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                               "ui", "PerformFEA.ui")
         self.form = FreeCADGui.PySideUic.loadUi(guiPath)
         self.workingDir = '/'.join(
             object.Object.Document.FileName.split('/')[0:-1])
@@ -129,7 +129,7 @@ class FEAPanel:
         for i in range(self.numGenerations):
             # Open generated part
             partName = f"Gen{i+1}"
-            filePath = self.workingDir + f"/Gen{i+1}/Gen{i+1}.FCStd"
+            filePath = os.path.join(self.workingDir,f"/Gen{i+1}",f"Gen{i+1}.FCStd")
             Gen_Doc = FreeCAD.open(filePath, hidden=True)
             FreeCAD.setActiveDocument(partName)
 
@@ -140,8 +140,7 @@ class FEAPanel:
                     if obj.TypeId == "Fem::FemAnalysis":  # to choose analysis objects
                         lc += 1
                         FemGui.setActiveAnalysis(obj)
-                        analysisfolder = os.path.join(
-                            self.workingDir + f"/Gen{i+1}/loadCase_{lc}")
+                        analysisfolder = os.path.join(self.workingDir,f"/Gen{i+1}",f"loadCase_{lc}")
                         os.mkdir(analysisfolder)
                     # Run FEA solver on generation
                         self.performFEA(Gen_Doc, obj, analysisfolder)
@@ -276,8 +275,7 @@ class ViewProviderFEA:
         vobj.Proxy = self
 
     def getIcon(self):
-        icon_path = os.path.join(
-            FreeCAD.getUserAppDataDir() + 'Mod/FEMbyGEN/fembygen/icons/FEA.svg')
+        icon_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "icons", "FEA.svg")
         return icon_path
 
     def attach(self, vobj):
