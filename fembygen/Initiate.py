@@ -1,6 +1,7 @@
 import FreeCAD
 import FreeCADGui
 import os
+from PySide import QtGui    # FreeCAD's PySide!
 from fembygen import Common
 
 MAX_NUM_PARAMETER = 10    # maximum number of parameters
@@ -48,9 +49,9 @@ class InitiatePanel:
         sheet.set('D1', 'Max Value')
         sheet.set('E1', 'Number of Generations')
         sheet.setStyle('A1:E1', 'bold')    # head
-        sheet.setBackground('A1:E1', backColor)    # label columns
+        sheet.setBackground('A1:E1', backcolor)    # label columns
         sheet.setForeground('A1:E1', textColor)
-        sheet.setBackground(f'A2:A{MAX_NUM_PARAMETER+1}', backColor)
+        sheet.setBackground(f'A2:A{MAX_NUM_PARAMETER+1}', backcolor)
         sheet.setForeground(f'A2:A{MAX_NUM_PARAMETER+1}', textColor)
         return sheet
 
